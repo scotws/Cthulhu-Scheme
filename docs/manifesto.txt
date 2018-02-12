@@ -1,0 +1,14 @@
+Manifesto for Tpol Lisp 
+Scot W. Stevenson <scot.stevenson@gmail.com>
+First version: 12. Feb 2018
+This version: 12. Feb 2018
+
+This is the initial document for Tpol Lisp, a Lisp for the 65c02. It will
+be superceded by the real documentation. 
+
+
+GOALS
+
+- Create a native Lisp for the 65c02 in assembler
+
+
