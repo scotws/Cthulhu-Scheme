@@ -1,0 +1,8 @@
+// [quote, Doug Hoffman, Some notes on Forth from a novice user]
+// After spending an entire weekend wrestling with blocks files, stacks, and
+// the like, I was horrified and convinced that I had made a mistake. Who
+// in their right mind would want to program in this godforsaken language! <<DH>>
+
+=== Tools Used
+
+Cthulhu Scheme is written in 65Tass Assembler

@@ -1,14 +1,24 @@
-Manifesto for Tpol Lisp 
-Scot W. Stevenson <scot.stevenson@gmail.com>
-First version: 12. Feb 2018
-This version: 12. Feb 2018
+Manifesto for Cthulhu Scheme for the 65c02 Scot W. Stevenson <scot.stevenson@gmail.com> First version: 12. Feb 2018 This version: 23. Mar 2020
 
-This is the initial document for Tpol Lisp, a Lisp for the 65c02. It will
-be superceded by the real documentation. 
+This is the initial document for Cthulhu Scheme for the 65c02. It will be
+superceded by the real documentation. 
 
 
-GOALS
+GOAL
 
-- Create a native Lisp for the 65c02 in assembler
+Create a native Scheme for the 65c02 in assembler. Because a full Scheme is
+pretty much impossible on this hardware, we get as close to possible. 
+
+This is a learning experience in multiple ways for me, as I don't really know
+Scheme this well and I've never created a Scheme/Lisp from scratch. In fact, it
+seems that nobody really does ...
+
+
+
+LITERATURE
+
+Obviously we follow "Structure and Interpretation of Computer Programs" by
+FEHLT. 
+
 
 

@@ -1,0 +1,68 @@
+// TODO missing quote 
+
+=== The Big Picture
+
+This section provides background information on Scheme, the 6502 processor, and
+why anybody would want to combine the two. It can be skipped if you already know
+all those things.
+
+==== The 6502 CPU
+
+(This passage is taken from the _Tali Forth 2 Manual_ by Sam Colwell and Scot W.
+Stevenson)
+
+It is a well-established fact that humanity reached the apex of processor design
+with the 6502(((6502))) in 1976. 
+
+[#img_65c02]
+.by Anthony King, public domain
+image::pics/W65c02.jpg[float="left"]
+
+Created by a team including Chuck Peddle((("Peddle, Chuck"))) and Bill
+Mensch((("Mensch, Bill"))), it was the engine that powered the 8-bit home
+computer revolution of the 1980s.footnote:[Rumor has it that there was another
+MPU called "Z80",(((Z80))) but it ended up being a mere footnote.] The
+VIC-20(((VIC-20))), Commodore PET(((Commodore PET))), Apple II(((Apple II))),
+and Atari 800(((Atari 800))) all used the 6502, among others.
+
+More than 40 years later, the processor is still in production by the
+http://www.westerndesigncenter.com/wdc/w65c02s-chip.cfm[Western Design
+Center](((WDC))). Apart from commercial uses, there is an active hobbyist scene
+centered on the website http://6502.org/[6502.org].(((6502.org))) A
+number of people have built their own 8-bit computers based on this chip and
+the instructions there, including a
+http://wilsonminesco.com/6502primer/[primer] by Garth Wilson((("Wilson,
+Garth"))). It is for these systems that Tali Forth 2 was created.
+
+The most important variant of the 6502 produced today is the 
+https://en.wikipedia.org/wiki/WDC\_65C02[65c02](((65c02))), a CMOS chip with
+some additional instructions. It is for this chip that Tali Forth 2 was written.
+
+But why program in 8-bit assembler at all? The 65c02 is fun to work with
+because of its clean instruction set architecture (ISA)(((instruction set
+architecture (ISA) ))) This is not the place to explain the joys of assembler.
+The official handbook for the 65c02 is _Programming the 65816_ <<EnL>>.
+
+TIP: Garth  Wilson((("Wilson, Garth"))) answers this question in greater
+detail as part of his 6502 primer at http://wilsonminesco.com/6502primer/ .
+
+==== Lisp and Scheme 
+
+// [quote, Elliot Williams, Forth: The Hacker's language]
+// If C gives you enough rope to hang yourself, Forth is a flamethrower crawling with
+// cobras. <<EW>>
+
+
+=== Writing Your Own Scheme or Lisp
+
+Even if the 65c02 is great and Scheme is brilliant, why go to the effort of
+writing a new, bare-metal version of the languages? After almost 50 years,
+shouldn't there be a bunch of versions around already?
+
+=== A Note on the Name
+
+Cthulhu, a creation by H.P. Lovecraft,((("Lovecraft, H.P."))) is one of the
+Great Ancient Ones, and so is Lisp, a great ancient programming language of
+awesome and terrible power. However, you could also say that given my rather
+rudimentery Scheme and Lisp skills, this Scheme version is something of a
+monster that should have stayed hidden in the formless void.  
