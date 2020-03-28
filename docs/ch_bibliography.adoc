@@ -1,2 +1,5 @@
 // [[[FB]]] _Masterminds of Programming_, Federico Biancuzzi, 
 // O'Reilly Media 1st edition, 2009.
+
+[[[HA]]] _Structure and Interpretation of Computer Programs_, 
+Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996
