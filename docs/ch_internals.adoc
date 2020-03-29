@@ -1,0 +1,51 @@
+// [quote, Dennis M. Ritchie, Reflections on Software Research]
+// Our intent was to create a pleasant computing environment
+// for ourselves, and our hope was that others liked it. <<DMR>>
+
+[quote, John McCarthy _et al_, Lisp I Programmer's Manual]
+The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
+the (IBM) 704.
+<<JM2>>
+
+=== Design descisions
+
+One of the first questions is how to represent the objects of the language --
+lists, integers, strings, symbols, etc. Usually in Lisp/Scheme, this is handled
+by a machine word that is split into a tag part and a pointer or immediate part,
+depending on the object in question. 
+
+// TODO https://common-lisp.net/project/ecl/static/manual/ch35.html#Internals-Objects-representation
+// TODO add image
+
+We immediately see the challenges of running Scheme on an 8-bit machine with
+small register, address, and word sizes. Even earliest version of Lisp was
+envisioned for a machine with a 36-bit word size and 15-bit pointers, the IBM
+701.<<JM1>> It was first [actually
+implemented](https://en.wikipedia.org/wiki/IBM_704) on an IBM 704 with the same
+word size.<<JM2>> We have less to work with then the first Lispers back in 1960. 
+
+For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest three
+bits (15-13) for the tag and the remaining 13 bits for either the immediate
+value (such as characters and fixnums) or a pointer to the value on the heap
+(such as lists or strings). 
+
+==== Object types 
+
+A three-bit tag gives us eight possible object types
+
+* Bignum (pointer, bit code TODO)
+* Booleans (immediate, bit code TODO)
+* Character (immediate, bit code TODO)
+* Fixnum (immediate, bit code TODO)
+* List (pointer, bit code TODO)
+* Procedure (pointer, bit code 000) The bit code 000 was chosen to make
+  detecting a procedure as fast as possible
+* String (pointer, bit code TODO).
+* Symbol (pointer, bit code TODO)
+
+There are quite a number of object types missing here compared to normal list --
+see for example the [GNU Guile data
+types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
+some sacrifices had to be made.
+
+

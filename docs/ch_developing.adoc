@@ -1,8 +1,16 @@
-// [quote, Doug Hoffman, Some notes on Forth from a novice user]
-// After spending an entire weekend wrestling with blocks files, stacks, and
-// the like, I was horrified and convinced that I had made a mistake. Who
-// in their right mind would want to program in this godforsaken language! <<DH>>
+[quote, Sinclair Target, How Lisp Became God's Own Programming Language] 
+It’s worth dwelling for a while on how weird SICP really is, because I think the
+book’s weirdness and Lisp’s weirdness get conflated today. (...) Honestly, what
+is going on here? Why does the table have animal feet? Why is the woman
+gesturing at the table? What is the significance of the inkwell? <<ST>>
+
+=== Documentation
+
+Cthulhu Scheme, like most other DIY Schemes, is heavy influenced by _Structure and
+Interpretation of Computer Programs_ (SICP) by Harald Abelson and Gerald Gay
+Sussman<<ST>>. 
+
 
 === Tools Used
 
-Cthulhu Scheme is written in 65Tass Assembler
+Cthulhu Scheme is written in [64Tass Assembler](http://tass64.sourceforge.net/). 

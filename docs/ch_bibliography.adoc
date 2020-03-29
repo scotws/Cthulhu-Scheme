@@ -1,5 +1,15 @@
-// [[[FB]]] _Masterminds of Programming_, Federico Biancuzzi, 
-// O'Reilly Media 1st edition, 2009.
+// Please use ISO dates (2018-12-01) or explicit months (1. Dec 2018) to avoid
+// the problem with the American format of putting the month before the day vs
+// European day before the month
 
 [[[HA]]] _Structure and Interpretation of Computer Programs_, 
 Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996
+
+[[[JM1]]] _History of Lisp_, John McCarthy,
+http://jmc.stanford.edu/articles/lisp/lisp.pdf, 1979-02-17
+
+[[[JM2]]] _Lisp I Programmer's Manual_, John McCarthy _et al_,
+http://history.siam.org/sup/Fox_1960_LISP.pdf, 1960-03-01
+
+[[[ST]]] _How Lisp Became God's Own Programming Language_, 
+Sinclair Target, https://twobithistory.org/2018/10/14/lisp.html, 2018-10-14

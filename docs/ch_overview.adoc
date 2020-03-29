@@ -1,0 +1,28 @@
+=== Design Considerations
+
+TODO
+
+==== Characteristics of the 65c02
+
+_(This section is adapted from the Tali Forth 2 Manual)_
+
+Since this is a bare-metal Cthulhu Lisp, the most important consideration is the target
+processor. The 65c02 only has one full register, the accumulator A, as well as
+two secondary registers X and Y. All are 8-bit wide. There are 256 bytes that
+are more easily addressable on the Zero Page. A single hardware stack is used
+for subroutine jumps. The address bus is 16 bits wide for a maximum of 64 KiB of
+RAM and ROM. 
+
+For the default setup, we assume 32 KiB of each, but allow this to be changed so
+people can adapt Tali to their own hardware.
+
+==== What we need for a Scheme
+
+(REPL)
+
+(HEAP)
+
+(STACK)
+
+(GC)
+

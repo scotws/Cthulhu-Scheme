@@ -6,9 +6,9 @@ This section provides background information on Scheme, the 6502 processor, and
 why anybody would want to combine the two. It can be skipped if you already know
 all those things.
 
-==== The 6502 CPU
+==== The 6502 MPU
 
-(This passage is taken from the _Tali Forth 2 Manual_ by Sam Colwell and Scot W.
+(This passage is adapted from the _Tali Forth 2 Manual_ by Sam Colwell and Scot W.
 Stevenson)
 
 It is a well-established fact that humanity reached the apex of processor design
@@ -52,12 +52,41 @@ detail as part of his 6502 primer at http://wilsonminesco.com/6502primer/ .
 // If C gives you enough rope to hang yourself, Forth is a flamethrower crawling with
 // cobras. <<EW>>
 
+[quote, Sinclair Target, How Lisp Became God's Own Programming Language]
+Lisp was concocted in the ivory tower as a tool for artificial intelligence
+research, so it was always going to be unfamiliar and maybe even a bit
+mysterious to the programming laity. But programmers now urge each other to "try
+Lisp before you die" as if it were some kind of mind-expanding psychedelic.
+<<ST>>
+
+
+
+For the early history of Lisp, see [A History of
+Lisp](http://jmc.stanford.edu/articles/lisp/lisp.pdf) by John McCarthy. 
+
 
 === Writing Your Own Scheme or Lisp
 
 Even if the 65c02 is great and Scheme is brilliant, why go to the effort of
 writing a new, bare-metal version of the languages? After almost 50 years,
 shouldn't there be a bunch of versions around already?
+
+Well, no. 
+
+TODO
+
+As an additional problem, no sane person seems to be interested in creating
+their own Lisp in assembler. Pretty much all the guides are in C. 
+
+(TODO Note _Lisp in Small Pieces_)
+
+=== Is this a Lisp or a Scheme?
+
+Purists might be worried if this is a Lisp or a Scheme. Some people an get
+_really_ excited about this. However, Cthulhu Scheme is so primitive that the
+distinction doesn't really make much sense. Because Cthulhu Scheme follows
+_Structure and Interpretation of Computer Programs_ <<HA>>, it looks a bit more
+like Scheme than Common Lisp. 
 
 === A Note on the Name
 
