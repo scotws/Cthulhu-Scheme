@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Mar 30 16:13:12 2020
+; Mon Mar 30 16:40:11 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -13,32 +13,75 @@
 =$7f					zpage_end = $7F            ; end of Zero Page used ($0000-$007f)
 =$0100					stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
 
+;******  Processing file: platforms/../definitions.asm
+
+=$03					        AscCC   = $03  ; break (CTRL-c)
+=$07					        AscBELL = $07  ; bell sound
+=$08					        AscBS   = $08  ; backspace
+=$0a					        AscLF   = $0a  ; line feed
+=$0d					        AscCR   = $0d  ; carriage return
+=$1b					        AscESC  = $1b  ; escape
+=$20					        AscSP   = $20  ; space
+=$7f					        AscDEL  = $7f  ; delete (CTRL-h)
+=$10					        AscCP   = $10  ; CTRL-p (used to recall previous input history)
+=$0e					        AscCN   = $0e  ; CTRL-n (used to recall next input history)
+=0					        output = zpage+0  ; output port (2 bytes)
+=2					        input  = zpage+2  ; input port (2 bytes)
+
+;******  Return to file: platforms/platform-py65mon.asm
+
+
 ;******  Processing file: platforms/../cthulhu.asm
 
 .8000					code0:
-
-;******  Processing file: platforms/../definitions.asm
-
-=$03					AscCC   = $03  ; break (CTRL-c)
-=$07					AscBELL = $07  ; bell sound
-=$08					AscBS   = $08  ; backspace
-=$0a					AscLF   = $0a  ; line feed
-=$0d					AscCR   = $0d  ; carriage return
-=$1b					AscESC  = $1b  ; escape
-=$20					AscSP   = $20  ; space
-=$7f					AscDEL  = $7f  ; delete (CTRL-h)
-=$10					AscCP   = $10  ; CTRL-p (used to recall previous input history)
-=$0e					AscCN   = $0e  ; CTRL-n (used to recall next input history)
-
-;******  Return to file: platforms/../cthulhu.asm
-
 .8000					cthulhu:
-.8000	00		brk #		        brk
+.8000	d8		cld		                cld
+.8001	a9 27		lda #$27	                lda #<kernel_putc
+.8003	85 00		sta $00		                sta output
+.8005	a9 f0		lda #$f0	                lda #>kernel_putc
+.8007	85 01		sta $01		                sta output+1
+.8009	00		brk #		        brk
+
+;******  Return to file: platforms/platform-py65mon.asm
+
+
+;******  Processing file: platforms/../helpers.asm
+
+.800a					byte_to_ascii:
+.800a	48		pha		                pha
+.800b	4a		lsr a		                lsr             ; convert high nibble first
+.800c	4a		lsr a		                lsr
+.800d	4a		lsr a		                lsr
+.800e	4a		lsr a		                lsr
+.800f	20 13 80	jsr $8013	                jsr _nibble_to_ascii
+.8012	68		pla		                pla
+.8013					_nibble_to_ascii:
+.8013	29 0f		and #$0f	                and #$0F
+.8015	09 30		ora #$30	                ora #'0'
+.8017	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
+.8019	90 02		bcc $801d	                bcc +
+.801b	69 06		adc #$06	                adc #$06
+.801d	4c 27 f0	jmp $f027	+               jmp kernel_putc
+.8020	60		rts		                rts
+
+;******  Return to file: platforms/platform-py65mon.asm
+
+
+;******  Processing file: platforms/../native-procedures.asm
+
+.8021					proc_read_char:
+.8021					proc_read_line:
+
+;******  Return to file: platforms/platform-py65mon.asm
+
+
+;******  Processing file: platforms/../procedures.asm
+
+
+;******  Return to file: platforms/platform-py65mon.asm
+
 
 ;******  Processing file: platforms/../strings.asm
-
-
-;******  Return to file: platforms/../cthulhu.asm
 
 
 ;******  Return to file: platforms/platform-py65mon.asm

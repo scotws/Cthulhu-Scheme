@@ -85,7 +85,12 @@ stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
 
 ; ==== MAIN CODE ROUTINES ====
 
-.include "../cthulhu.asm"       ; includes definitions and helper routines
+.include "../definitions.asm"           ; aliases and other definitions
+.include "../cthulhu.asm"               ; main code
+.include "../helpers.asm"               ; various general subroutines
+.include "../native-procedures.asm"     ; assembler-coded procedures
+.include "../procedures.asm"            ; high-level procedures
+.include "../strings.asm"               ; all text including error strings
 
 
 ; SOFT PHYSICAL ADDRESSES
@@ -97,13 +102,8 @@ stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
 ; accessing the user table, which would cost an extra cycle.
 
 ; hist_buff = ram_end-$03ff  ; begin of history buffers
-; user0     = zpage            ; user and system variables
-; rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
 ; bsize     = $ff              ; size of input/output buffers
 ; buffer0   = stack0+$100      ; input buffer ($0200-$027f)
-; cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
-; cp_end    = hist_buff        ; Last RAM byte available for code
-; padoffset = $ff              ; offset from CP to PAD (holds number strings)
 
 
 ; ==== KERNEL ROUTINES ====
