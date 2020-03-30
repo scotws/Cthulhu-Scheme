@@ -1,3 +1,12 @@
+; Platform-dependent file and Kernel for Cthulhu Scheme
+; Platform: py65mon (default)
+; Scot W. Stevenson <scot.stevenson@gmail.com>
+; First version: 19. Jan 2014 (Tali Forth)
+; This version: 30. March 2020
+
+; This file is adapted from the platform system of Tali Forth 2
+; Code is for the 64Tass assembler
+
 ; 65C02 processor (Cthulhu Scheme will not compile on older 6502)
         .cpu "65c02"
 
@@ -7,9 +16,14 @@
 ; Start ROM at memory location $8000
         * = $8000
 
-; TODO change, this is all still Tali Forth
 
-; MEMORY MAP OF RAM
+; ==== MEMORY MAP ====
+
+; TODO change memory map, this is all still Tali Forth
+
+; Of the 32 KiB we use, 24 KiB are reserved for Tali (from $8000 to $DFFF)
+; and the last eight (from $E000 to $FFFF) are left for whatever the user
+; wants to use them for.
 
 ; Drawing is not only very ugly, but also not to scale. See the manual for
 ; details on the memory map. Note that some of the values are hard-coded in
@@ -59,17 +73,19 @@
 ;    $7fff  +-------------------+  ram_end
 
 
-; HARD PHYSICAL ADDRESSES
-
-; Some of these are somewhat silly for the 65c02, where for example
-; the location of the Zero Page is fixed by hardware. 
+; Hard physical addresses. Some of these are somewhat silly for the 65c02,
+; where for example the location of the Zero Page is fixed by hardware. Note we
+; currently don't use the complete zero page
 
 ram_start = $0000          ; start of installed 32 KiB of RAM
 ram_end   = $8000-1        ; end of installed RAM
 zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
 zpage_end = $7F            ; end of Zero Page used ($0000-$007f)	
 stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
-hist_buff = ram_end-$03ff  ; begin of history buffers
+
+; ==== MAIN CODE ROUTINES ====
+
+.include "../cthulhu.asm"       ; includes definitions and helper routines
 
 
 ; SOFT PHYSICAL ADDRESSES
@@ -80,47 +96,35 @@ hist_buff = ram_end-$03ff  ; begin of history buffers
 ; has the address $300 and not $2FF. This avoids crossing the page boundry when
 ; accessing the user table, which would cost an extra cycle.
 
-user0     = zpage            ; user and system variables
-rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
-bsize     = $ff              ; size of input/output buffers
-buffer0   = stack0+$100      ; input buffer ($0200-$027f)
-cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
-cp_end    = hist_buff        ; Last RAM byte available for code
-padoffset = $ff              ; offset from CP to PAD (holds number strings)
+; hist_buff = ram_end-$03ff  ; begin of history buffers
+; user0     = zpage            ; user and system variables
+; rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
+; bsize     = $ff              ; size of input/output buffers
+; buffer0   = stack0+$100      ; input buffer ($0200-$027f)
+; cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
+; cp_end    = hist_buff        ; Last RAM byte available for code
+; padoffset = $ff              ; offset from CP to PAD (holds number strings)
 
 
-; .include "../taliforth.asm" ; zero page variables, definitions
+; ==== KERNEL ROUTINES ====
 
-; =====================================================================
-; FINALLY
-
-; Of the 32 KiB we use, 24 KiB are reserved for Tali (from $8000 to $DFFF)
-; and the last eight (from $E000 to $FFFF) are left for whatever the user
-; wants to use them for.
-
-
-; Default kernel file for Tali Forth 2
-; Scot W. Stevenson <scot.stevenson@gmail.com>
-; First version: 19. Jan 2014
-; This version: 18. Feb 2018
-;
-; This section attempts to isolate the hardware-dependent parts of Tali
-; Forth 2 to make it easier for people to port it to their own machines.
+; This section attempts to isolate the hardware-dependent parts of Cthulhu
+; Scheme to make it easier for people to port it to their own machines.
 ; Ideally, you shouldn't have to touch any other files. There are three
-; routines and one string that must be present for Tali to run:
-;
+; routines and one string that must be present for Cthulhu Scheme to run:
+
 ;       kernel_init - Initialize the low-level hardware
 ;       kernel_getc - Get single character in A from the keyboard (blocks)
 ;       kernel_putc - Prints the character in A to the screen
 ;       s_kernel_id - The zero-terminated string printed at boot
-;
-; This default version Tali ships with is written for the py65mon machine
-; monitor (see docs/MANUAL.md for details).
 
-; The main file of Tali got us to $e000. However, py65mon by default puts
-; the basic I/O routines at the beginning of $f000. We don't want to change
-; that because it would make using it out of the box harder, so we just
-; advance past the virtual hardware addresses.
+; This default version Cthulu Scheme ships with is written for the py65mon
+; machine monitor (see the manual for details).
+
+; Py65mon by default puts the basic I/O routines at the beginning of $f000. We
+; don't want to change that because it would make using it out of the box
+; harder, so we just advance past the virtual hardware addresses. This is crude
+; but good enough for now.
 * = $f010
 
 ; All vectors currently end up in the same place - we restart the system
@@ -133,13 +137,14 @@ kernel_init:
         ; """Initialize the hardware. This is called with a JMP and not
         ; a JSR because we don't have anything set up for that yet. With
         ; py65mon, of course, this is really easy. -- At the end, we JMP
-        ; back to the label forth to start the Forth system.
+        ; back to the label cthulhu to start the Scheme system.
         ; """
 .block
-                ; Since the default case for Tali is the py65mon emulator, we
-                ; have no use for interrupts. If you are going to include
-                ; them in your system in any way, you're going to have to
-                ; do it from scratch. Sorry.
+                
+                ; Since the default case for Cthulhu is the py65mon emulator,
+                ; we have no use for interrupts. If you are going to include
+                ; them in your system in any way, you're going to have to do it
+                ; from scratch. Sorry.
                 sei             ; Disable interrupts
 
                 ; We've successfully set everything up, so print the kernel
@@ -151,8 +156,7 @@ kernel_init:
                 inx
                 bra -
 _done:
-                ; TODO have a place to jump
-                ; jmp forth
+                jmp cthulhu
 .bend
 
 kernel_getc:
@@ -184,9 +188,8 @@ platform_bye:
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
 ; displayed after a successful boot
-; TODO replace $0a with AscLf
 s_kernel_id:
-        .text "Cthulhu Scheme default kernel for py65mon (18. Feb 2018)", $0a, 0
+        .text "Cthulhu Scheme default kernel for py65mon (30. Mar 2020)", Asclf, 0
 
 
 ; Add the interrupt vectors
@@ -197,4 +200,3 @@ s_kernel_id:
 .word v_irq
 
 ; END
-

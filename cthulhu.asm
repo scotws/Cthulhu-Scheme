@@ -11,5 +11,15 @@ code0:
 
 .include "definitions.asm"      ; Top-level definitions, memory map
 
+; Main entry point
+cthulhu:
+
+; TODO setup heap
+; TODO initilize REPL
+
+; TODO temporary halt of machine
+;
+        brk
+
 
 .include "strings.asm"          ; All strings including error messages

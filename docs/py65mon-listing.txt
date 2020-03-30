@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Mar 30 15:46:08 2020
+; Mon Mar 30 16:13:12 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -12,42 +12,66 @@
 =$0000					zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
 =$7f					zpage_end = $7F            ; end of Zero Page used ($0000-$007f)
 =$0100					stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
-=31744					hist_buff = ram_end-$03ff  ; begin of history buffers
-=$0000					user0     = zpage            ; user and system variables
-=$ff					rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
-=$ff					bsize     = $ff              ; size of input/output buffers
-=512					buffer0   = stack0+$100      ; input buffer ($0200-$027f)
-=768					cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
-=31744					cp_end    = hist_buff        ; Last RAM byte available for code
-=$ff					padoffset = $ff              ; offset from CP to PAD (holds number strings)
+
+;******  Processing file: platforms/../cthulhu.asm
+
+.8000					code0:
+
+;******  Processing file: platforms/../definitions.asm
+
+=$03					AscCC   = $03  ; break (CTRL-c)
+=$07					AscBELL = $07  ; bell sound
+=$08					AscBS   = $08  ; backspace
+=$0a					AscLF   = $0a  ; line feed
+=$0d					AscCR   = $0d  ; carriage return
+=$1b					AscESC  = $1b  ; escape
+=$20					AscSP   = $20  ; space
+=$7f					AscDEL  = $7f  ; delete (CTRL-h)
+=$10					AscCP   = $10  ; CTRL-p (used to recall previous input history)
+=$0e					AscCN   = $0e  ; CTRL-n (used to recall next input history)
+
+;******  Return to file: platforms/../cthulhu.asm
+
+.8000					cthulhu:
+.8000	00		brk #		        brk
+
+;******  Processing file: platforms/../strings.asm
+
+
+;******  Return to file: platforms/../cthulhu.asm
+
+
+;******  Return to file: platforms/platform-py65mon.asm
+
 .f010					v_nmi:
 .f010					v_reset:
 .f010					v_irq:
 .f010					kernel_init:
 .f010	78		sei		                sei             ; Disable interrupts
 .f011	a2 00		ldx #$00	                ldx #0
-.f013	bd 29 f0	lda $f029,x	-               lda s_kernel_id,x
+.f013	bd 2c f0	lda $f02c,x	-               lda s_kernel_id,x
 .f016	f0 06		beq $f01e	                beq _done
-.f018	20 24 f0	jsr $f024	                jsr kernel_putc
+.f018	20 27 f0	jsr $f027	                jsr kernel_putc
 .f01b	e8		inx		                inx
 .f01c	80 f5		bra $f013	                bra -
 .f01e					_done:
-.f01e					kernel_getc:
-.f01e					_loop:
-.f01e	ad 04 f0	lda $f004	                lda $f004
-.f021	f0 fb		beq $f01e	                beq _loop
-.f023	60		rts		                rts
-.f024					kernel_putc:
-.f024	8d 01 f0	sta $f001	                sta $f001
-.f027	60		rts		                rts
-.f028					platform_bye:
-.f028	00		brk #		                brk
-.f029					s_kernel_id:
->f029	43 74 68 75 6c 68 75 20		        .text "Cthulhu Scheme default kernel for py65mon (18. Feb 2018)", $0a, 0
->f031	53 63 68 65 6d 65 20 64 65 66 61 75 6c 74 20 6b
->f041	65 72 6e 65 6c 20 66 6f 72 20 70 79 36 35 6d 6f
->f051	6e 20 28 31 38 2e 20 46 65 62 20 32 30 31 38 29
->f061	0a 00
+.f01e	4c 00 80	jmp $8000	                jmp cthulhu
+.f021					kernel_getc:
+.f021					_loop:
+.f021	ad 04 f0	lda $f004	                lda $f004
+.f024	f0 fb		beq $f021	                beq _loop
+.f026	60		rts		                rts
+.f027					kernel_putc:
+.f027	8d 01 f0	sta $f001	                sta $f001
+.f02a	60		rts		                rts
+.f02b					platform_bye:
+.f02b	00		brk #		                brk
+.f02c					s_kernel_id:
+>f02c	43 74 68 75 6c 68 75 20		        .text "Cthulhu Scheme default kernel for py65mon (30. Mar 2020)", Asclf, 0
+>f034	53 63 68 65 6d 65 20 64 65 66 61 75 6c 74 20 6b
+>f044	65 72 6e 65 6c 20 66 6f 72 20 70 79 36 35 6d 6f
+>f054	6e 20 28 33 30 2e 20 4d 61 72 20 32 30 32 30 29
+>f064	0a 00
 >fffa	10 f0				.word v_nmi
 >fffc	10 f0				.word v_reset
 >fffe	10 f0				.word v_irq
