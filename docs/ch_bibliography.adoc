@@ -11,5 +11,9 @@ http://jmc.stanford.edu/articles/lisp/lisp.pdf, 1979-02-17
 [[[JM2]]] _Lisp I Programmer's Manual_, John McCarthy _et al_,
 http://history.siam.org/sup/Fox_1960_LISP.pdf, 1960-03-01
 
+[[[PW]]] _An Introduction to Scheme and its Implementation_, Paul R Wilson,
+https://www.cs.utexas.edu/ftp/garbage/cs345/schintro-v14/schintro_32.html, 1996
+
 [[[ST]]] _How Lisp Became God's Own Programming Language_, 
 Sinclair Target, https://twobithistory.org/2018/10/14/lisp.html, 2018-10-14
+

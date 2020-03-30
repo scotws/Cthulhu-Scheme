@@ -1,7 +1,3 @@
-// [quote, Dennis M. Ritchie, Reflections on Software Research]
-// Our intent was to create a pleasant computing environment
-// for ourselves, and our hope was that others liked it. <<DMR>>
-
 [quote, John McCarthy _et al_, Lisp I Programmer's Manual]
 The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
 the (IBM) 704.
@@ -48,4 +44,10 @@ see for example the [GNU Guile data
 types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
 some sacrifices had to be made.
 
+==== Build-in procedures
+
+[quote, Paul R Wilson, An Introduction to Scheme and its Implementation] 
+The first field of a pair is called the 'car' field, and the second field is
+called the 'cdr' field. These are among the dumbest names for anything in all of
+computer science.<<PW>> 
 

@@ -1,11 +1,13 @@
-.org $8000
+; 65C02 processor (Cthulhu Scheme will not compile on older 6502)
+        .cpu "65c02"
 
-; TODO move over to Cthulhu Scheme
+; No special text encoding (eg. ASCII)
+        .enc "none"
 
-; I/O facilities are handled in the separate kernel files because of their
-; hardware dependencies. See docs/memorymap.txt for a discussion of Tali's
-; memory layout.
+; Start ROM at memory location $8000
+        * = $8000
 
+; TODO change, this is all still Tali Forth
 
 ; MEMORY MAP OF RAM
 
@@ -60,16 +62,14 @@
 ; HARD PHYSICAL ADDRESSES
 
 ; Some of these are somewhat silly for the 65c02, where for example
-; the location of the Zero Page is fixed by hardware. However, we keep
-; these for easier comparisons with Liara Forth's structure and to
-; help people new to these things.
+; the location of the Zero Page is fixed by hardware. 
 
-.alias ram_start $0000          ; start of installed 32 KiB of RAM
-.alias ram_end   $8000-1        ; end of installed RAM
-.alias zpage     ram_start      ; begin of Zero Page ($0000-$00ff)
-.alias zpage_end $7F            ; end of Zero Page used ($0000-$007f)	
-.alias stack0    $0100          ; begin of Return Stack ($0100-$01ff)
-.alias hist_buff ram_end-$03ff  ; begin of history buffers
+ram_start = $0000          ; start of installed 32 KiB of RAM
+ram_end   = $8000-1        ; end of installed RAM
+zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
+zpage_end = $7F            ; end of Zero Page used ($0000-$007f)	
+stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
+hist_buff = ram_end-$03ff  ; begin of history buffers
 
 
 ; SOFT PHYSICAL ADDRESSES
@@ -80,16 +80,16 @@
 ; has the address $300 and not $2FF. This avoids crossing the page boundry when
 ; accessing the user table, which would cost an extra cycle.
 
-.alias user0     zpage            ; user and system variables
-.alias rsp0      $ff              ; initial Return Stack Pointer (65c02 stack)
-.alias bsize     $ff              ; size of input/output buffers
-.alias buffer0   stack0+$100      ; input buffer ($0200-$027f)
-.alias cp0       buffer0+bsize+1  ; Dictionary starts after last buffer
-.alias cp_end    hist_buff        ; Last RAM byte available for code
-.alias padoffset $ff              ; offset from CP to PAD (holds number strings)
+user0     = zpage            ; user and system variables
+rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
+bsize     = $ff              ; size of input/output buffers
+buffer0   = stack0+$100      ; input buffer ($0200-$027f)
+cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
+cp_end    = hist_buff        ; Last RAM byte available for code
+padoffset = $ff              ; offset from CP to PAD (holds number strings)
 
 
-.require "../taliforth.asm" ; zero page variables, definitions
+; .include "../taliforth.asm" ; zero page variables, definitions
 
 ; =====================================================================
 ; FINALLY
@@ -98,9 +98,6 @@
 ; and the last eight (from $E000 to $FFFF) are left for whatever the user
 ; wants to use them for.
 
-.advance $e000
-platform_bye:
-    brk
 
 ; Default kernel file for Tali Forth 2
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
@@ -124,7 +121,7 @@ platform_bye:
 ; the basic I/O routines at the beginning of $f000. We don't want to change
 ; that because it would make using it out of the box harder, so we just
 ; advance past the virtual hardware addresses.
-.advance $f010
+* = $f010
 
 ; All vectors currently end up in the same place - we restart the system
 ; hard. If you want to use them on actual hardware, you'll have to redirect
@@ -138,7 +135,7 @@ kernel_init:
         ; py65mon, of course, this is really easy. -- At the end, we JMP
         ; back to the label forth to start the Forth system.
         ; """
-.scope
+.block
                 ; Since the default case for Tali is the py65mon emulator, we
                 ; have no use for interrupts. If you are going to include
                 ; them in your system in any way, you're going to have to
@@ -148,14 +145,15 @@ kernel_init:
                 ; We've successfully set everything up, so print the kernel
                 ; string
                 ldx #0
-*               lda s_kernel_id,x
+-               lda s_kernel_id,x
                 beq _done
                 jsr kernel_putc
                 inx
                 bra -
 _done:
-                jmp forth
-.scend
+                ; TODO have a place to jump
+                ; jmp forth
+.bend
 
 kernel_getc:
         ; """Get a single character from the keyboard. By default, py65mon
@@ -164,12 +162,12 @@ kernel_getc:
         ; pressed. We turn this into a blocking version by waiting for a
         ; non-zero character.
         ; """
-.scope
+.block
 _loop:
                 lda $f004
                 beq _loop
                 rts
-.scend
+.bend
 
 
 kernel_putc:
@@ -180,15 +178,19 @@ kernel_putc:
                 rts
 
 
+platform_bye:
+                brk
+
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
 ; displayed after a successful boot
+; TODO replace $0a with AscLf
 s_kernel_id:
-        .byte "Tali Forth 2 default kernel for py65mon (18. Feb 2018)", AscLF, 0
+        .text "Cthulhu Scheme default kernel for py65mon (18. Feb 2018)", $0a, 0
 
 
 ; Add the interrupt vectors
-.advance $fffa
+* = $fffa
 
 .word v_nmi
 .word v_reset
