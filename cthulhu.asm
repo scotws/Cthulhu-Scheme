@@ -30,13 +30,24 @@ cthulhu:
                 ; TODO initialize the history buffers
 
 ; ==== REPL ====
+; https://eecs490.github.io/project-scheme-parser/
 
-                ; TODO Read a string into the buffer
+; ---- READ ----
 
 
 
-; TODO setup heap
-; TODO initilize REPL
+; ---- PARSE ----
+
+; ---- EVALUATE ----
+
+; ---- PRINT ----
+
+        ; TODO test of string prints
+                jsr proc_newline
+
+
+; ==== ALL DONE ====
+
 
 ; TODO temporary halt of machine
 ;

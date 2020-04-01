@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Mar 30 16:40:11 2020
+; Wed Apr  1 12:29:53 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -25,8 +25,11 @@
 =$7f					        AscDEL  = $7f  ; delete (CTRL-h)
 =$10					        AscCP   = $10  ; CTRL-p (used to recall previous input history)
 =$0e					        AscCN   = $0e  ; CTRL-n (used to recall next input history)
-=0					        output = zpage+0  ; output port (2 bytes)
-=2					        input  = zpage+2  ; input port (2 bytes)
+=0					        tmp0   = zpage+0  ; temporary storage, eg printing (2 bytes)
+=2					        tmp1   = zpage+2  ; temporary storage (2 bytes)
+=4					        tmp2   = zpage+4  ; temporary storage (2 bytes)
+=6					        output = zpage+6  ; output port, addr of routine (2 bytes)
+=8					        input  = zpage+8  ; input port, addr of routine (2 bytes)
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -37,40 +40,75 @@
 .8000					cthulhu:
 .8000	d8		cld		                cld
 .8001	a9 27		lda #$27	                lda #<kernel_putc
-.8003	85 00		sta $00		                sta output
+.8003	85 06		sta $06		                sta output
 .8005	a9 f0		lda #$f0	                lda #>kernel_putc
-.8007	85 01		sta $01		                sta output+1
-.8009	00		brk #		        brk
+.8007	85 07		sta $07		                sta output+1
+.8009	20 49 80	jsr $8049	                jsr proc_newline
+.800c	00		brk #		        brk
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../helpers.asm
 
-.800a					byte_to_ascii:
-.800a	48		pha		                pha
-.800b	4a		lsr a		                lsr             ; convert high nibble first
-.800c	4a		lsr a		                lsr
-.800d	4a		lsr a		                lsr
-.800e	4a		lsr a		                lsr
-.800f	20 13 80	jsr $8013	                jsr _nibble_to_ascii
-.8012	68		pla		                pla
-.8013					_nibble_to_ascii:
-.8013	29 0f		and #$0f	                and #$0F
-.8015	09 30		ora #$30	                ora #'0'
-.8017	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
-.8019	90 02		bcc $801d	                bcc +
-.801b	69 06		adc #$06	                adc #$06
-.801d	4c 27 f0	jmp $f027	+               jmp kernel_putc
-.8020	60		rts		                rts
+.800d					help_byte_to_ascii:
+.800d	48		pha		                pha
+.800e	4a		lsr a		                lsr             ; convert high nibble first
+.800f	4a		lsr a		                lsr
+.8010	4a		lsr a		                lsr
+.8011	4a		lsr a		                lsr
+.8012	20 16 80	jsr $8016	                jsr help_nibble_to_ascii
+.8015	68		pla		                pla
+.8016					help_nibble_to_ascii:
+.8016	29 0f		and #$0f	                and #$0F
+.8018	09 30		ora #$30	                ora #'0'
+.801a	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
+.801c	90 02		bcc $8020	                bcc +
+.801e	69 06		adc #$06	                adc #$06
+.8020	4c 27 f0	jmp $f027	+               jmp kernel_putc
+.8023	60		rts		                rts
+.8024					help_emit_a:
+.8024	6c 06 00	jmp ($0006)	                jmp (output)    ; JSR/RTS
+.8027					help_print_string_no_lf:
+.8027	0a		asl a		                asl
+.8028	a8		tay		                tay
+.8029	b9 54 80	lda $8054,y	                lda string_table,y
+.802c	85 00		sta $00		                sta tmp0                ; LSB
+.802e	c8		iny		                iny
+.802f	b9 54 80	lda $8054,y	                lda string_table,y
+.8032	85 01		sta $01		                sta tmp0+1              ; MSB
+.8034					help_print_common:
+.8034	a0 00		ldy #$00	                ldy #0
+.8036					_loop:
+.8036	b1 00		lda ($00),y	                lda (tmp0),y
+.8038	f0 06		beq $8040	                beq _done               ; strings are zero-terminated
+.803a	20 24 80	jsr $8024	                jsr help_emit_a         ; allows vectoring via output
+.803d	c8		iny		                iny
+.803e	80 f6		bra $8036	                bra _loop
+.8040					_done:
+.8040	60		rts		                rts
+.8041					help_print_string:
+.8041	20 27 80	jsr $8027	                jsr help_print_string_no_lf
+.8044	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
+.8046	4c 24 80	jmp $8024	                jmp help_emit_a         ; JSR/RTS
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../native-procedures.asm
 
-.8021					proc_read_char:
-.8021					proc_read_line:
+.8049					proc_char_whitespace_p:
+.8049					proc_newline:
+.8049	a9 0a		lda #$0a	                lda #AscLF
+.804b	20 24 80	jsr $8024	                jsr help_emit_a
+.804e	a9 00		lda #$00	                lda #str_unspec
+.8050	4c 41 80	jmp $8041	                jmp help_print_string
+.8053	60		rts		                rts
+.8054					proc_display:
+.8054					proc_read:
+.8054					proc_read_char:
+.8054					proc_read_line:
+.8054					proc_write_char:
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -83,6 +121,12 @@
 
 ;******  Processing file: platforms/../strings.asm
 
+=0					str_unspec = 0
+.8054					string_table:
+>8054	56 80				        .word s_unspec ; 0-4
+>8056	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
+>805e	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
+>806e	65 00
 
 ;******  Return to file: platforms/platform-py65mon.asm
 

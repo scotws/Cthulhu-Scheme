@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 30. March 2020
+; This version: 01. Apr 2020
 
 ; ASCII Characters
 ; TODO Figure out which ones we actually need
@@ -21,6 +21,9 @@
 ; The beginning of the useable zero page is defined in the platsform file so
 ; the user can set it up depending on their hardware
 
-        output = zpage+0  ; output port (2 bytes)
-        input  = zpage+2  ; input port (2 bytes)
+        tmp0   = zpage+0  ; temporary storage, eg printing (2 bytes)
+        tmp1   = zpage+2  ; temporary storage (2 bytes)
+        tmp2   = zpage+4  ; temporary storage (2 bytes)
+        output = zpage+6  ; output port, addr of routine (2 bytes)
+        input  = zpage+8  ; input port, addr of routine (2 bytes)
 
