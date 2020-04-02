@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 01. Apr 2020
+; This version: 02. Apr 2020
 
 ; These were originally taken from Tali Forth 2, which is in the public domain.
 ; All routines start with help_
@@ -40,11 +40,18 @@ help_nibble_to_ascii:
 
 
 ; ---- Emit A ----
-
-; Print the character in A without fooling around. This still allows
-; the output to be vectored. Call it with JSR. 
 help_emit_a:
+        ; Print the character in A without fooling around. This still allows
+        ; the output to be vectored. Call it with JSR. 
                 jmp (output)    ; JSR/RTS
+
+; ---- Key A ----
+help_key_a:
+        ; The 65c02 doesn't have a JSR (ADDR,X) instruction like the
+        ; 65816, so we have to fake the indirect jump to vector it.
+        ; This is depressingly slow. We use this routine internally
+        ; when we just want a character
+                jmp (input)             ; JSR/RTS
 
 
 ; ---- System print routines----

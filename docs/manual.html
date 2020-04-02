@@ -461,6 +461,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_under_the_tentacles_how_cthulhu_scheme_works">Under the Tentacles: How Cthulhu Scheme works</a>
 <ul class="sectlevel2">
 <li><a href="#_design_descisions">Design descisions</a></li>
+<li><a href="#_scheme_objects">Scheme objects</a></li>
+<li><a href="#_procedures">Procedures</a></li>
+<li><a href="#_parsing">Parsing</a></li>
 </ul>
 </li>
 <li><a href="#_adding_to_the_horror_developing_cthulhu_scheme">Adding to the Horror: Developing Cthulhu Scheme</a>
@@ -731,6 +734,9 @@ bits (15-13) for the tag and the remaining 13 bits for either the immediate
 value (such as characters and fixnums) or a pointer to the value on the heap
 (such as lists or strings).</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_scheme_objects">Scheme objects</h3>
 <div class="sect3">
 <h4 id="_object_types">Object types</h4>
 <div class="paragraph">
@@ -771,18 +777,67 @@ types](<a href="https://www.gnu.org/software/guile/manual/html_node/Data-Types.h
 some sacrifices had to be made.</p>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_procedures">Procedures</h3>
+<div class="paragraph">
+<p>There are two types of procedures in Cthulhu Scheme: <em>native procedures</em> that
+are coded in assembler and <em>non-native procedures</em> (also <em>high-level
+procedures</em>) that are provided in Scheme code and loaded during boot.</p>
+</div>
 <div class="sect3">
-<h4 id="_build_in_procedures">Build-in procedures</h4>
+<h4 id="_built_in_procedures">Built-in procedures</h4>
 <div class="quoteblock">
 <blockquote>
-The first field of a pair is called the 'car' field, and the second field is
-called the 'cdr' field. These are among the dumbest names for anything in all of
+The first field of a pair is called the <code>car</code> field, and the second field is
+called the <code>cdr</code> field. These are among the dumbest names for anything in all of
 computer science.<a href="#PW">[PW]</a>
 </blockquote>
 <div class="attribution">
 &#8212; Paul R Wilson<br>
 <cite>An Introduction to Scheme and its Implementation</cite>
 </div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_parsing">Parsing</h3>
+<div class="sect3">
+<h4 id="_overview">Overview</h4>
+<div class="paragraph">
+<p>Cthulhu Scheme takes the input from the <strong>input port</strong> and saves it as one line in
+the <strong>input buffer</strong>. Then the parser goes through the input buffer and converts
+the input into tokens, which are placed in the <strong>token buffer</strong>. The actual
+commands are then excuted from there.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_input_from_the_keyboard">Input from the keyboard</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_parsing_2">Parsing</h4>
+<div class="paragraph">
+<p>Currently, Cthulhu Scheme has a very simple parsing mechanism. The native
+procedures are stored in a simple single linked list with the most common
+entries first. Each entry consists of a link to the next entry (or a <code>0000</code> for
+the last entry in the list), the length of the procedure&#8217;s string, followed by
+the actual string, which is <em>not</em> zero terminated.</p>
+</div>
+<div class="paragraph">
+<p>Though the individual words are usually separted by spaces, there are some
+special rules. The <code>(</code> does not need whitespace after it, as does <code>#\\</code> for
+characters.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tokenizing">Tokenizing</h4>
+<div class="paragraph">
+<p>Tokens are 16-bit values that represent the Scheme procedures. In Cthulhu
+Scheme, they are the addresses of the subroutines of these procedures.</p>
+</div>
+<div class="paragraph">
+<p>The entries in the token buffer are terminated by a the "zero token" <code>0000</code>.</p>
 </div>
 </div>
 </div>
@@ -899,6 +954,10 @@ Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996</p>
 <div class="paragraph">
 <p><a id="JM2"></a>[JM2] <em>Lisp I Programmer&#8217;s Manual</em>, John McCarthy <em>et al</em>,
 <a href="http://history.siam.org/sup/Fox_1960_LISP.pdf" class="bare">http://history.siam.org/sup/Fox_1960_LISP.pdf</a>, 1960-03-01</p>
+</div>
+<div class="paragraph">
+<p><a id="PM"></a>[PM] <em>Scheme from Scratch</em>, Peter Michaux,
+<a href="http://peter.michaux.ca/articles/scheme-from-scratch-introduction" class="bare">http://peter.michaux.ca/articles/scheme-from-scratch-introduction</a>, 2010-01-01</p>
 </div>
 <div class="paragraph">
 <p><a id="PW"></a>[PW] <em>An Introduction to Scheme and its Implementation</em>, Paul R Wilson,

@@ -25,6 +25,9 @@ bits (15-13) for the tag and the remaining 13 bits for either the immediate
 value (such as characters and fixnums) or a pointer to the value on the heap
 (such as lists or strings). 
 
+
+=== Scheme objects
+
 ==== Object types 
 
 A three-bit tag gives us eight possible object types
@@ -44,10 +47,48 @@ see for example the [GNU Guile data
 types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
 some sacrifices had to be made.
 
-==== Build-in procedures
+=== Procedures
+
+There are two types of procedures in Cthulhu Scheme: _native procedures_ that
+are coded in assembler and _non-native procedures_ (also _high-level
+procedures_) that are provided in Scheme code and loaded during boot.
+
+
+==== Built-in procedures
 
 [quote, Paul R Wilson, An Introduction to Scheme and its Implementation] 
-The first field of a pair is called the 'car' field, and the second field is
-called the 'cdr' field. These are among the dumbest names for anything in all of
+The first field of a pair is called the `car` field, and the second field is
+called the `cdr` field. These are among the dumbest names for anything in all of
 computer science.<<PW>> 
 
+
+=== Parsing
+
+==== Overview
+
+Cthulhu Scheme takes the input from the *input port* and saves it as one line in
+the *input buffer*. Then the parser goes through the input buffer and converts
+the input into tokens, which are placed in the *token buffer*. The actual
+commands are then excuted from there.
+
+==== Input from the keyboard
+
+
+==== Parsing
+
+Currently, Cthulhu Scheme has a very simple parsing mechanism. The native
+procedures are stored in a simple single linked list with the most common
+entries first. Each entry consists of a link to the next entry (or a `0000` for
+the last entry in the list), the length of the procedure's string, followed by
+the actual string, which is _not_ zero terminated. 
+
+Though the individual words are usually separted by spaces, there are some
+special rules. The `(` does not need whitespace after it, as does `#\\` for
+characters.
+
+==== Tokenizing
+
+Tokens are 16-bit values that represent the Scheme procedures. In Cthulhu
+Scheme, they are the addresses of the subroutines of these procedures.
+
+The entries in the token buffer are terminated by a the "zero token" `0000`.

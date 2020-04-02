@@ -1,17 +1,19 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Wed Apr  1 12:29:53 2020
+; Thu Apr  2 15:17:23 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
 ;******  Processing input file: platforms/platform-py65mon.asm
 
-=$0000					ram_start = $0000          ; start of installed 32 KiB of RAM
-=32767					ram_end   = $8000-1        ; end of installed RAM
-=$0000					zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
-=$7f					zpage_end = $7F            ; end of Zero Page used ($0000-$007f)
-=$0100					stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
+=$0000					ram_start = $0000       ; start of installed 32 KiB of RAM
+=32767					ram_end   = $8000-1     ; end of installed RAM
+=$0000					zpage     = ram_start   ; begin of Zero Page ($0000-$00ff)
+=$7f					zpage_end = $7F         ; end of Zero Page used ($0000-$007f)
+=$0100					stack0    = $0100       ; begin of Return Stack ($0100-$01ff)
+=$0200					buffer0   = $0200       ; input buffer ($0200-$02ff)
+=$ff					bsize     = $ff         ; size of input/output buffers
 
 ;******  Processing file: platforms/../definitions.asm
 
@@ -23,13 +25,15 @@
 =$1b					        AscESC  = $1b  ; escape
 =$20					        AscSP   = $20  ; space
 =$7f					        AscDEL  = $7f  ; delete (CTRL-h)
-=$10					        AscCP   = $10  ; CTRL-p (used to recall previous input history)
-=$0e					        AscCN   = $0e  ; CTRL-n (used to recall next input history)
+=$10					        AscCP   = $10  ; CTRL-p
+=$0e					        AscCN   = $0e  ; CTRL-n
 =0					        tmp0   = zpage+0  ; temporary storage, eg printing (2 bytes)
 =2					        tmp1   = zpage+2  ; temporary storage (2 bytes)
 =4					        tmp2   = zpage+4  ; temporary storage (2 bytes)
 =6					        output = zpage+6  ; output port, addr of routine (2 bytes)
 =8					        input  = zpage+8  ; input port, addr of routine (2 bytes)
+=10					        cib    = zpage+10 ; input buffer (2 bytes)
+=12					        ciblen = zpage+12 ; size of input buffer (2 bytes)
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -43,72 +47,125 @@
 .8003	85 06		sta $06		                sta output
 .8005	a9 f0		lda #$f0	                lda #>kernel_putc
 .8007	85 07		sta $07		                sta output+1
-.8009	20 49 80	jsr $8049	                jsr proc_newline
-.800c	00		brk #		        brk
+.8009	a9 00		lda #$00	                lda #<buffer0
+.800b	85 0a		sta $0a		                sta cib
+.800d	a9 02		lda #$02	                lda #>buffer0
+.800f	85 0b		sta $0b		                sta cib+1
+.8011	a9 21		lda #$21	                lda #<kernel_getc
+.8013	85 08		sta $08		                sta input
+.8015	a9 f0		lda #$f0	                lda #>kernel_putc
+.8017	85 09		sta $09		                sta input+1
+.8019					repl:
+.8019	64 0c		stz $0c		                stz ciblen
+.801b	64 0d		stz $0d		                stz ciblen+1
+.801d	a0 00		ldy #$00	                ldy #0
+.801f					repl_read_loop:
+.801f	20 83 80	jsr $8083	                jsr help_key_a
+.8022	c9 0a		cmp #$0a	                cmp #AscLF
+.8024	f0 18		beq $803e	                beq repl_read_eol
+.8026	c9 0d		cmp #$0d	                cmp #AscCR
+.8028	f0 14		beq $803e	                beq repl_read_eol
+.802a	c9 08		cmp #$08	                cmp #AscBS
+.802c	f0 16		beq $8044	                beq repl_read_backspace
+.802e	c9 7f		cmp #$7f	                cmp #AscDEL             ; (CTRL-h)
+.8030	f0 12		beq $8044	                beq repl_read_backspace
+.8032	91 0a		sta ($0a),y	                sta (cib),y
+.8034	c8		iny		                iny
+.8035	20 80 80	jsr $8080	                jsr help_emit_a
+.8038	c4 ff		cpy $ff		                cpy bsize             ; reached character limit?
+.803a	d0 e3		bne $801f	                bne repl_read_loop    ; fall through if buffer limit reached
+.803c	80 00		bra $803e	                bra repl_read_buffer_full
+.803e					repl_read_eol:
+.803e					repl_read_buffer_full:
+.803e	84 0c		sty $0c		                sty ciblen      ; Y contains number of chars accepted already
+.8040	64 0d		stz $0d		                stz ciblen+1    ; we only accept 256 chars
+.8042	80 1c		bra $8060	                bra repl_parse
+.8044					repl_read_backspace:
+.8044	c0 00		cpy #$00	                cpy #0          ; buffer empty?
+.8046	d0 06		bne $804e	                bne +
+.8048	a9 07		lda #$07	                lda #AscBELL    ; complain and don't delete beyond the start of line
+.804a	20 80 80	jsr $8080	                jsr help_emit_a
+.804d	c8		iny		                iny
+.804e					+
+.804e	88		dey		                dey
+.804f	a9 08		lda #$08	                lda #AscBS      ; move back one
+.8051	20 80 80	jsr $8080	                jsr help_emit_a
+.8054	a9 20		lda #$20	                lda #AscSP      ; print a space (rubout)
+.8056	20 80 80	jsr $8080	                jsr help_emit_a
+.8059	a9 08		lda #$08	                lda #AscBS      ; move back over space
+.805b	20 80 80	jsr $8080	                jsr help_emit_a
+.805e	80 bf		bra $801f	                bra repl_read_loop
+.8060					repl_parse:
+.8060	a9 70		lda #$70	        lda #'p'
+.8062	20 80 80	jsr $8080	        jsr help_emit_a
+.8065	20 a8 80	jsr $80a8	                jsr proc_newline
+.8068	00		brk #		        brk
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../helpers.asm
 
-.800d					help_byte_to_ascii:
-.800d	48		pha		                pha
-.800e	4a		lsr a		                lsr             ; convert high nibble first
-.800f	4a		lsr a		                lsr
-.8010	4a		lsr a		                lsr
-.8011	4a		lsr a		                lsr
-.8012	20 16 80	jsr $8016	                jsr help_nibble_to_ascii
-.8015	68		pla		                pla
-.8016					help_nibble_to_ascii:
-.8016	29 0f		and #$0f	                and #$0F
-.8018	09 30		ora #$30	                ora #'0'
-.801a	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
-.801c	90 02		bcc $8020	                bcc +
-.801e	69 06		adc #$06	                adc #$06
-.8020	4c 27 f0	jmp $f027	+               jmp kernel_putc
-.8023	60		rts		                rts
-.8024					help_emit_a:
-.8024	6c 06 00	jmp ($0006)	                jmp (output)    ; JSR/RTS
-.8027					help_print_string_no_lf:
-.8027	0a		asl a		                asl
-.8028	a8		tay		                tay
-.8029	b9 54 80	lda $8054,y	                lda string_table,y
-.802c	85 00		sta $00		                sta tmp0                ; LSB
-.802e	c8		iny		                iny
-.802f	b9 54 80	lda $8054,y	                lda string_table,y
-.8032	85 01		sta $01		                sta tmp0+1              ; MSB
-.8034					help_print_common:
-.8034	a0 00		ldy #$00	                ldy #0
-.8036					_loop:
-.8036	b1 00		lda ($00),y	                lda (tmp0),y
-.8038	f0 06		beq $8040	                beq _done               ; strings are zero-terminated
-.803a	20 24 80	jsr $8024	                jsr help_emit_a         ; allows vectoring via output
-.803d	c8		iny		                iny
-.803e	80 f6		bra $8036	                bra _loop
-.8040					_done:
-.8040	60		rts		                rts
-.8041					help_print_string:
-.8041	20 27 80	jsr $8027	                jsr help_print_string_no_lf
-.8044	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
-.8046	4c 24 80	jmp $8024	                jmp help_emit_a         ; JSR/RTS
+.8069					help_byte_to_ascii:
+.8069	48		pha		                pha
+.806a	4a		lsr a		                lsr             ; convert high nibble first
+.806b	4a		lsr a		                lsr
+.806c	4a		lsr a		                lsr
+.806d	4a		lsr a		                lsr
+.806e	20 72 80	jsr $8072	                jsr help_nibble_to_ascii
+.8071	68		pla		                pla
+.8072					help_nibble_to_ascii:
+.8072	29 0f		and #$0f	                and #$0F
+.8074	09 30		ora #$30	                ora #'0'
+.8076	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
+.8078	90 02		bcc $807c	                bcc +
+.807a	69 06		adc #$06	                adc #$06
+.807c	4c 27 f0	jmp $f027	+               jmp kernel_putc
+.807f	60		rts		                rts
+.8080					help_emit_a:
+.8080	6c 06 00	jmp ($0006)	                jmp (output)    ; JSR/RTS
+.8083					help_key_a:
+.8083	6c 08 00	jmp ($0008)	                jmp (input)             ; JSR/RTS
+.8086					help_print_string_no_lf:
+.8086	0a		asl a		                asl
+.8087	a8		tay		                tay
+.8088	b9 b3 80	lda $80b3,y	                lda string_table,y
+.808b	85 00		sta $00		                sta tmp0                ; LSB
+.808d	c8		iny		                iny
+.808e	b9 b3 80	lda $80b3,y	                lda string_table,y
+.8091	85 01		sta $01		                sta tmp0+1              ; MSB
+.8093					help_print_common:
+.8093	a0 00		ldy #$00	                ldy #0
+.8095					_loop:
+.8095	b1 00		lda ($00),y	                lda (tmp0),y
+.8097	f0 06		beq $809f	                beq _done               ; strings are zero-terminated
+.8099	20 80 80	jsr $8080	                jsr help_emit_a         ; allows vectoring via output
+.809c	c8		iny		                iny
+.809d	80 f6		bra $8095	                bra _loop
+.809f					_done:
+.809f	60		rts		                rts
+.80a0					help_print_string:
+.80a0	20 86 80	jsr $8086	                jsr help_print_string_no_lf
+.80a3	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
+.80a5	4c 80 80	jmp $8080	                jmp help_emit_a         ; JSR/RTS
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../native-procedures.asm
 
-.8049					proc_char_whitespace_p:
-.8049					proc_newline:
-.8049	a9 0a		lda #$0a	                lda #AscLF
-.804b	20 24 80	jsr $8024	                jsr help_emit_a
-.804e	a9 00		lda #$00	                lda #str_unspec
-.8050	4c 41 80	jmp $8041	                jmp help_print_string
-.8053	60		rts		                rts
-.8054					proc_display:
-.8054					proc_read:
-.8054					proc_read_char:
-.8054					proc_read_line:
-.8054					proc_write_char:
+.80a8					proc_char_whitespace_p:
+.80a8					proc_newline:
+.80a8	a9 0a		lda #$0a	                lda #AscLF
+.80aa	20 80 80	jsr $8080	                jsr help_emit_a
+.80ad	a9 00		lda #$00	                lda #str_unspec
+.80af	4c a0 80	jmp $80a0	                jmp help_print_string
+.80b2	60		rts		                rts
+.80b3					proc_display:
+.80b3					proc_read:
+.80b3					proc_read_char:
+.80b3					proc_read_line:
+.80b3					proc_write_char:
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -122,11 +179,11 @@
 ;******  Processing file: platforms/../strings.asm
 
 =0					str_unspec = 0
-.8054					string_table:
->8054	56 80				        .word s_unspec ; 0-4
->8056	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
->805e	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
->806e	65 00
+.80b3					string_table:
+>80b3	b5 80				        .word s_unspec ; 0-4
+>80b5	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
+>80bd	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
+>80cd	65 00
 
 ;******  Return to file: platforms/platform-py65mon.asm
 

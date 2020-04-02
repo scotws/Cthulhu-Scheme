@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 30. March 2020
+; This version: 02. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2
 ; Code is for the 64Tass assembler
@@ -17,7 +17,7 @@
         * = $8000
 
 
-; ==== MEMORY MAP ====
+; ---- MEMORY MAP ----
 
 ; TODO change memory map, this is all still Tali Forth
 
@@ -32,19 +32,16 @@
 ; have to be changed as well
 
 
-;    $0000  +-------------------+  ram_start, zpage, user0
-;           |  User varliables  |
-;           +-------------------+
+;    $0000  +-------------------+  ram_start, zpage
+;           |                   |
+;           | Zero Page Vars    |
 ;           |                   |
 ;           |                   |
-;           +~~~~~~~~~~~~~~~~~~~+  <-- dsp
 ;           |                   |
-;           |  ^  Data Stack    |
-;           |  |                |
-;    $0078  +-------------------+  dsp0, stack
+;    $0078  +-------------------+  
 ;           |                   |
 ;           |   (Reserved for   |
-;           |      kernel)      |
+;           |      other)       |
 ;           |                   |
 ;    $0100  +-------------------+
 ;           |                   |
@@ -54,19 +51,14 @@
 ;           |  |                |
 ;           |  v  Input Buffer  |
 ;           |                   |
-;    $0300  +-------------------+  cp0
-;           |  |                |
-;           |  v  Dictionary    |
-;           |       (RAM)       |
-;           |                   |
-;   (...)   ~~~~~~~~~~~~~~~~~~~~~  <-- cp
+;    $0300  +-------------------+  
 ;           |                   |
 ;           |                   |
 ;           |                   |
 ;           |                   |
 ;           |                   |
 ;           |                   |
-;    $7C00  +-------------------+  hist_buff, cp_end
+;    $7C00  +-------------------+  hist_buff
 ;           |   Input History   |
 ;           |    for ACCEPT     |
 ;           |  8x128B buffers   |
@@ -77,13 +69,25 @@
 ; where for example the location of the Zero Page is fixed by hardware. Note we
 ; currently don't use the complete zero page
 
-ram_start = $0000          ; start of installed 32 KiB of RAM
-ram_end   = $8000-1        ; end of installed RAM
-zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
-zpage_end = $7F            ; end of Zero Page used ($0000-$007f)	
-stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
+ram_start = $0000       ; start of installed 32 KiB of RAM
+ram_end   = $8000-1     ; end of installed RAM
+zpage     = ram_start   ; begin of Zero Page ($0000-$00ff)
+zpage_end = $7F         ; end of Zero Page used ($0000-$007f)	
+stack0    = $0100       ; begin of Return Stack ($0100-$01ff)
 
-; ==== MAIN CODE ROUTINES ====
+
+; ---- Soft Memory Addresses ---- 
+
+; TODO see if we want larger input buffers
+buffer0   = $0200       ; input buffer ($0200-$02ff)
+bsize     = $ff         ; size of input/output buffers
+
+
+; TODO Cthulhu Scheme currently doesn't implement a history because we don't
+; know if we want to save the raw text or the parsed information. 
+; hist_buff = ram_end-$03ff  ; begin of history buffers
+
+; ---- MAIN CODE ROUTINES ----
 
 .include "../definitions.asm"           ; aliases and other definitions
 .include "../cthulhu.asm"               ; main code
@@ -93,20 +97,7 @@ stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
 .include "../strings.asm"               ; all text including error strings
 
 
-; SOFT PHYSICAL ADDRESSES
-
-; Tali currently doesn't have separate user variables for multitasking. To
-; prepare for this, though, we've already named the location of the user
-; variables user0. Note cp0 starts one byte further down so that it currently
-; has the address $300 and not $2FF. This avoids crossing the page boundry when
-; accessing the user table, which would cost an extra cycle.
-
-; hist_buff = ram_end-$03ff  ; begin of history buffers
-; bsize     = $ff              ; size of input/output buffers
-; buffer0   = stack0+$100      ; input buffer ($0200-$027f)
-
-
-; ==== KERNEL ROUTINES ====
+; ---- KERNEL ROUTINES ----
 
 ; This section attempts to isolate the hardware-dependent parts of Cthulhu
 ; Scheme to make it easier for people to port it to their own machines.
@@ -192,7 +183,8 @@ s_kernel_id:
         .text "Cthulhu Scheme default kernel for py65mon (30. Mar 2020)", Asclf, 0
 
 
-; Add the interrupt vectors
+; ---- INTERRUPT VECTORS ----
+
 * = $fffa
 
 .word v_nmi
