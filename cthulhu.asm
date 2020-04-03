@@ -28,13 +28,6 @@ cthulhu:
                 ; TODO clear the heap
                 ; TODO define high-level procudures
 
-                ; We currently just use one input buffer, we'll figure out the
-                ; history buffer situation later
-                lda #<buffer0
-                sta cib
-                lda #>buffer0
-                sta cib+1
-                
                 ; Set default input port
                 lda #<kernel_getc
                 sta input
@@ -45,22 +38,23 @@ cthulhu:
 ; TODO https://eecs490.github.io/project-scheme-parser/
 
 repl: 
+                ; Start overwriting input buffer
+                stz ciblen
+                stz ciblen+1
 
 ; ---- READ ----
 
-; Basic structure taken from Tali Forth 2's REFILL and ACCEPT words. We
-; currently don't have a history buffer system set up.
-
-                ; Clear input buffer. We figure out how to do history later
-                stz ciblen
-                stz ciblen+1
+repl_read:
+        ; Basic structure taken from Tali Forth 2's REFILL and ACCEPT words. We
+        ; currently don't have a history buffer system set up -- first we want to see
+        ; if we have enough space.
 
                 ldy #0
 
 repl_read_loop:
-                ; Out of the box, py65mon catches some CTRL sequences such as
-                ; CTRL-c. We also don't need to check for CTRL-l because a
-                ; vt100 terminal clears the screen automatically.
+        ; Out of the box, py65mon catches some CTRL sequences such as
+        ; CTRL-c. We also don't need to check for CTRL-l because a
+        ; vt100 terminal clears the screen automatically.
 
                 ; Get a single character without going through the whole
                 ; procedure of procedures
@@ -79,12 +73,12 @@ repl_read_loop:
                 beq repl_read_backspace
 
                 ; That's enough for now. Save and echo character.
-                sta (cib),y
+                sta cib0,y
                 iny
                 
                 jsr help_emit_a
 
-                cpy bsize             ; reached character limit?
+                cpy cib_size-1        ; reached character limit?
                 bne repl_read_loop    ; fall through if buffer limit reached
 
                 bra repl_read_buffer_full
@@ -97,10 +91,10 @@ repl_read_buffer_full:
                 stz ciblen+1    ; we only accept 256 chars
 
                 ; We have the characters in the buffer, now we can parse
-                bra repl_parse
+                bra repl_tokenize
 
 repl_read_backspace:
-                ; Handle backspace and delete kex, which currently do the same
+                ; Handle backspace and delete key, which currently do the same
                 ; thing
                 cpy #0          ; buffer empty?
                 bne +
@@ -120,25 +114,63 @@ repl_read_backspace:
                 bra repl_read_loop
 
 
+; ---- TOKENIZE ----
+repl_tokenize: 
+
+                ; TODO skip over whitespace
+
+                ; TODO Testing print 't' so we know where we are
+                lda #AscLF
+                jsr help_emit_a
+                lda #'t'
+                jsr help_emit_a
+
 ; ---- PARSE ----
 repl_parse: 
 
-        ; TODO Testing print 'p' so we know where we are
-        lda #'p'
-        jsr help_emit_a
-
+                ; TODO Testing print 'p' so we know where we are
+                lda #AscLF
+                jsr help_emit_a
+                lda #'p'
+                jsr help_emit_a
 
 ; ---- EVALUATE ----
+repl_eval:
+                ; TODO Testing print 'e' so we know where we are
+                lda #AscLF
+                jsr help_emit_a
+                lda #'e'
+                jsr help_emit_a
+
+                ; TODO testing: Result is 00
 
 ; ---- PRINT ----
+repl_print: 
+        ; The result of the procedure (or last part of the procedure in the case of
+        ; something like (begin) is stored in the return variable in zero page. If it
+        ; is zero, we don't have a return value.
 
-        ; TODO test of string prints
-                jsr proc_newline
+        ; TODO see if we want to move this to a seperate file because it could
+        ; turn out to be pretty large
+        
+                ; If result is zero, there is no return value 
+                lda return
+                ora return+1
+                bne +
 
+                lda #str_unspec
+                jsr help_print_string
+
++               
+                ; TODO see if result is fixnum
+                ; TODO see if result is bool
+                ; TODO see if result is string
+                ; TODO see if result is object
+                ; TODO see if result is symbol
 
 ; ==== ALL DONE ====
+repl_done:
 
-
-; TODO temporary halt of machine
+; TODO TEST keep doing stuff over and over
 ;
-        brk
+                jmp repl

@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 02. Apr 2020
+; This version: 03. Apr 2020
 
 ; ---- ASCII Characters ----
 
@@ -22,13 +22,26 @@
 ; ---- Zero page definitions ----
 
 ; The beginning of the useable zero page is defined in the platform file so
-; the user can set it up depending on their hardware
+; the user can set it up depending on their hardware. We use the section
+; definitions from 64Tass here to make it easier to adapt to different
+; hardware, see http://tass64.sourceforge.net/#sections for details. The memory
+; map is part of the individual platform file. Note we do not initialize the
+; zero page entries here so it must be done in code. 
 
-        tmp0   = zpage+0  ; temporary storage, eg printing (2 bytes)
-        tmp1   = zpage+2  ; temporary storage (2 bytes)
-        tmp2   = zpage+4  ; temporary storage (2 bytes)
-        output = zpage+6  ; output port, addr of routine (2 bytes)
-        input  = zpage+8  ; input port, addr of routine (2 bytes)
-        cib    = zpage+10 ; input buffer (2 bytes)
-        ciblen = zpage+12 ; size of input buffer (2 bytes)
+.section zp
+return:  .word ?     ; return value: result of a procedure
+tmp0:    .word ?     ; temporary storage, eg printing
+tmp1:    .word ?     ; temporary storage
+tmp2:    .word ?     ; temporary storage
+output:  .word ?     ; output port, addr of routine
+input:   .word ?     ; input port, addr of routine
+ciblen:  .word ?     ; current size of input buffer
+hp:      .word ?     ; pointer to next free heap entry
+.send zp
 
+
+; ---- Input and other buffers ----
+
+.section buffers
+cib0:    .fill cib_size      ; current input buffer
+.send buffers
