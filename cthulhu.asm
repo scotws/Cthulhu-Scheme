@@ -1,13 +1,9 @@
 ; Cthulhu Scheme for the 65c02 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 02. Apr 2020
+; This version: 04. Apr 2020
 
-; This is the main file for Cthulhu Scheme
-
-; Label to mark the beginning of code. Useful for people who are porting this
-; to other hardware configurations
-code0:
+; This is the main file for Cthulhu Scheme. It mainly contains the REPL. 
 
 ; Main entry point
 cthulhu:
@@ -26,7 +22,7 @@ cthulhu:
                 sta output+1
 
                 ; TODO clear the heap
-                ; TODO define high-level procudures
+                ; TODO define high-level procudures by loading from file
 
                 ; Set default input port
                 lda #<kernel_getc
@@ -48,8 +44,17 @@ repl_read:
         ; Basic structure taken from Tali Forth 2's REFILL and ACCEPT words. We
         ; currently don't have a history buffer system set up -- first we want to see
         ; if we have enough space.
+        ; TODO see how we can handle CTRL-d
 
+                ; Clear index to current input buffer
                 ldy #0
+
+                ; Print prompt. If this gets any more complicated we
+                ; will need to move this to its own little routine
+                lda #'>'
+                jsr help_emit_a
+                lda #' '
+                jsr help_emit_a
 
 repl_read_loop:
         ; Out of the box, py65mon catches some CTRL sequences such as
@@ -60,7 +65,17 @@ repl_read_loop:
                 ; procedure of procedures
                 jsr help_key_a
 
-                ; We quit on both line feed and carriage return
+                ; TODO see if we have a delimiter. This is a bit tricky because
+                ; if we have a delimiter such as '(', the line feed does not
+                ; mean the line is over, just that we move to the next line. 
+                
+                ; TODO see if we have a comment ';' symbol. This is a bit
+                ; tricky because if we are entering a comment, the line feed
+                ; does not end the input but just moves a line down.
+
+                ; We quit on both line feed and carriage return, but only if we
+                ; are not part of a delimiter or in a comment. 
+                ; TODO handle when in delimiter or in comment
                 cmp #AscLF
                 beq repl_read_eol
                 cmp #AscCR
@@ -73,7 +88,7 @@ repl_read_loop:
                 beq repl_read_backspace
 
                 ; That's enough for now. Save and echo character.
-                sta cib0,y
+                sta cib,y
                 iny
                 
                 jsr help_emit_a
@@ -116,17 +131,167 @@ repl_read_backspace:
 
 ; ---- TOKENIZE ----
 repl_tokenize: 
+        ; Some of this (like adding a token to the token buffer) could be moved
+        ; to a subroutine to save space. However, we are currently leaving it
+        ; here unrolled for speed reasons. This might change at a later date
 
-                ; TODO skip over whitespace
+                ; Initialize indices to character and token buffers
+                ldy #0
+                sty tkbp
+                sty tkbp+1      ; MSB currently unused
+                sty cibp
+                sty cibp+1      ; MSB currently unused
 
-                ; TODO Testing print 't' so we know where we are
-                lda #AscLF
-                jsr help_emit_a
-                lda #'t'
-                jsr help_emit_a
+repl_tokenize_loop:
+                lda cib,y
+
+                ; TODO TESTING Quit on '@', just for the moment
+                cmp #'@'
+                bne +
+                brk
++
+                ; TODO skip over whitespace. This includes line feeds because
+                ; we can have those inside delimiters and comments
+                
+                ; Convert to lower case
+                ; TODO this is currently just fake
+                jsr help_to_lowercase
+
+
+                ; ---- Testing for sharp stuff ----
+_test_sharp:
+                ; See if first character is #
+                cmp #'#'
+                bne _test_fixnum        ; TODO or whatever next test is
+
+                ; We have a #, so see which type it is. First, see if this is
+                ; a bool, so either #f or #t because they probably come up
+                ; a lot. ("Probably" of course is not really good enough, at
+                ; some point we should do some research to see just how common
+                ; they are)
+
+                iny
+                ; TODO see if we're past the end of the line
+
+                lda cib,y
+                cmp #'t'                ; We're optimists so we check for true first
+                bne _test_bool_false
+
+                ; We have a true bool. Add this to the token buffer
+                lda <#oc_true           ; Token is an immediate constant
+                ldx >#oc_true 
+                jsr repl_add_token
+                jmp repl_tokenize_next
+
+_test_bool_false:
+                cmp #'f'
+                bne _test_char
+                
+                ; We have a false bool. Add this to the token buffer
+                lda <#oc_false          ; Token is an immediate constant
+                ldx >#oc_false
+                jsr repl_add_token
+                jmp repl_tokenize_next
+
+_test_char:
+                ; TODO See if char #\a
+
+_test_vector:
+                ; TODO See if vector constant #(
+
+_test_radix: 
+                ; TODO See if we have a radix number prefix
+                ; - #b binary
+                ; - #o octal
+                ; - #d decimal
+                ; - #x hexadecimal
+                ; If yes, what follows must be a number, so we can jump there
+
+
+                ; ---- Testing for numbers ----
+
+_test_fixnum:
+                ; TODO See if we have a number
+
+_test_comment:  
+                ; TODO See if we have a comment. This is a bit tricky because
+                ; we can't just bail to the next input line - the input can
+                ; continue after the end of the line
+                
+repl_tokenize_error:
+                ; Error, this isn't valid input. Complain and try again
+                lda #str_unbound
+                jsr help_print_string
+                ; TODO add offending variable name to error output
+                jmp repl
+
+repl_tokenize_next:
+                ; Move on to the next character in the input or, if we're all
+                ; done, add the end-of-input token
+                iny
+                cpy ciblen
+                beq _end_of_input
+                jmp repl_tokenize_loop
+
+_end_of_input:
+                ; Add end-of-input token
+                lda #0
+                tax
+                jsr repl_add_token
+
+                ; Continue with parsing
+                bra repl_parse
+
+
+; ---- Tokenizer helper functions ----
+
+repl_add_token:
+        ; Tokenizer subroutine: Add token to token buffer. Assumes LSB of token is in
+        ; A and MSB of token is in X. Does not touch X.
+        ; TODO make sure we don't move past the end of the token buffer
+                phy                     ; Could also store in cibp
+                ldy tkbp
+
+                sta tkb,y             ; LSB is in A
+                iny
+                txa
+                sta tkb,y             ; MSB is in X
+                iny
+
+                sty tkbp 
+                ply
+
+                rts
+
 
 ; ---- PARSE ----
+
+; At this stage, we should have the tokens in the token buffer, terminated by
+; an end of input token (0000). We now need to construct a tree (or another
+; structure) that reflects the input.
+
+; TODO HIER HIER 
+
 repl_parse: 
+                ; TODO TEST hexdump contents of token buffer
+                ldx #0
+-
+                lda tkb,x
+                jsr help_byte_to_ascii  ; LSB
+                inx
+                lda tkb,x
+                jsr help_byte_to_ascii  ; MSB
+                inx
+
+                lda #' '
+                jsr help_emit_a
+
+                cpx tkbp
+                bne - 
+
+                lda #AscLF
+                jsr help_emit_a
+
 
                 ; TODO Testing print 'p' so we know where we are
                 lda #AscLF

@@ -20,17 +20,19 @@ envisioned for a machine with a 36-bit word size and 15-bit pointers, the IBM
 implemented](https://en.wikipedia.org/wiki/IBM_704) on an IBM 704 with the same
 word size.<<JM2>> We have less to work with then the first Lispers back in 1960. 
 
-For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest three
-bits (15-13) for the tag and the remaining 13 bits for either the immediate
-value (such as characters and fixnums) or a pointer to the value on the heap
-(such as lists or strings). 
+For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest nibble
+(four bits, 15-12) for the tag and the remaining 12 bits for either the
+immediate value (such as characters and fixnums) or a pointer to the value on
+the heap (such as lists or strings). 
 
 
 === Scheme objects
 
 ==== Object types 
 
-A three-bit tag gives us eight possible object types
+A four-bit tag gives us 16 possible object types
+
+// TODO replace by table
 
 * Bignum (pointer, bit code TODO)
 * Booleans (immediate, bit code TODO)
@@ -46,6 +48,7 @@ There are quite a number of object types missing here compared to normal list --
 see for example the [GNU Guile data
 types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
 some sacrifices had to be made.
+
 
 === Procedures
 

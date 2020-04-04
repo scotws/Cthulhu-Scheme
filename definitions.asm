@@ -18,7 +18,6 @@
         AscCP   = $10  ; CTRL-p
         AscCN   = $0e  ; CTRL-n
 
-
 ; ---- Zero page definitions ----
 
 ; The beginning of the useable zero page is defined in the platform file so
@@ -36,6 +35,9 @@ tmp2:    .word ?     ; temporary storage
 output:  .word ?     ; output port, addr of routine
 input:   .word ?     ; input port, addr of routine
 ciblen:  .word ?     ; current size of input buffer
+cibp:    .word ?     ; pointer (index?) to current char in input buffer
+tkblen:  .word ?     ; current size of the token buffer
+tkbp:    .word ?     ; pointer (index?) to current token in token buffer
 hp:      .word ?     ; pointer to next free heap entry
 .send zp
 
@@ -43,5 +45,40 @@ hp:      .word ?     ; pointer to next free heap entry
 ; ---- Input and other buffers ----
 
 .section buffers
-cib0:    .fill cib_size      ; current input buffer
+cib:    .fill cib_size  ; current input buffer
+tkb:    .fill tkb_size  ; token buffer
 .send buffers
+
+
+; ---- Object tag nibbles ----
+
+; Each object in Cthulhu Scheme has a four-bit tag that denotes the type. We
+; store them here with t_ as a beginning
+
+t_meta         = $00    ; used for end of input and other markers
+t_bool         = $10    ; used for #t and #f; immediate
+t_fixnum       = $20    ; used for fixed numbers; immediate
+t_bignum       = $30    ; used for bignum
+t_char         = $40    ; used for cars; immediate
+t_undefined_05 = $50
+t_undefined_06 = $60
+t_undefined_07 = $70
+t_undefined_08 = $80
+t_undefined_09 = $90
+t_undefined_0a = $a0
+t_undefined_0b = $b0
+t_undefined_0c = $c0
+t_undefined_0d = $d0
+t_undefined_0e = $e0
+t_undefined_0f = $f0
+
+
+; ---- Constant objects ----
+
+; Some objects are used again and again so it is worth storing them as
+; constants for speed reasons. These start with oc_
+
+oc_end   = $0000        ; end of input for tokens and objects
+oc_true  = $01ff        ; true bool #t, immediate
+oc_false = $0100        ; false bool #f, immediate
+

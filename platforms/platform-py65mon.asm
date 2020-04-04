@@ -32,8 +32,9 @@ zp_size   = $80         ; max bytes allowed in Zero Page
 ; might be expanded once we know how much RAM we will actually need. Currently,
 ; there is no history setup for the REPL because of the same reason. It might
 ; be added later. 
-buffers_start = $0200    ; start of the buffer area
-cib_size      = $100     ; size of the input buffer
+buffers_start   = $0200         ; start of the buffer RAM area
+cib_size        = $100          ; size of the input buffer
+tkb_size        = $100          ; size of the token buffer
 
 ; Of the 32 KiB ROM we assume we have, by default we use $8000 to $efff (28
 ; KiB) for code and constant data like strings, $f000 to $f010 for I/O

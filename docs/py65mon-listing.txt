@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Fri Apr  3 13:24:47 2020
+; Sat Apr  4 09:59:58 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -11,8 +11,9 @@
 =$8000					ram_size  = $8000       ; assumes 32 KiB of RAM
 =$0000					zp_start  = $0000       ; start of zero page,
 =$80					zp_size   = $80         ; max bytes allowed in Zero Page
-=$0200					buffers_start = $0200    ; start of the buffer area
-=$100					cib_size      = $100     ; size of the input buffer
+=$0200					buffers_start   = $0200         ; start of the buffer RAM area
+=$100					cib_size        = $100          ; size of the input buffer
+=$100					tkb_size        = $100          ; size of the token buffer
 =$f000					io_start = $f000
 =$10					io_size  = $10
 =32768					rom_start = ram_start + ram_size        ; $8000 by default
@@ -22,7 +23,6 @@
 
 ;******  Processing file: platforms/../cthulhu.asm
 
-.8000					code0:
 .8000					cthulhu:
 .8000	d8		cld		                cld
 .8001	a9 27		lda #$27	                lda #<kernel_putc
@@ -38,131 +38,210 @@
 .8013	64 0d		stz $0d		                stz ciblen+1
 .8015					repl_read:
 .8015	a0 00		ldy #$00	                ldy #0
-.8017					repl_read_loop:
-.8017	20 9f 80	jsr $809f	                jsr help_key_a
-.801a	c9 0a		cmp #$0a	                cmp #AscLF
-.801c	f0 19		beq $8037	                beq repl_read_eol
-.801e	c9 0d		cmp #$0d	                cmp #AscCR
-.8020	f0 15		beq $8037	                beq repl_read_eol
-.8022	c9 08		cmp #$08	                cmp #AscBS
-.8024	f0 17		beq $803d	                beq repl_read_backspace
-.8026	c9 7f		cmp #$7f	                cmp #AscDEL             ; (CTRL-h)
-.8028	f0 13		beq $803d	                beq repl_read_backspace
-.802a	99 00 02	sta $0200,y	                sta cib0,y
-.802d	c8		iny		                iny
-.802e	20 9c 80	jsr $809c	                jsr help_emit_a
-.8031	c4 ff		cpy $ff		                cpy cib_size-1        ; reached character limit?
-.8033	d0 e2		bne $8017	                bne repl_read_loop    ; fall through if buffer limit reached
-.8035	80 00		bra $8037	                bra repl_read_buffer_full
-.8037					repl_read_eol:
-.8037					repl_read_buffer_full:
-.8037	84 0c		sty $0c		                sty ciblen      ; Y contains number of chars accepted already
-.8039	64 0d		stz $0d		                stz ciblen+1    ; we only accept 256 chars
-.803b	80 1c		bra $8059	                bra repl_tokenize
-.803d					repl_read_backspace:
-.803d	c0 00		cpy #$00	                cpy #0          ; buffer empty?
-.803f	d0 06		bne $8047	                bne +
-.8041	a9 07		lda #$07	                lda #AscBELL    ; complain and don't delete beyond the start of line
-.8043	20 9c 80	jsr $809c	                jsr help_emit_a
-.8046	c8		iny		                iny
-.8047					+
-.8047	88		dey		                dey
-.8048	a9 08		lda #$08	                lda #AscBS      ; move back one
-.804a	20 9c 80	jsr $809c	                jsr help_emit_a
-.804d	a9 20		lda #$20	                lda #AscSP      ; print a space (rubout)
-.804f	20 9c 80	jsr $809c	                jsr help_emit_a
-.8052	a9 08		lda #$08	                lda #AscBS      ; move back over space
-.8054	20 9c 80	jsr $809c	                jsr help_emit_a
-.8057	80 be		bra $8017	                bra repl_read_loop
-.8059					repl_tokenize:
-.8059	a9 0a		lda #$0a	                lda #AscLF
-.805b	20 9c 80	jsr $809c	                jsr help_emit_a
-.805e	a9 74		lda #$74	                lda #'t'
-.8060	20 9c 80	jsr $809c	                jsr help_emit_a
-.8063					repl_parse:
-.8063	a9 0a		lda #$0a	                lda #AscLF
-.8065	20 9c 80	jsr $809c	                jsr help_emit_a
-.8068	a9 70		lda #$70	                lda #'p'
-.806a	20 9c 80	jsr $809c	                jsr help_emit_a
-.806d					repl_eval:
-.806d	a9 0a		lda #$0a	                lda #AscLF
-.806f	20 9c 80	jsr $809c	                jsr help_emit_a
-.8072	a9 65		lda #$65	                lda #'e'
-.8074	20 9c 80	jsr $809c	                jsr help_emit_a
-.8077					repl_print:
-.8077	a5 00		lda $00		                lda return
-.8079	05 01		ora $01		                ora return+1
-.807b	d0 05		bne $8082	                bne +
-.807d	a9 00		lda #$00	                lda #str_unspec
-.807f	20 bc 80	jsr $80bc	                jsr help_print_string
-.8082					+
-.8082					repl_done:
-.8082	4c 11 80	jmp $8011	                jmp repl
+.8017	a9 3e		lda #$3e	                lda #'>'
+.8019	20 1b 81	jsr $811b	                jsr help_emit_a
+.801c	a9 20		lda #$20	                lda #' '
+.801e	20 1b 81	jsr $811b	                jsr help_emit_a
+.8021					repl_read_loop:
+.8021	20 1e 81	jsr $811e	                jsr help_key_a
+.8024	c9 0a		cmp #$0a	                cmp #AscLF
+.8026	f0 19		beq $8041	                beq repl_read_eol
+.8028	c9 0d		cmp #$0d	                cmp #AscCR
+.802a	f0 15		beq $8041	                beq repl_read_eol
+.802c	c9 08		cmp #$08	                cmp #AscBS
+.802e	f0 17		beq $8047	                beq repl_read_backspace
+.8030	c9 7f		cmp #$7f	                cmp #AscDEL             ; (CTRL-h)
+.8032	f0 13		beq $8047	                beq repl_read_backspace
+.8034	99 00 02	sta $0200,y	                sta cib,y
+.8037	c8		iny		                iny
+.8038	20 1b 81	jsr $811b	                jsr help_emit_a
+.803b	c4 ff		cpy $ff		                cpy cib_size-1        ; reached character limit?
+.803d	d0 e2		bne $8021	                bne repl_read_loop    ; fall through if buffer limit reached
+.803f	80 00		bra $8041	                bra repl_read_buffer_full
+.8041					repl_read_eol:
+.8041					repl_read_buffer_full:
+.8041	84 0c		sty $0c		                sty ciblen      ; Y contains number of chars accepted already
+.8043	64 0d		stz $0d		                stz ciblen+1    ; we only accept 256 chars
+.8045	80 1c		bra $8063	                bra repl_tokenize
+.8047					repl_read_backspace:
+.8047	c0 00		cpy #$00	                cpy #0          ; buffer empty?
+.8049	d0 06		bne $8051	                bne +
+.804b	a9 07		lda #$07	                lda #AscBELL    ; complain and don't delete beyond the start of line
+.804d	20 1b 81	jsr $811b	                jsr help_emit_a
+.8050	c8		iny		                iny
+.8051					+
+.8051	88		dey		                dey
+.8052	a9 08		lda #$08	                lda #AscBS      ; move back one
+.8054	20 1b 81	jsr $811b	                jsr help_emit_a
+.8057	a9 20		lda #$20	                lda #AscSP      ; print a space (rubout)
+.8059	20 1b 81	jsr $811b	                jsr help_emit_a
+.805c	a9 08		lda #$08	                lda #AscBS      ; move back over space
+.805e	20 1b 81	jsr $811b	                jsr help_emit_a
+.8061	80 be		bra $8021	                bra repl_read_loop
+.8063					repl_tokenize:
+.8063	a0 00		ldy #$00	                ldy #0
+.8065	84 12		sty $12		                sty tkbp
+.8067	84 13		sty $13		                sty tkbp+1      ; MSB currently unused
+.8069	84 0e		sty $0e		                sty cibp
+.806b	84 0f		sty $0f		                sty cibp+1      ; MSB currently unused
+.806d					repl_tokenize_loop:
+.806d	b9 00 02	lda $0200,y	                lda cib,y
+.8070	c9 40		cmp #$40	                cmp #'@'
+.8072	d0 01		bne $8075	                bne +
+.8074	00		brk #		                brk
+.8075					+
+.8075	20 1a 81	jsr $811a	                jsr help_to_lowercase
+.8078					_test_sharp:
+.8078	c9 23		cmp #$23	                cmp #'#'
+.807a	d0 20		bne $809c	                bne _test_fixnum        ; TODO or whatever next test is
+.807c	c8		iny		                iny
+.807d	b9 00 02	lda $0200,y	                lda cib,y
+.8080	c9 74		cmp #$74	                cmp #'t'                ; We're optimists so we check for true first
+.8082	d0 0a		bne $808e	                bne _test_bool_false
+.8084	a9 ff		lda #$ff	                lda <#oc_true           ; Token is an immediate constant
+.8086	a2 01		ldx #$01	                ldx >#oc_true
+.8088	20 b4 80	jsr $80b4	                jsr repl_add_token
+.808b	4c a4 80	jmp $80a4	                jmp repl_tokenize_next
+.808e					_test_bool_false:
+.808e	c9 66		cmp #$66	                cmp #'f'
+.8090	d0 0a		bne $809c	                bne _test_char
+.8092	a9 00		lda #$00	                lda <#oc_false          ; Token is an immediate constant
+.8094	a2 01		ldx #$01	                ldx >#oc_false
+.8096	20 b4 80	jsr $80b4	                jsr repl_add_token
+.8099	4c a4 80	jmp $80a4	                jmp repl_tokenize_next
+.809c					_test_char:
+.809c					_test_vector:
+.809c					_test_radix:
+.809c					_test_fixnum:
+.809c					_test_comment:
+.809c					repl_tokenize_error:
+.809c	a9 00		lda #$00	                lda #str_unbound
+.809e	20 3b 81	jsr $813b	                jsr help_print_string
+.80a1	4c 11 80	jmp $8011	                jmp repl
+.80a4					repl_tokenize_next:
+.80a4	c8		iny		                iny
+.80a5	c4 0c		cpy $0c		                cpy ciblen
+.80a7	f0 03		beq $80ac	                beq _end_of_input
+.80a9	4c 6d 80	jmp $806d	                jmp repl_tokenize_loop
+.80ac					_end_of_input:
+.80ac	a9 00		lda #$00	                lda #0
+.80ae	aa		tax		                tax
+.80af	20 b4 80	jsr $80b4	                jsr repl_add_token
+.80b2	80 10		bra $80c4	                bra repl_parse
+.80b4					repl_add_token:
+.80b4	5a		phy		                phy                     ; Could also store in cibp
+.80b5	a4 12		ldy $12		                ldy tkbp
+.80b7	99 00 03	sta $0300,y	                sta tkb,y             ; LSB is in A
+.80ba	c8		iny		                iny
+.80bb	8a		txa		                txa
+.80bc	99 00 03	sta $0300,y	                sta tkb,y             ; MSB is in X
+.80bf	c8		iny		                iny
+.80c0	84 12		sty $12		                sty tkbp
+.80c2	7a		ply		                ply
+.80c3	60		rts		                rts
+.80c4					repl_parse:
+.80c4	a2 00		ldx #$00	                ldx #0
+.80c6					-
+.80c6	bd 00 03	lda $0300,x	                lda tkb,x
+.80c9	20 04 81	jsr $8104	                jsr help_byte_to_ascii  ; LSB
+.80cc	e8		inx		                inx
+.80cd	bd 00 03	lda $0300,x	                lda tkb,x
+.80d0	20 04 81	jsr $8104	                jsr help_byte_to_ascii  ; MSB
+.80d3	e8		inx		                inx
+.80d4	a9 20		lda #$20	                lda #' '
+.80d6	20 1b 81	jsr $811b	                jsr help_emit_a
+.80d9	e4 12		cpx $12		                cpx tkbp
+.80db	d0 e9		bne $80c6	                bne -
+.80dd	a9 0a		lda #$0a	                lda #AscLF
+.80df	20 1b 81	jsr $811b	                jsr help_emit_a
+.80e2	a9 0a		lda #$0a	                lda #AscLF
+.80e4	20 1b 81	jsr $811b	                jsr help_emit_a
+.80e7	a9 70		lda #$70	                lda #'p'
+.80e9	20 1b 81	jsr $811b	                jsr help_emit_a
+.80ec					repl_eval:
+.80ec	a9 0a		lda #$0a	                lda #AscLF
+.80ee	20 1b 81	jsr $811b	                jsr help_emit_a
+.80f1	a9 65		lda #$65	                lda #'e'
+.80f3	20 1b 81	jsr $811b	                jsr help_emit_a
+.80f6					repl_print:
+.80f6	a5 00		lda $00		                lda return
+.80f8	05 01		ora $01		                ora return+1
+.80fa	d0 05		bne $8101	                bne +
+.80fc	a9 01		lda #$01	                lda #str_unspec
+.80fe	20 3b 81	jsr $813b	                jsr help_print_string
+.8101					+
+.8101					repl_done:
+.8101	4c 11 80	jmp $8011	                jmp repl
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../helpers.asm
 
-.8085					help_byte_to_ascii:
-.8085	48		pha		                pha
-.8086	4a		lsr a		                lsr             ; convert high nibble first
-.8087	4a		lsr a		                lsr
-.8088	4a		lsr a		                lsr
-.8089	4a		lsr a		                lsr
-.808a	20 8e 80	jsr $808e	                jsr help_nibble_to_ascii
-.808d	68		pla		                pla
-.808e					help_nibble_to_ascii:
-.808e	29 0f		and #$0f	                and #$0F
-.8090	09 30		ora #$30	                ora #'0'
-.8092	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
-.8094	90 02		bcc $8098	                bcc +
-.8096	69 06		adc #$06	                adc #$06
-.8098	4c 27 f0	jmp $f027	+               jmp kernel_putc
-.809b	60		rts		                rts
-.809c					help_emit_a:
-.809c	6c 08 00	jmp ($0008)	                jmp (output)    ; JSR/RTS
-.809f					help_key_a:
-.809f	6c 0a 00	jmp ($000a)	                jmp (input)             ; JSR/RTS
-.80a2					help_print_string_no_lf:
-.80a2	0a		asl a		                asl
-.80a3	a8		tay		                tay
-.80a4	b9 d9 80	lda $80d9,y	                lda string_table,y
-.80a7	85 02		sta $02		                sta tmp0                ; LSB
-.80a9	c8		iny		                iny
-.80aa	b9 d9 80	lda $80d9,y	                lda string_table,y
-.80ad	85 03		sta $03		                sta tmp0+1              ; MSB
-.80af					help_print_common:
-.80af	a0 00		ldy #$00	                ldy #0
-.80b1					_loop:
-.80b1	b1 02		lda ($02),y	                lda (tmp0),y
-.80b3	f0 06		beq $80bb	                beq _done               ; strings are zero-terminated
-.80b5	20 9c 80	jsr $809c	                jsr help_emit_a         ; allows vectoring via output
-.80b8	c8		iny		                iny
-.80b9	80 f6		bra $80b1	                bra _loop
-.80bb					_done:
-.80bb	60		rts		                rts
-.80bc					help_print_string:
-.80bc	20 a2 80	jsr $80a2	                jsr help_print_string_no_lf
-.80bf	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
-.80c1	4c 9c 80	jmp $809c	                jmp help_emit_a         ; JSR/RTS
+.8104					help_byte_to_ascii:
+.8104	48		pha		                pha
+.8105	4a		lsr a		                lsr             ; convert high nibble first
+.8106	4a		lsr a		                lsr
+.8107	4a		lsr a		                lsr
+.8108	4a		lsr a		                lsr
+.8109	20 0d 81	jsr $810d	                jsr help_nibble_to_ascii
+.810c	68		pla		                pla
+.810d					help_nibble_to_ascii:
+.810d	29 0f		and #$0f	                and #$0F
+.810f	09 30		ora #$30	                ora #'0'
+.8111	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
+.8113	90 02		bcc $8117	                bcc +
+.8115	69 06		adc #$06	                adc #$06
+.8117	4c 1b 81	jmp $811b	+               jmp help_emit_a       ; JSR/RTS
+.811a					help_to_lowercase:
+.811a	60		rts		                rts
+.811b					help_emit_a:
+.811b	6c 08 00	jmp ($0008)	                jmp (output)    ; JSR/RTS
+.811e					help_key_a:
+.811e	6c 0a 00	jmp ($000a)	                jmp (input)             ; JSR/RTS
+.8121					help_print_string_no_lf:
+.8121	0a		asl a		                asl
+.8122	a8		tay		                tay
+.8123	b9 5a 81	lda $815a,y	                lda string_table,y
+.8126	85 02		sta $02		                sta tmp0                ; LSB
+.8128	c8		iny		                iny
+.8129	b9 5a 81	lda $815a,y	                lda string_table,y
+.812c	85 03		sta $03		                sta tmp0+1              ; MSB
+.812e					help_print_common:
+.812e	a0 00		ldy #$00	                ldy #0
+.8130					_loop:
+.8130	b1 02		lda ($02),y	                lda (tmp0),y
+.8132	f0 06		beq $813a	                beq _done               ; strings are zero-terminated
+.8134	20 1b 81	jsr $811b	                jsr help_emit_a         ; allows vectoring via output
+.8137	c8		iny		                iny
+.8138	80 f6		bra $8130	                bra _loop
+.813a					_done:
+.813a	60		rts		                rts
+.813b					help_print_string:
+.813b	20 21 81	jsr $8121	                jsr help_print_string_no_lf
+.813e	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
+.8140	4c 1b 81	jmp $811b	                jmp help_emit_a         ; JSR/RTS
+.8143					help_is_whitespace:
+.8143	60		rts		        rts
+.8144					help_is_delimiter:
+.8144	60		rts		        rts
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../native-procedures.asm
 
-.80c4					proc_char_whitespace_p:
-.80c4					proc_newline:
-.80c4	64 00		stz $00		                stz return
-.80c6	64 01		stz $01		                stz return+1
-.80c8	a9 0a		lda #$0a	                lda #AscLF
-.80ca	4c 9c 80	jmp $809c	                jmp help_emit_a         ; JSR/RTS
-.80cd					proc_display:
-.80cd					proc_read:
-.80cd					proc_read_char:
-.80cd					proc_read_line:
-.80cd					proc_write_char:
+.8145					proc_char_whitespace_p:
+.8145					proc_newline:
+.8145	64 00		stz $00		                stz return
+.8147	64 01		stz $01		                stz return+1
+.8149	a9 0a		lda #$0a	                lda #AscLF
+.814b	4c 1b 81	jmp $811b	                jmp help_emit_a         ; JSR/RTS
+.814e					proc_display:
+.814e					proc_read:
+.814e					proc_read_char:
+.814e					proc_read_line:
+.814e					proc_write_char:
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -192,31 +271,59 @@
 >0008					output:  .word ?     ; output port, addr of routine
 >000a					input:   .word ?     ; input port, addr of routine
 >000c					ciblen:  .word ?     ; current size of input buffer
->000e					hp:      .word ?     ; pointer to next free heap entry
->0200					cib0:    .fill cib_size      ; current input buffer
+>000e					cibp:    .word ?     ; pointer (index?) to current char in input buffer
+>0010					tkblen:  .word ?     ; current size of the token buffer
+>0012					tkbp:    .word ?     ; pointer (index?) to current token in token buffer
+>0014					hp:      .word ?     ; pointer to next free heap entry
+>0200					cib:    .fill cib_size  ; current input buffer
+>0300					tkb:    .fill tkb_size  ; token buffer
+=$00					t_meta         = $00    ; used for end of input and other markers
+=$10					t_bool         = $10    ; used for #t and #f; immediate
+=$20					t_fixnum       = $20    ; used for fixed numbers; immediate
+=$30					t_bignum       = $30    ; used for bignum
+=$40					t_char         = $40    ; used for cars; immediate
+=$50					t_undefined_05 = $50
+=$60					t_undefined_06 = $60
+=$70					t_undefined_07 = $70
+=$80					t_undefined_08 = $80
+=$90					t_undefined_09 = $90
+=$a0					t_undefined_0a = $a0
+=$b0					t_undefined_0b = $b0
+=$c0					t_undefined_0c = $c0
+=$d0					t_undefined_0d = $d0
+=$e0					t_undefined_0e = $e0
+=$f0					t_undefined_0f = $f0
+=$0000					oc_end   = $0000        ; end of input for tokens and objects
+=$01ff					oc_true  = $01ff        ; true bool #t, immediate
+=$0100					oc_false = $0100        ; false bool #f, immediate
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../headers.asm
 
-.80cd					h_newline:
->80cd	00 00				        .addr 0000              ; end of header list
->80cf	c4 80				        .addr proc_newline
->80d1	07				        .byte 7
->80d2	6e 65 77 6c 69 6e 65		        .text "newline"
+.814e					h_newline:
+>814e	00 00				        .addr 0000              ; end of header list
+>8150	45 81				        .addr proc_newline
+>8152	07				        .byte 7
+>8153	6e 65 77 6c 69 6e 65		        .text "newline"
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../strings.asm
 
-=0					str_unspec = 0
-.80d9					string_table:
->80d9	db 80				        .word s_unspec ; 0-4
->80db	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
->80e3	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
->80f3	65 00
+=0					str_unbound = 0
+=1					str_unspec  = 1
+.815a					string_table:
+>815a	5e 81 71 81			        .word s_unbound, s_unspec ; 0-4
+>815e	3b 55 6e 62 6f 75 6e 64		s_unbound:      .null   ";Unbound variable:"            ; REPL input error
+>8166	20 76 61 72 69 61 62 6c 65 3a 00
+>8171	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
+>8179	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
+>8189	65 00
+>818b	21 24 25 26 2a 2b 2d 2e		s_extended:     .null "!$%&*+-./:<=>?@^_~"
+>8193	2f 3a 3c 3d 3e 3f 40 5e 5f 7e 00
 
 ;******  Return to file: platforms/platform-py65mon.asm
 

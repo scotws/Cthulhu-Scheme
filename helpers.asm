@@ -1,10 +1,12 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 02. Apr 2020
+; This version: 03. Apr 2020
 
-; These were originally taken from Tali Forth 2, which is in the public domain.
-; All routines start with help_
+; Many of these were originally taken from Tali Forth 2, which is in the public
+; domain. All routines start with help_. They are all responsible for saving
+; the register status 
+; TODO make sure we save the register status
 
 ; ---- Byte to ASCII ----
 help_byte_to_ascii:
@@ -29,14 +31,22 @@ help_nibble_to_ascii:
                 bcc +
                 adc #$06
 
-; TODO change this to the Scheme procedure (write-char)
-+               jmp kernel_putc
++               jmp help_emit_a       ; JSR/RTS 
 
-                rts 
 
 ; ---- Compare 16 bit numbers ----
 
 ; TODO ADD Compare 16 bit
+
+
+; ---- Convert to lower case ----
+help_to_lowercase:
+; Given a character in A, return the lower case version in A as well.
+; Scheme is case-insensitive, see 
+; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Uppercase-and-Lowercase.html
+; for details
+; TODO Add conversion routine to lower case
+                rts
 
 
 ; ---- Emit A ----
@@ -56,7 +66,6 @@ help_key_a:
 
 ; ---- System print routines----
 
-; TODO some of these may be moved to the Scheme built-in procedures
 help_print_string_no_lf:
         ; """Given the number of a zero terminated string in A, print to the
         ; current output without adding a line feed. Uses Y and tmp0 by falling
@@ -97,3 +106,24 @@ help_print_string:
                 lda #AscLF              ; we don't use (newline) because of string
                 jmp help_emit_a         ; JSR/RTS
 
+
+; ---- Tokenization Helpers ----
+
+help_is_whitespace:
+        ; """Given in a character in A, see if it is legally a Scheme
+        ; whitespace character. Result is returned in the Carry flag: Set means
+        ; is whitespace, cleared means is not.
+        ; """
+        ; TODO
+        rts
+        
+help_is_delimiter:
+        ; """Given a character in A, see if it is a legal Scheme delimiter. The
+        ; result is returned in the Carry flag: Set mans is a delimiter,
+        ; cleared means it is not. See the list of delimiters at
+        ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
+        ; """
+        ; TODO check for whitespace, because whitespace is delimiters
+        ; TODO check for ();"'`|
+        ; TODO check for []{}
+        rts
