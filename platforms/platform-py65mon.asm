@@ -8,6 +8,12 @@
 ; assembler. To adapt it, you will need to relace the kernel routines at the
 ; bottom of the file with your own code and adapt the memory map to your layout
 
+; ==== DEBUGGING ====
+
+; Set this to 'false' for production code. As 'true', this will assemble the
+; debugging routines in debug.asm and various parts of the code
+DEBUG = true
+
 
 ; ==== BASIC MACHINE DEFINITIONS ====
 
@@ -121,8 +127,14 @@ max_address   = $ffff
 .include "../helpers.asm"               ; various general subroutines
 .include "../native-procedures.asm"     ; assembler-coded procedures
 .include "../procedures.asm"            ; high-level procedures
-.include "../debug.asm"                 ; TODO only for debugging
 .send
+
+; ---- Optional debugging routines ----
+.if DEBUG == true
+        .section rom
+        .include "../debug.asm" 
+        .send
+.fi
 
 ; ---- Data ROM sections ----
 .section rom

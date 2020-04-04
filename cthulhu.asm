@@ -151,11 +151,14 @@ repl_tokenize:
 repl_tokenize_loop:
                 lda cib,y
 
+                .if DEBUG == true
                 ; TODO TESTING Quit on '@', just for the moment
                 cmp #'@'
                 bne +
                 brk
 +
+                .fi
+
                 ; TODO skip over whitespace. This includes line feeds because
                 ; we can have those inside delimiters and comments
                 
@@ -279,6 +282,7 @@ repl_add_token:
 ; TODO HIER HIER 
 
 repl_parse: 
+                .if DEBUG == true
 
                 ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
@@ -286,13 +290,15 @@ repl_parse:
                 ; TODO Testing print 'p' so we know where we are
                 lda #'p'
                 jsr debug_emit_a
+                .fi
 
 ; ---- EVALUATE ----
 repl_eval:
+                .if DEBUG == true
                 ; TODO Testing print 'e' so we know where we are
                 lda #'e'
                 jsr debug_emit_a
-
+                .fi
 
 ; ---- PRINT ----
 repl_print: 

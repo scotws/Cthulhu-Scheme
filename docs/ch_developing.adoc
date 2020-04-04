@@ -14,3 +14,11 @@ Sussman<<ST>>.
 === Tools Used
 
 Cthulhu Scheme is written in [64Tass Assembler](http://tass64.sourceforge.net/). 
+
+
+=== Debugging routines
+
+Cthulhu Scheme includes optional debugging routines that are only assembled if
+the `DEBUG` variable is set to `true` in the current `platforms` file. See
+http://tass64.sourceforge.net/#conditional-assembly for details on conditional
+assembly with 64Tass.

@@ -95,6 +95,7 @@ tkb_size	= $100
 help_key_a	= 33017
 s_kernel_id	= $f02c
 input		= $000a
+DEBUG		= true
 t_meta		= $00
 rom_start	= 32768
 platform_bye	= $f02b
