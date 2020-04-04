@@ -56,6 +56,12 @@ repl_read:
                 lda #' '
                 jsr help_emit_a
 
+                ; TODO Set up input status byte to handle delimiters, strings,
+                ; and levels of parens: clear at start, set bit 7 for comment,
+                ; set bit 6 for strings (so we don't trigger when we have
+                ; a semicolon in a string), and the rest for counting levels of
+                ; parens.
+
 repl_read_loop:
         ; Out of the box, py65mon catches some CTRL sequences such as
         ; CTRL-c. We also don't need to check for CTRL-l because a
@@ -273,41 +279,20 @@ repl_add_token:
 ; TODO HIER HIER 
 
 repl_parse: 
-                ; TODO TEST hexdump contents of token buffer
-                ldx #0
--
-                lda tkb,x
-                jsr help_byte_to_ascii  ; LSB
-                inx
-                lda tkb,x
-                jsr help_byte_to_ascii  ; MSB
-                inx
 
-                lda #' '
-                jsr help_emit_a
-
-                cpx tkbp
-                bne - 
-
-                lda #AscLF
-                jsr help_emit_a
-
+                ; TODO TEST dump contents of token buffer
+                jsr debug_dump_token
 
                 ; TODO Testing print 'p' so we know where we are
-                lda #AscLF
-                jsr help_emit_a
                 lda #'p'
-                jsr help_emit_a
+                jsr debug_emit_a
 
 ; ---- EVALUATE ----
 repl_eval:
                 ; TODO Testing print 'e' so we know where we are
-                lda #AscLF
-                jsr help_emit_a
                 lda #'e'
-                jsr help_emit_a
+                jsr debug_emit_a
 
-                ; TODO testing: Result is 00
 
 ; ---- PRINT ----
 repl_print: 

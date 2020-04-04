@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 03. Apr 2020
+; This version: 04. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -121,6 +121,7 @@ max_address   = $ffff
 .include "../helpers.asm"               ; various general subroutines
 .include "../native-procedures.asm"     ; assembler-coded procedures
 .include "../procedures.asm"            ; high-level procedures
+.include "../debug.asm"                 ; TODO only for debugging
 .send
 
 ; ---- Data ROM sections ----
