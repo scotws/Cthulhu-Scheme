@@ -9,15 +9,19 @@
 
 str_unbound = 0
 str_unspec  = 1
+str_true    = 2
+str_false   = 3
 
 ; Since we can't fit a 16-bit address in a register, we use indexes as offsets
 ; to tables as error and string numbers.
 string_table:
-        .word s_unbound, s_unspec ; 0-4
+        .word s_unbound, s_unspec, s_true, s_false ; 0-3
 
-; TODO see if we want to keep the ';' in the individual strings
+; TODO see if we want to keep the ';' in the individual error strings
 s_unbound:      .null   ";Unbound variable:"            ; REPL input error
 s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
+s_true:         .null   "#t"
+s_false:        .null   "#f"
 
 
 ; ---- Other Strings ----

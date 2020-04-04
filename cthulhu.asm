@@ -278,15 +278,13 @@ repl_add_token:
 ; At this stage, we should have the tokens in the token buffer, terminated by
 ; an end of input token (0000). We now need to construct a tree (or another
 ; structure) that reflects the input.
-
-; TODO HIER HIER 
-
 repl_parse: 
                 .if DEBUG == true
-
                 ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
+                .fi
 
+                .if DEBUG == true
                 ; TODO Testing print 'p' so we know where we are
                 lda #'p'
                 jsr debug_emit_a
@@ -300,6 +298,15 @@ repl_eval:
                 jsr debug_emit_a
                 .fi
 
+                ; TODO TESTING
+                ; Evaluate returns the result in the return zero page location.
+                ; For the moment, this is trivial
+                lda tkb
+                sta return
+                lda tkb+1
+                sta return+1
+
+
 ; ---- PRINT ----
 repl_print: 
         ; The result of the procedure (or last part of the procedure in the case of
@@ -312,17 +319,48 @@ repl_print:
                 ; If result is zero, there is no return value 
                 lda return
                 ora return+1
-                bne +
+                bne _print_object
 
                 lda #str_unspec
                 jsr help_print_string
 
-+               
-                ; TODO see if result is fixnum
+                jmp repl_done
+
+_print_object:
+                ; Figure out type of object we have been given
+                lda return+1            ; MSB
+                and #$f0                ; we just want the tag in the top nibble 
+
+                ; TODO currently we just manually check which type this is.
+                ; Move to a jump table once we have more versions going
+
                 ; TODO see if result is bool
+                cmp #t_bool
+                bne _print_fixnum
+
+                ; We have a bool, which is always an immediate object. We can
+                ; just print the result
+                lda return              ; $00 is false, $ff is true
+                bne _true
+
+                lda #str_false
+                bra _print_bool
+_true
+                lda #str_true
+_print_bool:
+                jsr help_print_string
+                jmp repl_done
+
+_print_fixnum:
+                ; TODO see if result is fixnum
                 ; TODO see if result is string
                 ; TODO see if result is object
                 ; TODO see if result is symbol
+
+                ; If we landed here something went really wrong because we
+                ; shouldn't have a token we can't print
+                ; TODO Error message
+                
 
 ; ==== ALL DONE ====
 repl_done:

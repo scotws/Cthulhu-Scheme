@@ -79,6 +79,6 @@ t_undefined_0f = $f0
 ; constants for speed reasons. These start with oc_
 
 oc_end   = $0000        ; end of input for tokens and objects
-oc_true  = $01ff        ; true bool #t, immediate
-oc_false = $0100        ; false bool #f, immediate
+oc_true  = $1fff        ; true bool #t, immediate
+oc_false = $1000        ; false bool #f, immediate
 
