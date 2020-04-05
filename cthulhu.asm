@@ -112,7 +112,7 @@ repl_read_buffer_full:
                 stz ciblen+1    ; we only accept 256 chars
 
                 ; We have the characters in the buffer, now we can parse
-                bra repl_tokenize
+                jmp lexer
 
 repl_read_backspace:
                 ; Handle backspace and delete key, which currently do the same
@@ -136,149 +136,15 @@ repl_read_backspace:
 
 
 ; ---- TOKENIZE ----
-repl_tokenize: 
-        ; Some of this (like adding a token to the token buffer) could be moved
-        ; to a subroutine to save space. However, we are currently leaving it
-        ; here unrolled for speed reasons. This might change at a later date
-
-                ; Initialize indices to character and token buffers
-                ldy #0
-                sty tkbp
-                sty tkbp+1      ; MSB currently unused
-                sty cibp
-                sty cibp+1      ; MSB currently unused
-
-repl_tokenize_loop:
-                lda cib,y
-
-                .if DEBUG == true
-                ; TODO TESTING Quit on '@', just for the moment
-                cmp #'@'
-                bne +
-                brk
-+
-                .fi
-
-                ; TODO skip over whitespace. This includes line feeds because
-                ; we can have those inside delimiters and comments
-                
-                ; Convert to lower case
-                ; TODO this is currently just fake
-                jsr help_to_lowercase
-
-
-                ; ---- Testing for sharp stuff ----
-_test_sharp:
-                ; See if first character is #
-                cmp #'#'
-                bne _test_fixnum        ; TODO or whatever next test is
-
-                ; We have a #, so see which type it is. First, see if this is
-                ; a bool, so either #f or #t because they probably come up
-                ; a lot. ("Probably" of course is not really good enough, at
-                ; some point we should do some research to see just how common
-                ; they are)
-
-                iny
-                ; TODO see if we're past the end of the line
-
-                lda cib,y
-                cmp #'t'                ; We're optimists so we check for true first
-                bne _test_bool_false
-
-                ; We have a true bool. Add this to the token buffer
-                lda <#oc_true           ; Token is an immediate constant
-                ldx >#oc_true 
-                jsr repl_add_token
-                jmp repl_tokenize_next
-
-_test_bool_false:
-                cmp #'f'
-                bne _test_char
-                
-                ; We have a false bool. Add this to the token buffer
-                lda <#oc_false          ; Token is an immediate constant
-                ldx >#oc_false
-                jsr repl_add_token
-                jmp repl_tokenize_next
-
-_test_char:
-                ; TODO See if char #\a
-
-_test_vector:
-                ; TODO See if vector constant #(
-
-_test_radix: 
-                ; TODO See if we have a radix number prefix
-                ; - #b binary
-                ; - #o octal
-                ; - #d decimal
-                ; - #x hexadecimal
-                ; If yes, what follows must be a number, so we can jump there
-
-
-                ; ---- Testing for numbers ----
-
-_test_fixnum:
-                ; TODO See if we have a number
-
-_test_comment:  
-                ; TODO See if we have a comment. This is a bit tricky because
-                ; we can't just bail to the next input line - the input can
-                ; continue after the end of the line
-                
-repl_tokenize_error:
-                ; Error, this isn't valid input. Complain and try again
-                lda #str_unbound
-                jsr help_print_string
-                ; TODO add offending variable name to error output
-                jmp repl
-
-repl_tokenize_next:
-                ; Move on to the next character in the input or, if we're all
-                ; done, add the end-of-input token
-                iny
-                cpy ciblen
-                beq _end_of_input
-                jmp repl_tokenize_loop
-
-_end_of_input:
-                ; Add end-of-input token
-                lda #0
-                tax
-                jsr repl_add_token
-
-                ; Continue with parsing
-                bra repl_parse
-
-
-; ---- Tokenizer helper functions ----
-
-repl_add_token:
-        ; Tokenizer subroutine: Add token to token buffer. Assumes LSB of token is in
-        ; A and MSB of token is in X. Does not touch X.
-        ; TODO make sure we don't move past the end of the token buffer
-                phy                     ; Could also store in cibp
-                ldy tkbp
-
-                sta tkb,y             ; LSB is in A
-                iny
-                txa
-                sta tkb,y             ; MSB is in X
-                iny
-
-                sty tkbp 
-                ply
-
-                rts
-
+; TODO this is going to be replaced by the lexer
 
 ; ---- PARSE ----
 
 ; At this stage, we should have the tokens in the token buffer, terminated by
-; an end of input token (0000). We now need to construct a tree (or another
+; an end of input token (00). We now need to construct a tree (or another
 ; structure) that reflects the input.
-repl_parse: 
+; TODO move this to a separate file
+parse: 
                 .if DEBUG == true
                 ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
@@ -297,14 +163,6 @@ repl_eval:
                 lda #'e'
                 jsr debug_emit_a
                 .fi
-
-                ; TODO TESTING
-                ; Evaluate returns the result in the return zero page location.
-                ; For the moment, this is trivial
-                lda tkb
-                sta return
-                lda tkb+1
-                sta return+1
 
 
 ; ---- PRINT ----
@@ -335,7 +193,7 @@ _print_object:
                 ; Move to a jump table once we have more versions going
 
                 ; TODO see if result is bool
-                cmp #t_bool
+                cmp #ot_bool
                 bne _print_fixnum
 
                 ; We have a bool, which is always an immediate object. We can

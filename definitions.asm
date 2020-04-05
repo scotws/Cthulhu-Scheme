@@ -3,6 +3,10 @@
 ; First version: 01. Apr 2016 (Liara Forth)
 ; This version: 04. Apr 2020
 
+; The lexer tokens are kept in the lexer.asm file so that they can be changed
+; more easily
+
+
 ; ---- ASCII Characters ----
 
 ; TODO Figure out which ones we actually need
@@ -49,11 +53,6 @@ cib:    .fill cib_size  ; current input buffer
 tkb:    .fill tkb_size  ; token buffer
 .send buffers
 
-
-; ---- Tokens ----
-
-; The exact relationship between scanner and lexer ist going to take a while to
-; figure out, because we hae to 
 
 ; ---- Object tag nibbles ----
 
