@@ -8,6 +8,7 @@
 ; assembler. To adapt it, you will need to relace the kernel routines at the
 ; bottom of the file with your own code and adapt the memory map to your layout
 
+
 ; ==== DEBUGGING ====
 
 ; Set this to 'false' for production code. As 'true', this will assemble the
@@ -39,8 +40,17 @@ zp_size   = $80         ; max bytes allowed in Zero Page
 ; there is no history setup for the REPL because of the same reason. It might
 ; be added later. 
 buffers_start   = $0200         ; start of the buffer RAM area
-cib_size        = $100          ; size of the input buffer
-tkb_size        = $100          ; size of the token buffer
+cib_size        = $100          ; size of the input buffer, used by reader
+tkb_size        = $100          ; size of the token buffer, used by lexer
+
+; The heap is where we store various tables (string table, symbol table, bignum
+; table, etc) and various objects. The variable hp points to the next free byte
+; in the heap. We want to keep this as large as possible. Once we add garbage
+; collection, we will probably have to reserve some space to rebuild things.
+; For the moment, we use what RAM we have for the heap. Remember the 65c02
+; reserves $0000 to $00ff for the zero page and $100 to $1ff for the stack, so
+; we have to subtract $200 as well.
+heap_size       = ram_size - ($200+cib_size+tkb_size)
 
 ; Of the 32 KiB ROM we assume we have, by default we use $8000 to $efff (28
 ; KiB) for code and constant data like strings, $f000 to $f010 for I/O
@@ -56,7 +66,7 @@ io_size  = $10
 
 ; We assume there are no holes in the memory map, that is, 32 KiB of RAM and
 ; 32 KiB of ROM
-rom_start = ram_start + ram_size        ; $8000 by default
+rom_start = $8000                       ; $8000 by default
 rom_size = io_start - rom_start         ; $f000 - $8000 = $7000 (28 KiB)
 
 ; The vectors on the 65c02 are hardcoded to $fffa. Our maximum address size is
@@ -75,25 +85,23 @@ max_address   = $ffff
 ; ---- Zero Page
 * = zp_start
 .dsection zp
-.cerror * >= (zp_start+zp_size), "Too many Zero Page entries, hit buffers"
+.cerror * > (zp_start+zp_size), "Too many Zero Page entries, hit buffers (soft limit)"
+.cerror * > $100, "Too many Zero page entries, hit buffers (hard limit)"
 
 ; ---- Buffer RAM section
 * = buffers_start
 .dsection buffers
-.cerror * >= rom_start, "Buffers too large, hit ROM"
 
 ; ---- General RAM section
-; This starts directly after the buffers
-; .warn "FYI general RAM starts at ", format("%#04x", *)
+; This starts directly after the buffers. The separationen between buffers for
+; RAM and for other stuff is somewhat artificial and may be given up later
 .dsection ram 
-.cerror * >= rom_start, "Too much general RAM allocated, hit ROM"
-; .warn "FYI General RAM ends at ", format("%#04x", *)
+.cerror * > rom_start, "Too much RAM allocated, hit ROM"
 
 ; ---- ROM section
 * = rom_start
 .dsection rom
-.cerror * >= io_start, "Too much code and data in ROM, hit I/O"
-; .warn "FYI ROM section ends at ", format("%#04x", *)
+.cerror * > io_start, "Too much code and data in ROM, hit I/O"
 
 ; ---- I/O Addresses 
 * = io_start
@@ -102,8 +110,7 @@ max_address   = $ffff
 ; ---- Kernel
 ; The kernel starts directly after the I/O section
 .dsection kernel
-.cerror * >= vectors_start, "Kernel too large, hit interrupt vectors"
-; .warn "FYI Kernel ends at ", repr(*)
+.cerror * > vectors_start, "Kernel too large, hit interrupt vectors"
 
 ; ---- Interrupt vectors
 ; These are hardcoded for the 65c02, we include them to allow for easier
@@ -118,8 +125,6 @@ max_address   = $ffff
 
 ; We work with includes and section definitions here so we don't have to
 ; remember to add them in the code itself unless there is a special case
-; TODO change this so we have more control
-
 
 ; ---- Code ROM sections ----
 .section rom

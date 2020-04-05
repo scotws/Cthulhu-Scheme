@@ -21,14 +21,29 @@ cthulhu:
                 lda #>kernel_putc
                 sta output+1
 
-                ; TODO clear the heap
-                ; TODO define high-level procudures by loading from file
+                ; Set up the heap. First, pointer to next free entry
+                lda <#heap
+                sta hp
+                lda >#heap
+                sta hp+1
+
+                ; The symbol, string, and bignum tables are all empty
+                lda #0
+                stz symtbl
+                stz symtbl+1
+                stz strtbl
+                stz strtbl+1
+                stz bnmtbl
+                stz bnmtbl+1
+
+                ; TODO define high-level procudures by loading from ROM
 
                 ; Set default input port
                 lda #<kernel_getc
                 sta input
                 lda #>kernel_putc
                 sta input+1
+
 
 ; ==== REPL ====
 ; TODO https://eecs490.github.io/project-scheme-parser/
@@ -111,7 +126,8 @@ repl_read_buffer_full:
                 sty ciblen      ; Y contains number of chars accepted already
                 stz ciblen+1    ; we only accept 256 chars
 
-                ; We have the characters in the buffer, now we can parse
+                ; We have the characters in the buffer, now we can parse. The
+                ; lexer is kept in a separate file
                 jmp lexer
 
 repl_read_backspace:
@@ -135,16 +151,16 @@ repl_read_backspace:
                 bra repl_read_loop
 
 
-; ---- TOKENIZE ----
-; TODO this is going to be replaced by the lexer
+; The lexer is kept in a separate file
 
-; ---- PARSE ----
+
+; ---- PARSER ----
+; TODO move this to a separate file
 
 ; At this stage, we should have the tokens in the token buffer, terminated by
-; an end of input token (00). We now need to construct a tree (or another
-; structure) that reflects the input.
-; TODO move this to a separate file
-parse: 
+; an end of input token (00). We now need to construct the abstact syntax tree
+; (AST).
+parser: 
                 .if DEBUG == true
                 ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
@@ -156,8 +172,10 @@ parse:
                 jsr debug_emit_a
                 .fi
 
+
 ; ---- EVALUATE ----
-repl_eval:
+; TODO Move this to a separate file.
+eval:
                 .if DEBUG == true
                 ; TODO Testing print 'e' so we know where we are
                 lda #'e'

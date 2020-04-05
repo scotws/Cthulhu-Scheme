@@ -10,7 +10,6 @@
 
 ; ==== LEXER CODE ====
 lexer:
-
                 ; Intialized indices to charater and token buffers
                 ldy #0
                 sty tkbp
@@ -35,11 +34,13 @@ lexer_loop:
                 ; TODO this is currently fake
                 jsr lexer_eat_whitespace
 
+
                 ; ---- Check for parens ----
 _test_parens:
                 ; We do this early because this is Scheme, and there are going
                 ; to be a lot of them
                 ; TODO check for parens
+
 
                 ; ---- Check for sharp stuff ----
 _test_sharp:
@@ -132,7 +133,7 @@ _end_of_input:
                 jsr lexer_add_token
 
                 ; Continue with parsing
-                jmp parse
+                jmp parser
 
 
 

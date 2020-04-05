@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 04. Apr 2020
+; This version: 05. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -21,6 +21,7 @@
         AscDEL  = $7f  ; delete (CTRL-h)
         AscCP   = $10  ; CTRL-p
         AscCN   = $0e  ; CTRL-n
+
 
 ; ---- Zero page definitions ----
 
@@ -43,15 +44,26 @@ cibp:    .word ?     ; pointer (index?) to current char in input buffer
 tkblen:  .word ?     ; current size of the token buffer
 tkbp:    .word ?     ; pointer (index?) to current token in token buffer
 hp:      .word ?     ; pointer to next free heap entry
+symtbl:  .word ?     ; pointer to first entry in symbol table in heap
+strtbl:  .word ?     ; pointer to first entry in string table in heap
+bnmtbl:  .word ?     ; pointer to first entry in bignum table in heap
+ast      .word ?     ; pointer to root of Abstract Systax Tree (AST)
 .send zp
 
 
-; ---- Input and other buffers ----
+; ---- Buffers ----
 
 .section buffers
-cib:    .fill cib_size  ; current input buffer
-tkb:    .fill tkb_size  ; token buffer
+cib:    .fill cib_size          ; current input buffer
+tkb:    .fill tkb_size          ; token buffer
 .send buffers
+
+
+; ---- General RAM objects ---- 
+
+.section ram
+heap:   .fill heap_size         ; RAM available for heap
+.send ram 
 
 
 ; ---- Object tag nibbles ----
