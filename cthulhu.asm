@@ -27,14 +27,15 @@ cthulhu:
                 lda >#heap
                 sta hp+1
 
-                ; The symbol, string, and bignum tables are all empty
-                lda #0
+                ; The AST, symbol, string, and bignum tables are all empty
                 stz symtbl
                 stz symtbl+1
                 stz strtbl
                 stz strtbl+1
                 stz bnmtbl
                 stz bnmtbl+1
+                stz ast
+                stz ast+1
 
                 ; TODO define high-level procudures by loading from ROM
 
