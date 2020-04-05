@@ -1,13 +1,13 @@
 Cthulhu Scheme License and Copying 
-Scot W. Stevenson <scot.stevenson@gmail.com>
-First version: 07. Apr 2014 (Tali Forth) 
-This version:  28. Mar 2020
+Scot W. Stevenson <scot.stevenson@gmail.com>  
+First version: 07. Apr 2014 (Tali Forth)  
+This version: 05. Apr 2020  
 
-Cthulhu Scheme is based on code an information provided by kind people for free
-and without string attached. It would be plain wrong to try to make money for it
-or otherwise encumber it legally. As such, Cthulhu Scheme is placed in the
-public domain. Where external code was used, it was also from the public domain.
-See source code for documentation of individual routines. 
+Cthulhu Scheme is based on code and information provided by kind people for free
+and without strings attached. It would therefore be plain wrong to try to make
+money from it or encumber it legally. Because of this, Cthulhu Scheme is placed
+in the public domain. Where external code was used, it was also from the public
+domain. See source code for documentation of individual routines. 
 
 Cthulhu Scheme is provided on an "as is" basis without any warranty of any kind,
 including, without limitation, the implied warranties of merchantability and

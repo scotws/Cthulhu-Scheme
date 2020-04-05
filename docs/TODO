@@ -10,7 +10,8 @@ TODO
 
 - Docs: Reference to "Cultist Simulator"
 - Docs: Add HP Lovecraft to biblio
-- REPL: Add history buffers
+- REPL: See about adding history buffers once we know how much space we will be
+  using
 
 
 DONE
