@@ -1,61 +1,35 @@
-Cthulhu Scheme for the 65c02  
+Cthulhu Scheme for the 65c02   
 Scot W. Stevenson <scot.stevenson@gmail.com>   
-First version: 28. Mar 2020
-This version: 28. Mar 2020
+First version: 28. Mar 2020  
+This version: 05. Apr 2020  
 
-## Dude, I am a Scheme god, all bow down before me. Just tell me how to start!
+## Dude, I am a Scheme god, all parens tremble before me. Just tell me how to start!
 
 Run `py65mon -m 65c02 -r cthulhu-py65mon.bin` from this directory.
 
 
 ## Introduction
 
-Cthulhu Scheme is a very primitive version of a bare-metal Scheme-like language
-for the 65c02 8-bit MPU. The aim is to see how far you can go with the limited
-hardware available. It is free -- released in the public domain -- but with
-absolutely _no warranty_ of any kind.  Use at your own risk! (See `COPYING.txt`
-for details.) Cthulhu Scheme is hosted at GitHub. You can find the most current
-version at [FEHLT](FEHLT).
+Cthulhu Scheme is a very, _very_ primitive version of a bare-metal Scheme-like
+language for the 65c02 8-bit MPU. The aim is to see how far you can go with the
+limited hardware available. It is free -- released in the public domain -- but
+with absolutely _no warranty_ of any kind.  Use at your own risk! (See
+`COPYING.txt` for details.) 
 
 
 ## More detail please
 
-HIER HIER 
+At the moment this is pre-alpha software, which means that it will assemble and
+probably even run on a good day, but won't do anything useful yet. Part of this
+is because I am using this project to get familiar with the 64tass assembler
+(see http://tass64.sourceforge.net/#conditional-assembly) so there are a lot of
+moving parts at the moment. Honestly, you might want to come back in a few
+months. 
 
 
-Tali Forth 2 aims to be, roughly in order of priority: 
+## Even more detail pretty please 
 
-- **Easy to try.** Download the source -- or even just the binary
-  `taliforth-py65mon.bin` -- and run the emulator with `py65mon -m 65c02 -r
-  taliforth-py65mon.bin` to get it running. This lets you experiment with a
-  working 8-bit Forth for the 65c02 without any special configuration. This
-  includes things like block wordset.
-
-- **Simple**. The simple subroutine-threaded (STC) design and excessively
-  commented source code give hobbyists the chance to study a working Forth at
-  the lowest level. Separate documentation - including a manual with more than
-  100 pages - in the `docs` folder discusses specific topics and offers
-  tutorials. The aim is to make it easy to port Tali Forth 2 to various 65c02
-  hardware projects. 
-
-- **Specific**. Many Forths available are "general" implementations with a small
-  core adapted to the target processor. Tali Forth 2 was written as a "bare
-  metal Forth" for the 65c02 8-bit MPU and that MPU only, with its strengths and
-  limitations in mind. 
-
-- **Standardized**. Most Forths available for the 65c02 are based on ancient,
-  outdated templates such as FIG Forth. Learning Forth with them is like trying
-  to learn modern English by reading Chaucer. Tali Forth (mostly) follows the
-  current ANS Standard, and ensures this passing an enhanced test suite.
-  
-The functional reference for Cthulhu Scheme is [MIT/GNU
-Scheme](https://www.gnu.org/software/mit-scheme/). Programs written for MIT/GNU
-Scheme should run on Cthulhu Scheme or have a very good, well documented reason
-not to. 
-
-
-## Seriously super lots more detail 
-
-See `docs\manual.html` for the Cthulhu Scheme manual, which covers the
-installation, setup, tutorials, and internal structure. The central discussion
-forum is [FEHLT](FEHLT) at 6502.org.
+See `docs\manual.html` for the Cthulhu Scheme manual, which at some point will
+cover the installation, setup, tutorials, and internal structure. Once this
+project actually has something to write home about, I'll be announcing it
+formally on 6502.org.
