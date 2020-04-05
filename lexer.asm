@@ -62,6 +62,14 @@ _test_sharp:
 
                 ; We have a true bool. Add this to the token buffer
                 lda #T_TRUE
+
+                ; It's tempting to want to put the jmp instruction in the
+                ; subroutine to add the token, and in this case, it would
+                ; actually work. However, other tokens require a "payload" of
+                ; (say) a pointer to a string that has been interned in the
+                ; heap, so we can't do that. There might be a clever solution
+                ; for this, but for the moment, we stick with the ugly JSR/JMP
+                ; combination here
                 jsr lexer_add_token
                 jmp lexer_next
 
@@ -128,7 +136,8 @@ lexer_next:
                 jmp lexer_loop
 
 _end_of_input:
-                ; Add end-of-input token
+                ; Add end-of-input token. The parser assumes that this will
+                ; always be present so we really, really need to get this right
                 lda #T_END
                 jsr lexer_add_token
 

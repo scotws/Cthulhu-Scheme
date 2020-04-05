@@ -40,14 +40,15 @@ tmp2:    .word ?     ; temporary storage
 output:  .word ?     ; output port, addr of routine
 input:   .word ?     ; input port, addr of routine
 ciblen:  .word ?     ; current size of input buffer
-cibp:    .word ?     ; pointer (index?) to current char in input buffer
+cibp:    .word ?     ; index of current char in input buffer
 tkblen:  .word ?     ; current size of the token buffer
-tkbp:    .word ?     ; pointer (index?) to current token in token buffer
+tkbp:    .word ?     ; index of current token in token buffer
 hp:      .word ?     ; pointer to next free heap entry
 symtbl:  .word ?     ; pointer to first entry in symbol table in heap
 strtbl:  .word ?     ; pointer to first entry in string table in heap
 bnmtbl:  .word ?     ; pointer to first entry in bignum table in heap
 ast      .word ?     ; pointer to root of Abstract Systax Tree (AST)
+astp     .word ?     ; pointer to current entry in AST
 .send zp
 
 
@@ -69,13 +70,15 @@ heap:   .fill heap_size         ; RAM available for heap
 ; ---- Object tag nibbles ----
 
 ; Each object in Cthulhu Scheme has a four-bit tag that denotes the type. We
-; store them here with ot_ as a beginning
+; store them here with ot_ as a beginning. These are used by the parser as well
+; as the evaluator so we keep them saved here. Note if we change these, we
+; migght have to change the Object Constants that live in parser.asm as well.
 
 ot_meta         = $00    ; used for end of input and other markers
 ot_bool         = $10    ; used for #t and #f; immediate
 ot_fixnum       = $20    ; used for fixed numbers; immediate
 ot_bignum       = $30    ; used for bignum
-ot_char         = $40    ; used for cars; immediate
+ot_char         = $40    ; used for chars; immediate
 ot_undefined_05 = $50
 ot_undefined_06 = $60
 ot_undefined_07 = $70
@@ -87,14 +90,3 @@ ot_undefined_0c = $c0
 ot_undefined_0d = $d0
 ot_undefined_0e = $e0
 ot_undefined_0f = $f0
-
-
-; ---- Constant objects ----
-
-; Some objects are used again and again so it is worth storing them as
-; constants for speed reasons. These start with oc_
-
-oc_end   = $0000        ; end of input for tokens and objects
-oc_true  = $1fff        ; true bool #t, immediate
-oc_false = $1000        ; false bool #f, immediate
-

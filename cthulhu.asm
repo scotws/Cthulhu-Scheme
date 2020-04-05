@@ -1,7 +1,7 @@
 ; Cthulhu Scheme for the 65c02 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 04. Apr 2020
+; This version: 05. Apr 2020
 
 ; This is the main file for Cthulhu Scheme. It mainly contains the REPL. 
 
@@ -116,13 +116,9 @@ repl_read_loop:
                 jsr help_emit_a
 
                 cpy cib_size-1        ; reached character limit?
-                bne repl_read_loop    ; fall through if buffer limit reached
-
-                bra repl_read_buffer_full
+                bne repl_read_loop    ; fall thru if buffer limit reached
 
 repl_read_eol:
-                ; TODO jsr xt_space  ; print final space 
-
 repl_read_buffer_full:
                 sty ciblen      ; Y contains number of chars accepted already
                 stz ciblen+1    ; we only accept 256 chars
@@ -152,26 +148,12 @@ repl_read_backspace:
                 bra repl_read_loop
 
 
-; The lexer is kept in a separate file
+; ==== LEXER ====
+; The lexer is kept in a separate file, lexer.asm
 
 
-; ---- PARSER ----
-; TODO move this to a separate file
-
-; At this stage, we should have the tokens in the token buffer, terminated by
-; an end of input token (00). We now need to construct the abstact syntax tree
-; (AST).
-parser: 
-                .if DEBUG == true
-                ; TODO TEST dump contents of token buffer
-                jsr debug_dump_token
-                .fi
-
-                .if DEBUG == true
-                ; TODO Testing print 'p' so we know where we are
-                lda #'p'
-                jsr debug_emit_a
-                .fi
+; ===== PARSER ====
+; The parser is kept in a separate file, parser.asm
 
 
 ; ---- EVALUATE ----
