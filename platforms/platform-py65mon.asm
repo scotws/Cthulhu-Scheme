@@ -131,6 +131,7 @@ max_address   = $ffff
 .include "../cthulhu.asm"               ; main code
 .include "../lexer.asm"                 ; lexer (tokenizer) code
 .include "../parser.asm"                ; parser
+.include "../eval.asm"                  ; evaluator
 .include "../helpers.asm"               ; various general subroutines
 .include "../native-procedures.asm"     ; assembler-coded procedures
 .include "../procedures.asm"            ; high-level procedures

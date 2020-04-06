@@ -1,7 +1,7 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 05. Apr 2020
+; This version: 06. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
@@ -12,10 +12,10 @@
 lexer:
                 ; Intialized indices to charater and token buffers
                 ldy #0
-                sty tkbp
-                sty tkbp+1      ; MSB currently unused
-                sty cibp
-                sty cibp+1      ; MSB currently unused
+                stz cibp
+                stz cibp+1      ; MSB currently unused
+                stz tkbp
+                stz tkbp+1      ; MSB currently unused
 
 
 lexer_loop:

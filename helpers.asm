@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 03. Apr 2020
+; This version: 06. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -10,7 +10,9 @@
 
 ; ---- Byte to ASCII ----
 help_byte_to_ascii:
-        ; """Convert byte in A to two ASCII hex digits and EMIT them"""
+        ; """Convert byte in A to two ASCII hex digits and EMIT them. Destroys
+        ; the value in A
+        ; """
                 pha
                 lsr             ; convert high nibble first
                 lsr

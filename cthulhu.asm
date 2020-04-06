@@ -155,19 +155,12 @@ repl_read_backspace:
 ; ===== PARSER ====
 ; The parser is kept in a separate file, parser.asm
 
-
-; ---- EVALUATE ----
-; TODO Move this to a separate file.
-eval:
-                .if DEBUG == true
-                ; TODO Testing print 'e' so we know where we are
-                lda #'e'
-                jsr debug_emit_a
-                .fi
+; ===== EVAL ====
+; The evaluator is kept in a separate file, eval.asm
 
 
 ; ---- PRINT ----
-repl_print: 
+print: 
         ; The result of the procedure (or last part of the procedure in the case of
         ; something like (begin) is stored in the return variable in zero page. If it
         ; is zero, we don't have a return value.

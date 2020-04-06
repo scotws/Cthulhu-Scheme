@@ -1,11 +1,12 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 05. Apr 2020
+; This version: 06. Apr 2020
 
 ; The parser is kept in a separate file to make changes easier. It goes through
 ; the tokens created by the lexer in the token buffer (tkb) and create
 ; a Abstract Syntax Tree (AST) that is saved as part of the heap. 
+
 
 ; ==== PARSER CODE ====
 
@@ -20,7 +21,6 @@ parser:
                 ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
                 .fi 
-
 
 ; ---- Parser setup ----
 
@@ -66,6 +66,12 @@ _true_token:
                 ; have the object as a constant
                 lda <#OC_TRUE
                 ldy >#OC_TRUE
+                ; It is tempting to collapse the next two lines by adding the
+                ; jump to parser_done to the end of parser_add_object and then
+                ; just jumping as a JSR/RTS. In this case, it would work.
+                ; However, other objects might require more stuff added, so for
+                ; the moment, we leave it this way. Check the analog situation
+                ; with the lexer. 
                 jsr parser_add_object
                 jmp parser_done
 
@@ -74,10 +80,10 @@ _false_token:
                 cmp #T_FALSE
                 bne paser_bad_token     ; TODO HIER ADD NEXT TOKEN TODO
 
-                ; We have a true token, which makes our life easy, because we
+                ; We have a false token, which makes our life easy, because we
                 ; have the object as a constant
-                lda <#OC_TRUE
-                ldy >#OC_TRUE
+                lda <#OC_FALSE
+                ldy >#OC_FALSE
                 jsr parser_add_object
                 jmp parser_done
 
@@ -131,36 +137,41 @@ parser_add_object:
                 ; Store the termination object in the new node as the pointer
                 ; to the next node, this marks the end of the tree  
                 lda <#OC_END
-                sta (tmp0)
-                ldy #1
+                ldy #0
+                sta (hp),y
+                iny
                 lda >#OC_END
-                sta (tmp0),y
+                sta (hp),y
+                iny
                 
-                ; Move heap pointer two entries down. This is where the payload
-                ; of the new object goes
-                inc hp
-                inc hp
-
                 ; Store the object in the heap
                 pla             ; retrieve LSB
-                sta (hp)
-                inc hp
+                sta (hp),y
+                iny
                 pla             ; retrieve MSB, was in Y
-                sta (hp) 
-                inc hp
+                sta (hp),y
+                iny
 
+                ; Update heap pointer
+                tya
+                clc
+                adc hp
+                sta hp
+                bcc +
+                inc hp+1
++
                 ; Store address of new entry in header of old link
-                lda tmp0
+                lda tmp0        ; original LSB of hp
                 tax             ; We'll need it again in a second
                 sta (astp)
                 ldy #1
-                lda tmp0+1
+                lda tmp0+1      ; original MSB of hp
                 sta (astp),y
                 
                 ; Store address of new entry in astp. Yes, there are two
                 ; pointers to the last entry in the tree.
                 sta astp+1      ; MSB, was tmp0+1
-                stx ast         ; LSB, was tmp0
+                stx astp        ; LSB, was tmp0
 
                 rts
 
