@@ -181,7 +181,7 @@ parser_add_object:
 ; constants for speed reasons. These are in capital letters and start with
 ; with OC_
 
-OC_END   = $0000        ; end of input for tokens and objects
+OC_END   = $0000        ; end of input for AST 
 OC_TRUE  = $1fff        ; true bool #t, immediate
 OC_FALSE = $1000        ; false bool #f, immediate
 

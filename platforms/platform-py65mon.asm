@@ -129,9 +129,10 @@ max_address   = $ffff
 ; ---- Code ROM sections ----
 .section rom
 .include "../cthulhu.asm"               ; main code
-.include "../lexer.asm"                 ; lexer (tokenizer) code
-.include "../parser.asm"                ; parser
-.include "../eval.asm"                  ; evaluator
+.include "../lexer.asm"                 ; lexer code of REPL
+.include "../parser.asm"                ; parser code of REPL
+.include "../eval.asm"                  ; evaluator code of REPL
+.include "../printer.asm"               ; printer code of REPL
 .include "../helpers.asm"               ; various general subroutines
 .include "../native-procedures.asm"     ; assembler-coded procedures
 .include "../procedures.asm"            ; high-level procedures
