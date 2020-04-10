@@ -1,0 +1,19 @@
+Your code sucks but I'd like to learn more about Lovecraft::
+        I can recommend _The New Annotated H.P. Lovecraft_ by Leslie S. Klinger
+        <<LSK>>, which has beautiful illustrations and lots of great footnotes.
+        The only glaring ommission is the short story
+        link:https://en.wikipedia.org/wiki/The_Cats_of_Ulthar[The Cats of
+        Ulthar](((Cats of Ulthar, The))). I had briefly considered "Ulthar" as a name for this project
+        but there is just too much fun to be had with the age of Lisp and the
+        6502 and the Ancient Ones.
+
+Wait, I hear Lovecraft was a racist jerk::
+        Actually, it's worse. In his introduction to Klinger's book, Alan
+        Moore(((Moore, Alan))) speaks of Lovecraft's "problematic stance on most
+        contemporary issues, with his racism, alleged misogyny, class prejudice,
+        dislike of homosexuality, and anti-Semitism". Fortunately, Cthulhu seems
+        to be an open-minded, equal-opportunity sort of fellow who will bring
+        horror and dread to everybody regardless of gender, race, or sexual
+        preference.
+        
+

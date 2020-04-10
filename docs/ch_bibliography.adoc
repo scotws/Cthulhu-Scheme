@@ -2,6 +2,14 @@
 // the problem with the American format of putting the month before the day vs
 // European day before the month
 
+
+[[[AK]]] _Cultist Simulator_, Alexis Kennedy, Weather Factory,
+https://store.steampowered.com/app/718670/Cultist_Simulator/, wiki at
+https://cultistsimulator.gamepedia.com/Cultist_Simulator_Wiki, 2018
+
+[[[DG]]] _The Cabin in the Woods_, Drew Goddard and Joss Whedon, Lionsgate,
+https://www.imdb.com/title/tt1259521/, 2011 
+
 [[[HA]]] _Structure and Interpretation of Computer Programs_, 
 Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996
 
