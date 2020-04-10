@@ -76,7 +76,7 @@ repl_read:
                 ; and levels of parens: clear at start, set bit 7 for comment,
                 ; set bit 6 for strings (so we don't trigger when we have
                 ; a semicolon in a string), and the rest for counting levels of
-                ; parens.
+                ; parens. This needs to be documented as well.
 
 repl_read_loop:
         ; Out of the box, py65mon catches some CTRL sequences such as
@@ -88,7 +88,7 @@ repl_read_loop:
                 jsr help_key_a
 
                 ; TODO see if we have a delimiter. This is a bit tricky because
-                ; if we have a delimiter such as '(', the line feed does not
+                ; if we have a delimiter such as '(', a line feed does not
                 ; mean the line is over, just that we move to the next line. 
                 
                 ; TODO see if we have a comment ';' symbol. This is a bit

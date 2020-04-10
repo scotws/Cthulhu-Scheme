@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -114,10 +114,34 @@ help_print_string:
 help_is_whitespace:
         ; """Given in a character in A, see if it is legally a Scheme
         ; whitespace character. Result is returned in the Carry flag: Set means
-        ; is whitespace, cleared means is not.
+        ; is whitespace, cleared means is not. For details on what Scheme
+        ; consideres whitespace, see
+        ; https://groups.csail.mit.edu/mac/ftpdir/scheme-7.4/doc-html/scheme_6.html.
+        ; In short, it is space ($20), tab (HT, $09), page (FF, $0C), linefeed
+        ; (LF, $0A), and return (CR, $0D). This routine is the basis for the
+        ; Scheme procedure (char-whitespace? char)
         ; """
-        ; TODO
-        rts
+        ; TODO This is probably not the fastest version possible, because we
+        ; will have lots of parens and normal ASCII chars before we have
+        ; something exotic like a page character. We should come back to this
+        ; and speed stuff up
+.block
+                sec             ; default is whitespace
+                cmp #$20        ; SPACE, assumed to be the most common char
+                beq _done
+                cmp #$09        ; TAB, probably the second most common in Scheme
+                beq _done
+                cmp #$0A        ; Linefeed, normally ends input but not with Scheme
+                beq _done
+                cmp #$0D        ; Return, normally ends input but not with Scheme
+                beq _done
+                cmp #$0C        ; Page, which is strange, but in the standard
+                beq _done
+
+                clc             ; If we end up here, it's not whitespace
+_done:
+                rts
+.bend
         
 help_is_delimiter:
         ; """Given a character in A, see if it is a legal Scheme delimiter. The

@@ -21,19 +21,17 @@ lexer:
 lexer_loop:
                 lda cib,y
 
-                .if DEBUG == true
-                ; TODO TESTING Quit on '@', just for the moment
-                cmp #'@'
-                bne +
-                brk
-+
-                .fi
+                ; Deal with whitespace. This includes line feeds because
+                ; we can have those inside delimiters and comments. See the
+                ; discussion at the code for helper_is_whitespace in
+                ; helpers.asm for what is all considered whitespace
+                jsr help_is_whitespace
+                bcc _not_whitespace
 
-                ; Skip over whitespace. This includes line feeds because
-                ; we can have those inside delimiters and comments
-                ; TODO this is currently fake
-                jsr lexer_eat_whitespace
+                ; It's whitespace, so we skip it
+                jmp lexer_next
 
+_not_whitespace:
 
                 ; ---- Check for parens ----
 _test_parens:
@@ -162,11 +160,6 @@ lexer_add_token:
                 sty tkbp
                 ply
                 rts
-
-lexer_eat_whitespace:
-        ; Consume whitespace in the character buffer
-        ; TODO code this
-        rts
 
 
 ; ==== TOKEN LIST ====
