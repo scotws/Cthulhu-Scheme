@@ -8,9 +8,36 @@
 ; not really documented, because they are currently changing all the the
 ; time 
 
+debug_dump_input:
+        ; Hexdump contents of the character input buffer (cib)
+        ; Destroys X
+.block
+                lda #AscLF
+                jsr help_emit_a
+
+                lda #strd_dump_input            ; "Input: "
+                jsr debug_print_string_no_lf
+
+                ldx #0
+-
+                lda cib,x
+                beq _done
+
+                jsr help_byte_to_ascii
+                inx
+                
+                lda #' '
+                jsr help_emit_a
+                bra -
+_done:
+                jmp help_byte_to_ascii          ; JSR/RTS
+
+.bend
+
 debug_dump_token: 
         ; Hexdump contents of the token buffer. Assumes that tokens are one
-        ; byte long. Currently not clever enough to handle multi-byte tokens
+        ; byte long. Currently not clever enough to handle multi-byte tokens.
+        ; Destroys X
 .block
                 lda #AscLF
                 jsr help_emit_a
@@ -196,12 +223,14 @@ debug_print_string:
 strd_dump_token = 0
 strd_dump_ast   = 1
 strd_dump_hp    = 2
+strd_dump_input = 3
 
 s_dump_token:   .null   "Token Buffer: "
 s_dump_ast:     .null   "AST: "
 s_dump_hp:      .null   "Heap pointer: "
+s_dump_input:   .null   "Input Buffer: "
 
 sd_table:
-        .word s_dump_token, s_dump_ast, s_dump_hp              ; 0-3
+        .word s_dump_token, s_dump_ast, s_dump_hp, s_dump_input      ; 0-3
 
 

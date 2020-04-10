@@ -40,7 +40,6 @@ parser:
 ; ---- Debugging routines 
 
                 .if DEBUG == true
-                ; TODO TEST dump contents of token buffer
                 jsr debug_dump_token
                 .fi 
 

@@ -110,10 +110,11 @@ A four-bit tag gives us 16 possible object types
 
 // TODO replace by table
 
+* Meta (immediate, bit code $0)
+* Booleans (immediate, bit code $1 )
+* Fixnum (immediate, bit code $2)
 * Bignum (pointer, bit code TODO)
-* Booleans (immediate, bit code TODO)
 * Character (immediate, bit code TODO)
-* Fixnum (immediate, bit code TODO)
 * List (pointer, bit code TODO)
 * Procedure (pointer, bit code 000) The bit code 000 was chosen to make
   detecting a procedure as fast as possible
@@ -125,6 +126,46 @@ see for example the [GNU Guile data
 types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
 some sacrifices had to be made.
 
+===== Booleans
+
+The `#t` (true) and `#f` (false) booleans are self-evaluating and therefore the
+first object that was implemented. Though formally, `#t` comes with the object
+`$1111`, in practice we only check the LSB, that is, `$ff`. This might change in
+future versions. The `#f` object is `$1000`. Neither have children in the
+Abstract Syntax Tree (AST) created by the parser. 
+
+// TODO add table of boolean object
+
+Since booleans are simple, they are basically completely processed by the lexer
+(tokenizer), which adds a dedicated token. 
+
+===== Fixnum
+
+Fixnumbers are signed integers that are small enought to fit into a an object,
+that is, 12 bits. They are stored in two's complement. Since this is not where
+the 65c02 expects the sign to be, we have to move it from bit 11 to bit 15 when
+processing the fixnum. 
+
+// TODO add graphic of a fixnum object
+
+NOTE: At the moment, in fact, Cthulhu Scheme only knows about fixnums, since
+there aren't any bignums yet. Also, fixnum processing is very rough. 
+
+The **lexer** starts tokenizing a fixnum when it encounters a number as the first
+character of a word and has not been flagged as a binary, octal, or hexadecimal
+number. It adds a token marking the start of the word, followed by the ASCII
+values of the next characters, until a delimiter is reached. Then it adds a
+token marking the end of the world. If a character is not a legal decimal number
+character, it throws an error.
+
+The **parser** actually converts the string of characters to an internal number.
+At a future date, the size of the number will determine if it is converted to a
+fixnum or a bignum. Currently, the converted number is cut off brutally at bit
+11 and the sign moved from bit 15 to bit 12. 
+
+See
+https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Fixnum-Operations.html
+for a further discussion. 
 
 ==== Procedures
 

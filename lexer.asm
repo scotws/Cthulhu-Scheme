@@ -10,13 +10,17 @@
 
 ; ==== LEXER CODE ====
 lexer:
+                .if DEBUG == true
+                jsr debug_dump_input
+                .fi
+
                 ; Intialized indices to charater and token buffers
+                ; TODO see if we actually need all of these here
                 ldy #0
                 stz cibp
                 stz cibp+1      ; MSB currently unused
                 stz tkbp
                 stz tkbp+1      ; MSB currently unused
-
 
 lexer_loop:
                 lda cib,y
@@ -32,7 +36,6 @@ lexer_loop:
                 jmp lexer_next
 
 _not_whitespace:
-
                 ; ---- Check for parens ----
 _test_parens:
                 ; We do this early because this is Scheme, and there are going
@@ -40,12 +43,18 @@ _test_parens:
                 ; TODO check for parens
 
 
-                ; ---- Check for sharp stuff ----
-_test_sharp:
+                ; ---- Check for end of input ----
+_test_done:      
+                ; We have a zero byte as a marker that the line is over
+                bne _not_done
+                jmp lexer_end_of_input          ; not the same as lexer_done
 
+
+                ; ---- Check for sharp stuff ----
+_not_done:
                 ; See if first character is #
                 cmp #'#'
-                bne _post_sharp_test    ; TODO weird label, but keep during editing
+                bne _not_sharp
 
                 ; We have a #, so see which type it is. First, see if this is
                 ; a bool, so either #f or #t because they probably come up
@@ -56,7 +65,7 @@ _test_sharp:
                 lda cib,y
 
                 cmp #'t'                ; We're optimists so we check for true first
-                bne _test_bool_false
+                bne _not_true
 
                 ; We have a true bool. Add this to the token buffer
                 lda #T_TRUE
@@ -71,16 +80,16 @@ _test_sharp:
                 jsr lexer_add_token
                 jmp lexer_next
 
-_test_bool_false:
+_not_true:
                 cmp #'f'
-                bne _test_char
+                bne _not_false
 
                 ; We have a false bool. Add this to the token buffer
                 lda #T_FALSE
                 jsr lexer_add_token
                 jmp lexer_next
 
-_test_char:
+_not_false:
                 ; ---- Check for char #\a ----
                 ; TODO
 
@@ -97,21 +106,52 @@ _test_radix:
                 ; If yes, what follows must be a number, so we can jump there
                 ; TODO
 
-_post_sharp_test:        ; TODO weird label name, leave while testing
+_not_sharp:
+                ; ---- Check for decimal numbers ----
+                ; TODO check for minus as a sign
 
+                ; Result is in carry flag: set we have a decimal number, clear
+                ; this is something else
+                jsr help_is_decdigit
+                bcc _not_decnum
 
+                ; We have a decimal number, start with the start token
+                pha                     ; Save the first digit
+                lda #T_DECNUM_START
+                jsr lexer_add_token
+                pla                     ; get back the first digit
+                jsr lexer_add_token
+
+_decnum_loop:
+        ; We start our own little mini-loop to pick up numbers. This is not
+        ; very effective in the long run, but good enough for a first version.
+        ; Assumes the index for the buffer is in Y, and aborts if we have
+        ; anything else than a decimal digit, which includes any end-of-line
+        ; char
+                iny
+                lda cib,y
+                jsr help_is_decdigit
+                bcc _done_decnum
+
+                jsr lexer_add_token
+                bra _decnum_loop
+
+_done_decnum:
+                ; We add the token to signal the end of the number and then
+                ; continue
+                lda #T_DECNUM_END
+                jsr lexer_add_token
+
+                ; Remember not to increase Y because we are already pointing to
+                ; the next character
+                bra lexer_next_same_char
+
+_not_decnum:
                 ; ---- Check for strings ----
-_test_string:
-                ; TODO
-
-
-                ; ---- Check for numbers ----
-_test_number:
-                ; TODO See if we have a number
-                
+                ; TODO Test for strings
 
                 ; ---- Check for comment ---- 
-_test_comment:
+_not_string:
                 ; TODO See if we have a comment. This is a bit tricky because
                 ; we can't just bail to the next input line - the input can
                 ; continue after the end of the line
@@ -127,13 +167,18 @@ lexer_error:
 
 lexer_next:
                 ; Move on to the next character in the input or, if we're all
-                ; done, add the end-of-input token
+                ; done, add the end-of-input token. Note this is a failsafe, we
+                ; usually should just end when we find the zero byte
                 iny
+
+lexer_next_same_char:
+                ; Make sure we don't go past the end of the input buffer
                 cpy ciblen
-                beq _end_of_input
+                beq lexer_end_of_input
+
                 jmp lexer_loop
 
-_end_of_input:
+lexer_end_of_input:
                 ; Add end-of-input token. The parser assumes that this will
                 ; always be present so we really, really need to get this right
                 lda #T_END
@@ -174,23 +219,24 @@ lexer_add_token:
 ; ---- Primitives ---- 
 
 T_END           = $00
-T_PAREN_OPEN    = $01    ; '('
-T_PAREN_CLOSED  = $02    ; ')'
-T_SHARP         = $03    ; '#' - note '#f', '#t' and others are precprocessed
-T_LETTER        = $04    ; 'a' ... 'z', followed by single-byte ASCII letter
+T_PAREN_OPEN    = $01   ; '('
+T_PAREN_CLOSED  = $02   ; ')'
+T_SHARP         = $03   ; '#' - note '#f', '#t' and others are precprocessed
+T_LETTER        = $04   ; 'a' ... 'z', followed by single-byte ASCII letter
+T_NUMBER        = $05   ; '0' ... '9', followed by single-byte ASCII number
 
 
 ; ---- Preprocessed ----
 
 ; We let the lexer do quite a bit of the heavy lifting so we don't have to
-; touch the data more than we have to
+; touch the data more than we have to. Tokens that terminate a sequence of
+; characters must have bit 7 set (for example, T_DECNUM_END is $82)
 
 T_TRUE          = $10   ; '#t'
 T_FALSE         = $11   ; '#f'
-T_STRING        = $12   ; followed by 16-bit (12-bit) pointer to string in table
-T_FIXNUM        = $13   ; followed by 16-bit (12-bit) number 
-T_SYMBOL        = $14   ; followed by 16-bit (12-bit) pointer to symbol in table
-T_BIGNUM        = $15   ; followed by 16-bit (12-bit) pointer to number in table
+T_DECNUM_START  = $12   ; Marks beginning of a decimal number sequence
+
+T_DECNUM_END    = $82   ; Marks end of a decimal number sequence, see $12
 
 ; ===== CONTINUE WITH PARSER ====
 lexer_done:

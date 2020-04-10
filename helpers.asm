@@ -111,6 +111,42 @@ help_print_string:
 
 ; ---- Tokenization Helpers ----
 
+help_is_decdigit:
+        ; """Given a character A, see if it is a decimal digit from 0 to 9. If
+        ; yes, set the Carry Flag, else clear it. Perserves A. 
+        ; """
+        ; TODO Tali Forth has a more general version of this in DIGIT? that can
+        ; deal with other radixes, long term adapt that
+.block
+                cmp #'0'
+                bcc _below_zero         ; A is < '0'
+
+                cmp #':'                ; A is >= ':', which is '9'+1
+                bcs _above_nine         
+
+                sec
+                rts
+                
+_above_nine:    
+                clc
+_below_zero:
+                ; Carry flag is clear
+                rts
+.bend
+
+       
+help_is_delimiter:
+        ; """Given a character in A, see if it is a legal Scheme delimiter. The
+        ; result is returned in the Carry flag: Set mans is a delimiter,
+        ; cleared means it is not. See the list of delimiters at
+        ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
+        ; """
+        ; TODO check for whitespace, because whitespace is delimiters
+        ; TODO check for ();"'`|
+        ; TODO check for []{}
+                rts
+
+
 help_is_whitespace:
         ; """Given in a character in A, see if it is legally a Scheme
         ; whitespace character. Result is returned in the Carry flag: Set means
@@ -142,14 +178,4 @@ help_is_whitespace:
 _done:
                 rts
 .bend
-        
-help_is_delimiter:
-        ; """Given a character in A, see if it is a legal Scheme delimiter. The
-        ; result is returned in the Carry flag: Set mans is a delimiter,
-        ; cleared means it is not. See the list of delimiters at
-        ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
-        ; """
-        ; TODO check for whitespace, because whitespace is delimiters
-        ; TODO check for ();"'`|
-        ; TODO check for []{}
-        rts
+ 

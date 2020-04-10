@@ -60,7 +60,6 @@ repl_read:
         ; Basic structure taken from Tali Forth 2's REFILL and ACCEPT words. We
         ; currently don't have a history buffer system set up -- first we want to see
         ; if we have enough space.
-        ; TODO see how we can handle CTRL-d
 
                 ; Clear index to current input buffer
                 ldy #0
@@ -121,7 +120,13 @@ repl_read_loop:
 repl_read_eol:
 repl_read_buffer_full:
                 sty ciblen      ; Y contains number of chars accepted already
-                stz ciblen+1    ; we only accept 256 chars
+                lda #0
+                sta ciblen+1    ; we only accept 256 chars
+
+                ; We save a zero byte as a terminator because this is more
+                ; robust than counting characters, given we're fooling around
+                ; with line feeds and whatnot in Scheme.
+                sta cib,y 
 
                 ; We have the characters in the buffer, now we can parse. The
                 ; lexer is kept in a separate file
