@@ -8,7 +8,10 @@ project is uploaded and slightly more mature.
 
 TODO SHORT TERM
 
-- Reader: Eat whitespace
+- Process naked strings (adds internment while still self-evaluating)
+- Process fixnum (adds first string processing and object creation with
+  internment)
+- Process empty list "()" (deal with input of parens with whitespace processing)
 
 TODO LONG TERM
 

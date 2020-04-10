@@ -61,8 +61,14 @@ For the early history of Lisp, see
 link:http://jmc.stanford.edu/articles/lisp/lisp.pdf[A History of Lisp] by John
 McCarthy. 
 
+==== Getting started with Scheme 
 
-=== Writing Your Own Scheme or Lisp
+If you are completely new to Scheme, you might want to work through a tutorial
+first, for example link:http://ds26gte.github.io/tyscheme/index-Z-H-1.html[Teach
+Yourself Scheme in Fixnum Days] by Dorai Sitaram(((Sitaram, Dortai))) <<DS>> or
+_The Little Schemer_ by Daniel P. Friedman <<DPF>>. 
+
+=== Writing your own Scheme or Lisp
 
 Even if the 65c02 is great and Scheme is brilliant, why go to the effort of
 writing a new, bare-metal version of the languages? After almost 50 years,

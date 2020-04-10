@@ -10,6 +10,11 @@ https://cultistsimulator.gamepedia.com/Cultist_Simulator_Wiki, 2018
 [[[DG]]] _The Cabin in the Woods_, Drew Goddard and Joss Whedon, Lionsgate,
 https://www.imdb.com/title/tt1259521/, 2011 
 
+[[[DPF]]] _The Little Schemer_, Daniel P. Friedman, MIT Press, 1996
+
+[[[DS]]] _Teach Yourself Scheme in Fixnum Days_, Dorai Sitaram,
+http://ds26gte.github.io/tyscheme/index-Z-H-1.html, 2015
+
 [[[HA]]] _Structure and Interpretation of Computer Programs_, 
 Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996
 
