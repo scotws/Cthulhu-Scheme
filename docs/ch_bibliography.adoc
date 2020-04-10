@@ -14,6 +14,9 @@ http://history.siam.org/sup/Fox_1960_LISP.pdf, 1960-03-01
 [[[KC]]] _Engineering a Compiler_, Keith D. Cooper and Linda Torczon, Elsevier,
 Second Edition 2012
 
+[[[LSK]]] _The New Annotated H.P. Lovecraft_, Leslie S. Klinger, W.W. Norten
+2014
+ 
 [[[PM]]] _Scheme from Scratch_, Peter Michaux,
 http://peter.michaux.ca/articles/scheme-from-scratch-introduction, 2010-01-01
 

@@ -427,7 +427,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="author" class="author">Scot W. Stevenson</span><br>
 <span id="revnumber">version 0.0.1,</span>
-<span id="revdate">29. March 2020</span>
+<span id="revdate">10. April 2020</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -466,14 +466,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_scheme_objects">Scheme objects</a></li>
 </ul>
 </li>
-<li><a href="#_adding_to_the_horror_developing_cthulhu_scheme">Adding to the Horror: Developing Cthulhu Scheme</a>
+<li><a href="#_adding_to_the_horror_changing_cthulhu_scheme">Adding to the Horror: Changing Cthulhu Scheme</a>
 <ul class="sectlevel2">
 <li><a href="#_documentation">Documentation</a></li>
 <li><a href="#_tools_used">Tools Used</a></li>
 <li><a href="#_debugging_routines">Debugging routines</a></li>
 </ul>
 </li>
-<li><a href="#_future_and_long_term_plans">Future and Long-Term plans</a></li>
+<li><a href="#_world_domination_future_and_long_term_plans">World Domination: Future and Long-Term plans</a></li>
 </ul>
 </li>
 <li><a href="#_appendix">Appendix</a>
@@ -520,6 +520,16 @@ all those things.</p>
 </div>
 <div class="sect3">
 <h4 id="_the_6502_mpu">The 6502 MPU</h4>
+<div class="quoteblock">
+<blockquote>
+That is not dead which can eternal lie,<br>
+And with strange aeons even death may die. <a href="#LSK">[LSK]</a>
+</blockquote>
+<div class="attribution">
+&#8212; H.P. Lovecraft<br>
+<cite>The Nameless City</cite>
+</div>
+</div>
 <div class="paragraph">
 <p>(This passage is adapted from the <em>Tali Forth 2 Manual</em> by Sam Colwell and Scot W.
 Stevenson)</p>
@@ -581,8 +591,7 @@ detail as part of his 6502 primer at <a href="http://wilsonminesco.com/6502prime
 Lisp was concocted in the ivory tower as a tool for artificial intelligence
 research, so it was always going to be unfamiliar and maybe even a bit
 mysterious to the programming laity. But programmers now urge each other to "try
-Lisp before you die" as if it were some kind of mind-expanding psychedelic.
-<a href="#ST">[ST]</a>
+Lisp before you die" as if it were some kind of mind-expanding psychedelic. <a href="#ST">[ST]</a>
 </blockquote>
 <div class="attribution">
 &#8212; Sinclair Target<br>
@@ -590,8 +599,9 @@ Lisp before you die" as if it were some kind of mind-expanding psychedelic.
 </div>
 </div>
 <div class="paragraph">
-<p>For the early history of Lisp, see [A History of
-Lisp](<a href="http://jmc.stanford.edu/articles/lisp/lisp.pdf" class="bare">http://jmc.stanford.edu/articles/lisp/lisp.pdf</a>) by John McCarthy.</p>
+<p>For the early history of Lisp, see
+<a href="http://jmc.stanford.edu/articles/lisp/lisp.pdf">A History of Lisp</a> by John
+McCarthy.</p>
 </div>
 </div>
 </div>
@@ -603,13 +613,15 @@ writing a new, bare-metal version of the languages? After almost 50 years,
 shouldn&#8217;t there be a bunch of versions around already?</p>
 </div>
 <div class="paragraph">
-<p>Well, no.</p>
+<p>Well, no. For some reason, there doesn&#8217;t seem to be a version of Scheme for the
+65c02 available, though there are lots of Forths and BASICs. To be honest, this
+has become increasingly worrying, but at this point, we will march on.</p>
 </div>
 <div class="paragraph">
 <p>TODO</p>
 </div>
 <div class="paragraph">
-<p>As an additional problem, no sane person seems to be interested in creating
+<p>As a more general problem, no sane person seems to be interested in creating
 their own Lisp in assembler. Pretty much all the guides are in C.</p>
 </div>
 <div class="paragraph">
@@ -945,7 +957,7 @@ especially this documentation uses <code>first</code> and <code>rest</code>.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_adding_to_the_horror_developing_cthulhu_scheme">Adding to the Horror: Developing Cthulhu Scheme</h2>
+<h2 id="_adding_to_the_horror_changing_cthulhu_scheme">Adding to the Horror: Changing Cthulhu Scheme</h2>
 <div class="sectionbody">
 <div class="quoteblock">
 <blockquote>
@@ -985,7 +997,7 @@ assembly with 64Tass.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_future_and_long_term_plans">Future and Long-Term plans</h2>
+<h2 id="_world_domination_future_and_long_term_plans">World Domination: Future and Long-Term plans</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>TODO</p>
@@ -1013,8 +1025,29 @@ is not available.</p>
 <div class="sect1">
 <h2 id="_faq">FAQ</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>TODO</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Your code sucks but I&#8217;d like to learn more about Lovecraft</dt>
+<dd>
+<p>I can recommend <em>The New Annotated H.P. Lovecraft</em> by Leslie S. Klinger
+<a href="#LSK">[LSK]</a>, which has beautiful illustrations and lots of great footnotes.
+The only glaring ommission is the short story
+<a href="https://en.wikipedia.org/wiki/The_Cats_of_Ulthar">The Cats of
+Ulthar</a>. I had briefly considered "Ulthar" as a name for this project
+but there is just too much fun to be had with the age of Lisp and the
+6502 and the Ancient Ones.</p>
+</dd>
+<dt class="hdlist1">Wait, I hear Lovecraft was a racist jerk</dt>
+<dd>
+<p>Actually, it&#8217;s worse. In his introduction to Klinger&#8217;s book, Alan
+Moore speaks of Lovecraft&#8217;s "problematic stance on most
+contemporary issues, with his racism, alleged misogyny, class prejudice,
+dislike of homosexuality, and anti-Semitism". Fortunately, Cthulhu seems
+to be an open-minded, equal-opportunity sort of fellow who will bring
+horror and dread to everybody regardless of gender, race, or sexual
+preference.</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>
@@ -1070,6 +1103,10 @@ Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996</p>
 Second Edition 2012</p>
 </div>
 <div class="paragraph">
+<p><a id="LSK"></a>[LSK] <em>The New Annotated H.P. Lovecraft</em>, Leslie S. Klinger, W.W. Norten
+2014</p>
+</div>
+<div class="paragraph">
 <p><a id="PM"></a>[PM] <em>Scheme from Scratch</em>, Peter Michaux,
 <a href="http://peter.michaux.ca/articles/scheme-from-scratch-introduction" class="bare">http://peter.michaux.ca/articles/scheme-from-scratch-introduction</a>, 2010-01-01</p>
 </div>
@@ -1083,7 +1120,7 @@ Sinclair Target, <a href="https://twobithistory.org/2018/10/14/lisp.html" class=
 </div>
 <div class="paragraph">
 <p><a id="TP"></a>[TP] <em>Language Implementation Patterns</em>, Terence Parr, Pragmatic Bookshelf,
-2020</p>
+2010</p>
 </div>
 </div>
 </div>
@@ -1111,7 +1148,7 @@ all under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 18.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1<br>
-Last updated 2020-03-29 10:34:12 CEST
+Last updated 2020-04-10 09:40:02 CEST
 </div>
 </div>
 </body>

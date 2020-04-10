@@ -66,8 +66,7 @@ allows other people who might have the same problem to help even when the author
 is not available.
 
 == FAQ
-// include::ch_faq.adoc[]
-TODO
+include::ch_faq.adoc[]
 
 == Testing Cthulhu Scheme
 // include::ch_tests.adoc[]

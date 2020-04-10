@@ -1,5 +1,3 @@
-// TODO missing quote 
-
 === The Big Picture
 
 This section provides background information on Scheme, the 6502 processor, and
@@ -7,6 +5,10 @@ why anybody would want to combine the two. It can be skipped if you already know
 all those things.
 
 ==== The 6502 MPU
+
+[quote, H.P. Lovecraft, The Nameless City]
+That is not dead which can eternal lie, +
+And with strange aeons even death may die. <<LSK>>
 
 (This passage is adapted from the _Tali Forth 2 Manual_ by Sam Colwell and Scot W.
 Stevenson)
@@ -48,21 +50,16 @@ detail as part of his 6502 primer at http://wilsonminesco.com/6502primer/ .
 
 ==== Lisp and Scheme 
 
-// [quote, Elliot Williams, Forth: The Hacker's language]
-// If C gives you enough rope to hang yourself, Forth is a flamethrower crawling with
-// cobras. <<EW>>
-
 [quote, Sinclair Target, How Lisp Became God's Own Programming Language]
 Lisp was concocted in the ivory tower as a tool for artificial intelligence
 research, so it was always going to be unfamiliar and maybe even a bit
 mysterious to the programming laity. But programmers now urge each other to "try
-Lisp before you die" as if it were some kind of mind-expanding psychedelic.
-<<ST>>
+Lisp before you die" as if it were some kind of mind-expanding psychedelic. <<ST>>
 
 
-
-For the early history of Lisp, see [A History of
-Lisp](http://jmc.stanford.edu/articles/lisp/lisp.pdf) by John McCarthy. 
+For the early history of Lisp, see
+link:http://jmc.stanford.edu/articles/lisp/lisp.pdf[A History of Lisp] by John
+McCarthy. 
 
 
 === Writing Your Own Scheme or Lisp
@@ -71,11 +68,13 @@ Even if the 65c02 is great and Scheme is brilliant, why go to the effort of
 writing a new, bare-metal version of the languages? After almost 50 years,
 shouldn't there be a bunch of versions around already?
 
-Well, no. 
+Well, no. For some reason, there doesn't seem to be a version of Scheme for the
+65c02 available, though there are lots of Forths and BASICs. To be honest, this
+has become increasingly worrying, but at this point, we will march on. 
 
 TODO
 
-As an additional problem, no sane person seems to be interested in creating
+As a more general problem, no sane person seems to be interested in creating
 their own Lisp in assembler. Pretty much all the guides are in C. 
 
 (TODO Note _Lisp in Small Pieces_)
