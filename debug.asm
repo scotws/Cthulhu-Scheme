@@ -1,11 +1,12 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
-; Do not include these in finished code. All routines start with debug_ . These
-; are currently not documented
-
+; Do not include these routines in finished code - set the DEBUG flag in the
+; platform file for this. All routines start with debug_ . These are currently
+; not really documented, because they are currently changing all the the
+; time 
 
 debug_dump_token: 
         ; Hexdump contents of the token buffer. Assumes that tokens are one
@@ -99,6 +100,19 @@ _loop:
                 lda (tmp1),y
                 jsr help_byte_to_ascii
 
+
+                lda #':'
+                jsr help_emit_a
+
+                ; Last, print the link to the children if there are any
+                ldy #5
+                lda (tmp1),y
+                jsr help_byte_to_ascii
+                ldy #4
+                lda (tmp1),y
+                jsr help_byte_to_ascii
+
+                ; See if we are at the end of the tree
                 lda tmp2
                 ora tmp2+1      ; Cheating: We know that OC_END is 0000
                 beq _done

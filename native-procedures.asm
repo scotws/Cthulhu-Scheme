@@ -1,7 +1,7 @@
 ; Native-coded Procedures for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
 ; This file contains the few procedures of Cthulhu Scheme that are hard-coded
 ; in assembler. All such procedures start with the proc_ label followed by
@@ -10,6 +10,9 @@
 ; "proc_char_whitespace_p".
 
 ; See https://schemers.org/Documents/Standards/R5RS/HTML/ for details.
+
+; TODO at the moment, these are all empty because we just know #t and #f and
+; they are self-evaluating anyway. 
 
 proc_char_whitespace_p:
         ; """Return boolean #t if character is whitespace, otherwise return #f.

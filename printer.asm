@@ -12,7 +12,7 @@ printer:
 ; ---- Debug routines ---- 
 
         .if DEBUG == true
-        jsr debug_dump_ast
+;       jsr debug_dump_ast
 ;       jsr debug_dump_hp
         lda #AscLF
         jsr help_emit_a
@@ -29,6 +29,9 @@ printer:
                 sta tmp1+1
 
 printer_loop:
+        ; TODO during development, we check the entries individually until we
+        ; know what we are doing - this is one big case statement. Once the
+        ; code is sound we can move to a table-driven system for speed.
 .block
                 ldy #3                  ; MSB of the next node entry down ...
                 lda (tmp1),y            ; ...  which contains the tag nibble
@@ -49,6 +52,11 @@ _check_for_meta:
 
 _not_meta:
                 ; ---- See if bool object
+
+                ; Booleans are so simple we currently don't bother jumping to
+                ; a separate routine to print them. This will obviously have to
+                ; change once we have a table-driven printing system, but for
+                ; now, this is good enough to get us off the ground
                 cmp #ot_bool
                 bne _not_bool
 
