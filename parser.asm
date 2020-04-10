@@ -68,8 +68,9 @@ parser:
 ; reaches a certain size we should switch to a table-driven method for speed
 ; and size reasons. This makes debugging easier until we know what we are doing
 
-                ldx #0
+                ldx #$FF
 parser_loop:
+                inx
                 lda tkb,x
 
                 ; ---- Check for end of input
@@ -77,10 +78,11 @@ _end_token:
                 ; We assume there will always be an end token, so we don't 
                 ; check for an end of the buffer.
                 cmp #T_END      
-                bne _true_token 
+                bne _not_end_token
+                jmp parser_done
 
                 ; ---- Check for boolean true token
-_true_token:
+_not_end_token:
                 cmp #T_TRUE
                 bne _not_true_token
 
@@ -95,7 +97,7 @@ _true_token:
                 ; the moment, we leave it this way. Check the analog situation
                 ; with the lexer. 
                 jsr parser_add_object
-                jmp parser_done
+                jmp parser_loop
 
                 ; ---- Check for boolean false token
 _not_true_token:
@@ -107,7 +109,7 @@ _not_true_token:
                 lda <#OC_FALSE
                 ldy >#OC_FALSE
                 jsr parser_add_object
-                jmp parser_done
+                jmp parser_loop
 
 
 _not_false_token:
@@ -139,6 +141,7 @@ parser_add_object:
         ; at which makes life easier. Uses tmp0, destroys X
 
         ; TODO at the moment, we can't add children. 
+                phx             ; save index to token buffer
                 phy             ; save MSB of the object
                 pha             ; save LSB of the object
                 
@@ -198,6 +201,8 @@ parser_add_object:
                 ; having to walk through the whole tree to add something.
                 sta astp+1      ; MSB, was tmp0+1
                 stx astp        ; LSB, was tmp0
+
+                plx             ; get back index for token buffer
 
                 rts
 
