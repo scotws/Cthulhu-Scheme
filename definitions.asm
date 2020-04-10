@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 05. Apr 2020
+; This version: 06. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -19,8 +19,8 @@
         AscESC  = $1b  ; escape
         AscSP   = $20  ; space
         AscDEL  = $7f  ; delete (CTRL-h)
-        AscCP   = $10  ; CTRL-p
-        AscCN   = $0e  ; CTRL-n
+;       AscCP   = $10  ; CTRL-p
+;       AscCN   = $0e  ; CTRL-n
 
 
 ; ---- Zero page definitions ----
@@ -33,7 +33,6 @@
 ; zero page entries here so it must be done in code. 
 
 .section zp
-return:  .word ?     ; return value: result of a procedure
 tmp0:    .word ?     ; temporary storage, eg printing
 tmp1:    .word ?     ; temporary storage
 tmp2:    .word ?     ; temporary storage
@@ -90,3 +89,5 @@ ot_undefined_0c = $c0
 ot_undefined_0d = $d0
 ot_undefined_0e = $e0
 ot_undefined_0f = $f0
+
+; end

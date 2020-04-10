@@ -1,7 +1,7 @@
 ; Cthulhu Scheme for the 65c02 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 05. Apr 2020
+; This version: 10. Apr 2020
 
 ; This is the main file for Cthulhu Scheme. It mainly contains the REPL. 
 
@@ -147,18 +147,22 @@ repl_read_backspace:
 
                 bra repl_read_loop
 
+; We keep the main parts of the REPL in separate files because they can be
+; quite large and to make it easer for people to swap the code out if they want
+; to create their own versions. This setup assumes that the code flow enters at
+; the top of the file and leaves at the bottom. 
 
 ; ==== LEXER ====
-; The lexer is kept in a separate file, lexer.asm
+.include "lexer.asm"
 
 ; ==== PARSER ====
-; The parser is kept in a separate file, parser.asm
+.include "parser.asm"
 
 ; ==== EVAL ====
-; The evaluator is kept in a separate file, eval.asm
+.include "eval.asm"
 
 ; ==== PRINTER ====
-; The printer is kept in a separate file, print.asm
+.include "printer.asm"
 
 ; ==== ALL DONE ====
 repl_done:

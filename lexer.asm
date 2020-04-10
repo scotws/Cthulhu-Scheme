@@ -1,7 +1,7 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
@@ -142,7 +142,7 @@ _end_of_input:
                 jsr lexer_add_token
 
                 ; Continue with parsing
-                jmp parser
+                jmp lexer_done
 
 
 
@@ -198,3 +198,6 @@ T_STRING        = $12   ; followed by 16-bit (12-bit) pointer to string in table
 T_FIXNUM        = $13   ; followed by 16-bit (12-bit) number 
 T_SYMBOL        = $14   ; followed by 16-bit (12-bit) pointer to symbol in table
 T_BIGNUM        = $15   ; followed by 16-bit (12-bit) pointer to number in table
+
+; ===== CONTINUE WITH PARSER ====
+lexer_done:

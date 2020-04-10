@@ -1,9 +1,8 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
-; 
 eval: 
 
 ; ---- Debugging routines ----
@@ -22,6 +21,6 @@ eval:
 ; they both just evaluate to themselves
 
 
-; ==== All done ====
+; ==== CONTINUE TO PRINTER ====
 eval_done:
-                jmp printer
+                

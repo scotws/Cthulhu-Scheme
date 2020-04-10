@@ -100,16 +100,6 @@ paser_bad_token:
                 jmp repl
 
 
-                ; ---- End parsing with termination object
-                ; The evaluator assumes that we have a termination object so
-                ; it's really, really important to get this right
-parser_done:
-                lda <#OC_END
-                ldx >#OC_END
-                jsr parser_add_object
-                jmp eval                ; continue with evaluation
-
-
 ; ==== PARSER HELPER ROUTINES =====
 
 ; Internel parser functions. Anything here that might be of use in other parts
@@ -184,4 +174,18 @@ parser_add_object:
 OC_END   = $0000        ; end of input for AST 
 OC_TRUE  = $1fff        ; true bool #t, immediate
 OC_FALSE = $1000        ; false bool #f, immediate
+
+
+; ==== CONTINUE TO EVALUATOR ====
+                
+parser_done:
+        ; End parsing with termination object The evaluator assumes that we
+        ; have a termination object so it's really, really important to get
+        ; this right
+
+                lda <#OC_END
+                ldx >#OC_END
+                jsr parser_add_object
+
+                ; fall through to evaluator
 

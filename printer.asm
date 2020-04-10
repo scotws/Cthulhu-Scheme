@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions
@@ -104,4 +104,4 @@ printer_next:
 
 ; ===== RETURN TO REPL ====
 printer_done:
-                jmp repl_done
+                ; fall through to repl_done

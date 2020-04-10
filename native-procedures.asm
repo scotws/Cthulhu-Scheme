@@ -1,7 +1,7 @@
 ; Native-coded Procedures for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 03. Apr 2020
+; This version: 06. Apr 2020
 
 ; This file contains the few procedures of Cthulhu Scheme that are hard-coded
 ; in assembler. All such procedures start with the proc_ label followed by
@@ -20,12 +20,6 @@ proc_char_whitespace_p:
 proc_newline:
         ; """Write an end of line to a port. Returns an unspecified value.
         ; """
-                ; We don't return a result 
-                stz return
-                stz return+1
-
-                lda #AscLF
-                jmp help_emit_a         ; JSR/RTS
 
 proc_display:
         ; """Writes a string to standard output, does not write a newline.
