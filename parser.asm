@@ -15,6 +15,14 @@
 ; node's children. If there is no next node and/or no children, these entries
 ; are set to 0000. See the manual for details.
 ;
+;                       +----------------+
+;        prev node -->  |  Node Link     |  ---> next node
+;                       +----------------+
+;                       |  Scheme Object |  tag + object payload
+;                       +----------------+
+;                       |  Child Link    |  ---> child nodes  
+;                       +----------------+
+;
 ; This design allows simpler tree-walking code because it uses a single node
 ; type, however, it uses more RAM because even entries that never have children
 ; - bools or fixnums, for example - have a slot reserved for them that is
@@ -128,22 +136,22 @@ parser_add_object:
         ; A and the MSB is in Y. Currently, we can just add immediate objects
         ; like booleans. When we arrive here, astp points to the last object in
         ; the tree we want to link to. We always add to the end of the list
-        ; at the moment which makes it easier. Uses tmp0, destroys X
+        ; at which makes life easier. Uses tmp0, destroys X
 
-        ; TODO At the moment, this is still just a simple single-linked list,
-        ; we will change to an actual tree later. 
+        ; TODO at the moment, we can't add children. 
                 phy             ; save MSB of the object
                 pha             ; save LSB of the object
                 
                 ; Remember the first free byte of nemory as the start of the
-                ; new node of the tree (well, list at the moment)
+                ; new node of the tree
                 lda hp
                 sta tmp0
                 lda hp+1
                 sta tmp0+1
 
                 ; Store the termination object in the new node as the pointer
-                ; to the next node, this marks the end of the tree  
+                ; to the next node. This marks the end of the tree in memory,
+                ; though trees don't really have ends of course.
                 lda <#OC_END
                 ldy #0
                 sta (hp),y
@@ -160,7 +168,15 @@ parser_add_object:
                 sta (hp),y
                 iny
 
-                ; Update heap pointer
+                ; Store the pointer to the children of this object. Since we
+                ; don't know any objects with children yet, this is just zeros
+                lda #0
+                sta (hp),y
+                iny
+                sta (hp),y
+                iny
+
+                ; Update heap pointer to next free byte in heap
                 tya
                 clc
                 adc hp
@@ -177,7 +193,9 @@ parser_add_object:
                 sta (astp),y
                 
                 ; Store address of new entry in astp. Yes, there are two
-                ; pointers to the last entry in the tree.
+                ; pointers to the last entry in the tree, one from the
+                ; previoius node and one from the outside. This prevents us
+                ; having to walk through the whole tree to add something.
                 sta astp+1      ; MSB, was tmp0+1
                 stx astp        ; LSB, was tmp0
 
