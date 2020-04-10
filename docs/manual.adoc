@@ -3,7 +3,7 @@ Scot W. Stevenson
 :doctype: book
 :keywords: scheme, lisp, 6502, assembler, programming, 8-bit, vintage, retro
 :revnumber: 0.0.1
-:revdate: 29. March 2020
+:revdate: 10. April 2020
 :showtitle:
 :icons: font
 :toc: left
@@ -45,10 +45,10 @@ TODO
 == Under the Tentacles: How Cthulhu Scheme works
 include::ch_internals.adoc[]
 
-== Adding to the Horror: Developing Cthulhu Scheme
+== Adding to the Horror: Changing Cthulhu Scheme
 include::ch_developing.adoc[]
 
-== Future and Long-Term plans
+== World Domination: Future and Long-Term plans
 TODO 
 
 

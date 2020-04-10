@@ -461,9 +461,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_under_the_tentacles_how_cthulhu_scheme_works">Under the Tentacles: How Cthulhu Scheme works</a>
 <ul class="sectlevel2">
 <li><a href="#_design_descisions">Design descisions</a></li>
+<li><a href="#_memory_map">Memory Map</a></li>
+<li><a href="#_the_repl">The REPL</a></li>
 <li><a href="#_scheme_objects">Scheme objects</a></li>
-<li><a href="#_procedures">Procedures</a></li>
-<li><a href="#_parsing">Parsing</a></li>
 </ul>
 </li>
 <li><a href="#_adding_to_the_horror_developing_cthulhu_scheme">Adding to the Horror: Developing Cthulhu Scheme</a>
@@ -705,13 +705,13 @@ people can adapt Tali to their own hardware.</p>
 <div class="sectionbody">
 <div class="quoteblock">
 <blockquote>
-The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
-the (IBM) 704.
-<a href="#JM2">[JM2]</a>
+The first field of a pair is called the <code>car</code> field, and the second field is
+called the <code>cdr</code> field. These are among the dumbest names for anything in all of
+computer science.<a href="#PW">[PW]</a>
 </blockquote>
 <div class="attribution">
-&#8212; John McCarthy _et al_<br>
-<cite>Lisp I Programmer's Manual</cite>
+&#8212; Paul R Wilson<br>
+<cite>An Introduction to Scheme and its Implementation</cite>
 </div>
 </div>
 <div class="sect2">
@@ -733,7 +733,144 @@ word size.<a href="#JM2">[JM2]</a> We have less to work with then the first Lisp
 <p>For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest nibble
 (four bits, 15-12) for the tag and the remaining 12 bits for either the
 immediate value (such as characters and fixnums) or a pointer to the value on
-the heap (such as lists or strings).</p>
+the heap (such as lists or strings). We discussion objects at greater detail
+lower down.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_memory_map">Memory Map</h3>
+<div class="quoteblock">
+<blockquote>
+The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
+the (IBM) 704.
+<a href="#JM2">[JM2]</a>
+</blockquote>
+<div class="attribution">
+&#8212; John McCarthy _et al_<br>
+<cite>Lisp I Programmer's Manual</cite>
+</div>
+</div>
+<div class="paragraph">
+<p>The big, simple split in Cthulhu Scheme is between things that go in RAM and things that
+go in ROM. The code attempts to use the section functions of the 64tass
+assembler to make the best possible use of both.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We currently reserve half of the Zero Page area to allow for variables
+that a user&#8217;s kernel might use. This might change in the future if Cthulhu needs
+more Zero Page memory.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/memory_map.png" alt="memory map">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_the_repl">The REPL</h3>
+<div class="paragraph">
+<p>The heart of any Scheme or Lisp system is the Read-Evaluate-Print Loop (REPL).
+We follow the more standard terms reading, lexing (tokenizing), parsing,
+evaluation, and printing.</p>
+</div>
+<div class="sect3">
+<h4 id="_reader">Reader</h4>
+<div class="paragraph">
+<p>Cthulhu Scheme takes the input from the <strong>input port</strong> and saves it as a single line in
+the <strong>input buffer</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently, Cthulhu Scheme does not have a history function, though the
+code could easily be lifted from Tali Forth 2. We are waiting to see how much
+RAM we have left over after the system is complete for that step.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_lexer">Lexer</h4>
+<div class="paragraph">
+<p>The Lexer (Tokenizer) passes through the characters and creates 8-bit tokens
+which are stored in the <strong>token buffer</strong>. There is some pre-processing going on
+here, but not much.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_parser">Parser</h4>
+<div class="paragraph">
+<p>The parser creates an Abstract Syntax Tree (AST) with homogeneous nodes based on
+the description in <em>Language Implementation Patters</em> by Terence Parr.<a href="#TP">[TP]</a> Each
+node consists of three 16-bit fields:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A pointer to the <strong>next node</strong>. If there is no next node, this is <code>0000</code>.</p>
+</li>
+<li>
+<p>The <strong>Scheme object</strong> of the node. This is constructed out of the token stream.
+See below for a more thorough discussion of objects.</p>
+</li>
+<li>
+<p>A pointer to the <strong>children nodes</strong>. If there are no children nodes, this is
+<code>0000</code>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/ast_node.png" alt="ast node">
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This design currently uses more memory that it has to by including a
+pointer to a child node even for objects like booleans that are immediate and
+never have children. At the moment, this design is kept because it makes walking
+the AST easier. In future versions, this will probaly be changed to handle
+heterogeneous nodes, saving space.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_evaluator">Evaluator</h4>
+<div class="paragraph">
+<p>In the next step, the AST is "walked" by the evaluator.</p>
+</div>
+<div class="paragraph">
+<p>The main routine for the evaluator is named <code>apply</code>. Its function is to take the
+first element of the AST level as a procedure and run the children of the level
+through it.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_printer">Printer</h4>
+<div class="paragraph">
+<p>What is left over by the Evaluator is sent to the Printer.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -778,67 +915,30 @@ types](<a href="https://www.gnu.org/software/guile/manual/html_node/Data-Types.h
 some sacrifices had to be made.</p>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_procedures">Procedures</h3>
+<div class="sect3">
+<h4 id="_procedures">Procedures</h4>
 <div class="paragraph">
 <p>There are two types of procedures in Cthulhu Scheme: <em>native procedures</em> that
 are coded in assembler and <em>non-native procedures</em> (also <em>high-level
 procedures</em>) that are provided in Scheme code and loaded during boot.</p>
 </div>
-<div class="sect3">
-<h4 id="_built_in_procedures">Built-in procedures</h4>
-<div class="quoteblock">
-<blockquote>
-The first field of a pair is called the <code>car</code> field, and the second field is
-called the <code>cdr</code> field. These are among the dumbest names for anything in all of
-computer science.<a href="#PW">[PW]</a>
-</blockquote>
-<div class="attribution">
-&#8212; Paul R Wilson<br>
-<cite>An Introduction to Scheme and its Implementation</cite>
+<div class="sect4">
+<h5 id="_built_in_procedures">Built-in procedures</h5>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Scheme and Lisp both insist in holding on to <code>car</code> and <code>cdr</code> as terms and
+commands, which makes as much sense as the famously silly <code>umount</code> command in
+the Unix bash shell. Though these are included as commands, Cthulhu Scheme and
+especially this documentation uses <code>first</code> and <code>rest</code>.
+</td>
+</tr>
+</table>
 </div>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_parsing">Parsing</h3>
-<div class="sect3">
-<h4 id="_overview">Overview</h4>
-<div class="paragraph">
-<p>Cthulhu Scheme takes the input from the <strong>input port</strong> and saves it as one line in
-the <strong>input buffer</strong>. Then the parser goes through the input buffer and converts
-the input into tokens, which are placed in the <strong>token buffer</strong>. The actual
-commands are then excuted from there.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_input_from_the_keyboard">Input from the keyboard</h4>
-
-</div>
-<div class="sect3">
-<h4 id="_parsing_2">Parsing</h4>
-<div class="paragraph">
-<p>Currently, Cthulhu Scheme has a very simple parsing mechanism. The native
-procedures are stored in a simple single linked list with the most common
-entries first. Each entry consists of a link to the next entry (or a <code>0000</code> for
-the last entry in the list), the length of the procedure&#8217;s string, followed by
-the actual string, which is <em>not</em> zero terminated.</p>
-</div>
-<div class="paragraph">
-<p>Though the individual words are usually separted by spaces, there are some
-special rules. The <code>(</code> does not need whitespace after it, as does <code>#\\</code> for
-characters.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_tokenizing">Tokenizing</h4>
-<div class="paragraph">
-<p>Tokens are 16-bit values that represent the Scheme procedures. In Cthulhu
-Scheme, they are the addresses of the subroutines of these procedures.</p>
-</div>
-<div class="paragraph">
-<p>The entries in the token buffer are terminated by a the "zero token" <code>0000</code>.</p>
 </div>
 </div>
 </div>
@@ -966,6 +1066,10 @@ Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996</p>
 <a href="http://history.siam.org/sup/Fox_1960_LISP.pdf" class="bare">http://history.siam.org/sup/Fox_1960_LISP.pdf</a>, 1960-03-01</p>
 </div>
 <div class="paragraph">
+<p><a id="KC"></a>[KC] <em>Engineering a Compiler</em>, Keith D. Cooper and Linda Torczon, Elsevier,
+Second Edition 2012</p>
+</div>
+<div class="paragraph">
 <p><a id="PM"></a>[PM] <em>Scheme from Scratch</em>, Peter Michaux,
 <a href="http://peter.michaux.ca/articles/scheme-from-scratch-introduction" class="bare">http://peter.michaux.ca/articles/scheme-from-scratch-introduction</a>, 2010-01-01</p>
 </div>
@@ -976,6 +1080,10 @@ Harald Abelson and Gerald Jay Sussman, The Mit Press, 2nd edition 1996</p>
 <div class="paragraph">
 <p><a id="ST"></a>[ST] <em>How Lisp Became God&#8217;s Own Programming Language</em>,
 Sinclair Target, <a href="https://twobithistory.org/2018/10/14/lisp.html" class="bare">https://twobithistory.org/2018/10/14/lisp.html</a>, 2018-10-14</p>
+</div>
+<div class="paragraph">
+<p><a id="TP"></a>[TP] <em>Language Implementation Patterns</em>, Terence Parr, Pragmatic Bookshelf,
+2020</p>
 </div>
 </div>
 </div>

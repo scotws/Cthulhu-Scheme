@@ -1,8 +1,9 @@
-[quote, John McCarthy _et al_, Lisp I Programmer's Manual]
-The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
-the (IBM) 704.
-<<JM2>>
+[quote, Paul R Wilson, An Introduction to Scheme and its Implementation] 
+The first field of a pair is called the `car` field, and the second field is
+called the `cdr` field. These are among the dumbest names for anything in all of
+computer science.<<PW>> 
 
+// -------------------------------------------------------
 === Design descisions
 
 One of the first questions is how to represent the objects of the language --
@@ -23,8 +24,83 @@ word size.<<JM2>> We have less to work with then the first Lispers back in 1960.
 For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest nibble
 (four bits, 15-12) for the tag and the remaining 12 bits for either the
 immediate value (such as characters and fixnums) or a pointer to the value on
-the heap (such as lists or strings). 
+the heap (such as lists or strings). We discussion objects at greater detail
+lower down. 
 
+// -------------------------------------------------------
+=== Memory Map
+
+[quote, John McCarthy _et al_, Lisp I Programmer's Manual]
+The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
+the (IBM) 704.
+<<JM2>>
+
+The big, simple split in Cthulhu Scheme is between things that go in RAM and things that
+go in ROM. The code attempts to use the section functions of the 64tass
+assembler to make the best possible use of both. 
+
+NOTE: We currently reserve half of the Zero Page area to allow for variables
+that a user's kernel might use. This might change in the future if Cthulhu needs
+more Zero Page memory. 
+
+image::pics/memory_map.png[]
+
+// -------------------------------------------------------
+=== The REPL
+
+The heart of any Scheme or Lisp system is the Read-Evaluate-Print Loop (REPL).
+We follow the more standard terms reading, lexing (tokenizing), parsing,
+evaluation, and printing.
+
+==== Reader
+
+Cthulhu Scheme takes the input from the *input port* and saves it as a single line in
+the *input buffer*. 
+
+NOTE: Currently, Cthulhu Scheme does not have a history function, though the
+code could easily be lifted from Tali Forth 2. We are waiting to see how much
+RAM we have left over after the system is complete for that step.
+
+==== Lexer 
+
+The Lexer (Tokenizer) passes through the characters and creates 8-bit tokens
+which are stored in the *token buffer*. There is some pre-processing going on
+here, but not much.
+
+==== Parser
+
+The parser creates an Abstract Syntax Tree (AST) with homogeneous nodes based on
+the description in _Language Implementation Patters_ by Terence Parr.<<TP>> Each
+node consists of three 16-bit fields:
+
+. A pointer to the *next node*. If there is no next node, this is `0000`. 
+. The *Scheme object* of the node. This is constructed out of the token stream.
+  See below for a more thorough discussion of objects.
+. A pointer to the *children nodes*. If there are no children nodes, this is
+`0000`. 
+
+image::pics/ast_node.png[]
+
+NOTE: This design currently uses more memory that it has to by including a
+pointer to a child node even for objects like booleans that are immediate and
+never have children. At the moment, this design is kept because it makes walking
+the AST easier. In future versions, this will probaly be changed to handle
+heterogeneous nodes, saving space.
+
+==== Evaluator
+
+In the next step, the AST is "walked" by the evaluator. 
+
+The main routine for the evaluator is named `apply`. Its function is to take the
+first element of the AST level as a procedure and run the children of the level
+through it.
+
+==== Printer
+
+What is left over by the Evaluator is sent to the Printer. 
+
+
+// -------------------------------------------------------
 
 === Scheme objects
 
@@ -50,48 +126,17 @@ types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
 some sacrifices had to be made.
 
 
-=== Procedures
+==== Procedures
 
 There are two types of procedures in Cthulhu Scheme: _native procedures_ that
 are coded in assembler and _non-native procedures_ (also _high-level
 procedures_) that are provided in Scheme code and loaded during boot.
 
 
-==== Built-in procedures
+===== Built-in procedures
 
-[quote, Paul R Wilson, An Introduction to Scheme and its Implementation] 
-The first field of a pair is called the `car` field, and the second field is
-called the `cdr` field. These are among the dumbest names for anything in all of
-computer science.<<PW>> 
+NOTE: Scheme and Lisp both insist in holding on to `car` and `cdr` as terms and
+commands, which makes as much sense as the famously silly `umount` command in
+the Unix bash shell. Though these are included as commands, Cthulhu Scheme and
+especially this documentation uses `first` and `rest`. 
 
-
-=== Parsing
-
-==== Overview
-
-Cthulhu Scheme takes the input from the *input port* and saves it as one line in
-the *input buffer*. Then the parser goes through the input buffer and converts
-the input into tokens, which are placed in the *token buffer*. The actual
-commands are then excuted from there.
-
-==== Input from the keyboard
-
-
-==== Parsing
-
-Currently, Cthulhu Scheme has a very simple parsing mechanism. The native
-procedures are stored in a simple single linked list with the most common
-entries first. Each entry consists of a link to the next entry (or a `0000` for
-the last entry in the list), the length of the procedure's string, followed by
-the actual string, which is _not_ zero terminated. 
-
-Though the individual words are usually separted by spaces, there are some
-special rules. The `(` does not need whitespace after it, as does `#\\` for
-characters.
-
-==== Tokenizing
-
-Tokens are 16-bit values that represent the Scheme procedures. In Cthulhu
-Scheme, they are the addresses of the subroutines of these procedures.
-
-The entries in the token buffer are terminated by a the "zero token" `0000`.

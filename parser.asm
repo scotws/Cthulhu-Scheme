@@ -1,18 +1,32 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 06. Apr 2020
+; This version: 10. Apr 2020
 
-; The parser is kept in a separate file to make changes easier. It goes through
-; the tokens created by the lexer in the token buffer (tkb) and create
-; a Abstract Syntax Tree (AST) that is saved as part of the heap. 
+; The parser goes through the tokens created by the lexer in the token buffer
+; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
+; heap. 
+
+; This is mainly based on Terrance Parr's "Language Implementation
+; Patterns" p. 91 Homogeneous AST
+
+; Each node of the AST consists of three entries, each 16 bit long: A pointer
+; to the next node, the Scheme object of this node, and a pointer to this
+; node's children. If there is no next node and/or no children, these entries
+; are set to 0000. See the manual for details.
+;
+; This design allows simpler tree-walking code because it uses a single node
+; type, however, it uses more RAM because even entries that never have children
+; - bools or fixnums, for example - have a slot reserved for them that is
+; always zero. This design might be changed in the future to a heterogeneous
+; node type to save space, but first we want to make sure this works.
 
 
 ; ==== PARSER CODE ====
 
 ; At this stage, we should have the tokens in the token buffer, terminated by
 ; an end of input token (00). We now need to construct the abstact syntax tree
-; (AST).
+; (AST). 
 parser: 
 
 ; ---- Debugging routines 
@@ -30,7 +44,7 @@ parser:
                 
                 ; Reset the pointer to the token buffer
                 stz tkbp
-                stz tkbp+1      ; currently only using LSB
+                stz tkbp+1      ; fake, currently only using LSB
                 
                 ; The pointer to the current last entry in the ast should be
                 ; zero at the beginning
@@ -60,7 +74,7 @@ _end_token:
                 ; ---- Check for boolean true token
 _true_token:
                 cmp #T_TRUE
-                bne _false_token
+                bne _not_true_token
 
                 ; We have a true token, which makes our life easy, because we
                 ; have the object as a constant
@@ -76,9 +90,9 @@ _true_token:
                 jmp parser_done
 
                 ; ---- Check for boolean false token
-_false_token:
+_not_true_token:
                 cmp #T_FALSE
-                bne paser_bad_token     ; TODO HIER ADD NEXT TOKEN TODO
+                bne _not_false_token
 
                 ; We have a false token, which makes our life easy, because we
                 ; have the object as a constant
@@ -86,6 +100,10 @@ _false_token:
                 ldy >#OC_FALSE
                 jsr parser_add_object
                 jmp parser_done
+
+
+_not_false_token:
+                ; TODO ADD NEXT CHECK HERE TODO 
 
 
                 ; ---- No match found

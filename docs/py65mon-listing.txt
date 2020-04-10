@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Fri Apr 10 07:21:23 2020
+; Fri Apr 10 07:59:36 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -177,7 +177,7 @@
 .80d6	64 1a		stz $1a		                stz ast
 .80d8	64 1b		stz $1b		                stz ast+1
 .80da	64 10		stz $10		                stz tkbp
-.80dc	64 11		stz $11		                stz tkbp+1      ; currently only using LSB
+.80dc	64 11		stz $11		                stz tkbp+1      ; fake, currently only using LSB
 .80de	a9 1a		lda #$1a	                lda <#ast
 .80e0	85 1c		sta $1c		                sta astp
 .80e2	a9 00		lda #$00	                lda >#ast       ; paranoid, MSB always 00 for zero page
@@ -190,18 +190,19 @@
 .80ed	d0 00		bne $80ef	                bne _true_token
 .80ef					_true_token:
 .80ef	c9 10		cmp #$10	                cmp #T_TRUE
-.80f1	d0 0a		bne $80fd	                bne _false_token
+.80f1	d0 0a		bne $80fd	                bne _not_true_token
 .80f3	a9 ff		lda #$ff	                lda <#OC_TRUE
 .80f5	a0 1f		ldy #$1f	                ldy >#OC_TRUE
 .80f7	20 18 81	jsr $8118	                jsr parser_add_object
 .80fa	4c 50 81	jmp $8150	                jmp parser_done
-.80fd					_false_token:
+.80fd					_not_true_token:
 .80fd	c9 11		cmp #$11	                cmp #T_FALSE
-.80ff	d0 0a		bne $810b	                bne paser_bad_token     ; TODO HIER ADD NEXT TOKEN TODO
+.80ff	d0 0a		bne $810b	                bne _not_false_token
 .8101	a9 00		lda #$00	                lda <#OC_FALSE
 .8103	a0 10		ldy #$10	                ldy >#OC_FALSE
 .8105	20 18 81	jsr $8118	                jsr parser_add_object
 .8108	4c 50 81	jmp $8150	                jmp parser_done
+.810b					_not_false_token:
 .810b					paser_bad_token:
 .810b	48		pha		                pha                             ; save the evil token
 .810c	a9 04		lda #$04	                lda #str_bad_token
