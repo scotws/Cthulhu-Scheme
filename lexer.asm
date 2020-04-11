@@ -179,14 +179,13 @@ _not_binnum:
                         .if OCTAL == true
                         bne _not_expldecnum
                         .else
-                        bne lexer_got_number
+                        bne _illegal_radix
                         .fi
 
                         lda #$0A        ; Base 10
+                        bra lexer_got_number
 
                         .if OCTAL == true
-                        bra lexer_got_number
-                        
 _not_expldecnum:
                         ; Nobody in their right mind still uses octal, right?
                         ; Still, we have to check for it if the OCTAL flag is
@@ -195,15 +194,11 @@ _not_expldecnum:
                         bne lexer_not_octnum
                         lda #$08        ; Base 8
                         .fi 
-                        
-                        ; TODO If it wasn't one of #b, #d, #x, and possibly #o, this
+_illegal_radix:                        
+                        ; If it wasn't one of #b, #d, #x, and possibly #o, this
                         ; is bad, because this means we have some malformed
-                        ; number such as #s. We'll leave it for the moment but
-                        ; have to come back to this. The parser has a routine
-                        ; for malformed numbers but we'd hate to jump right in
-                        ; the middle of that code.
-
-                        ; drop through to lexer_got_number (for the moment)
+                        ; number such as #s. 
+                        jmp lexer_illegal_radix
 
 lexer_got_number:
         ; We have a number. We jump here with the radix in A (2, 10, 16, and
@@ -276,9 +271,9 @@ _sign_done:
                         
                         ; Complain if this is end of input or a delimiter, we
                         ; need at least one character to be a digit 
-                        beq _terminator_too_early       ; 00 terminates input
+                        beq lexer_terminator_too_early  ; 00 terminates input
                         jsr help_is_delimiter
-                        bcs _delimiter_too_early
+                        bcs lexer_delimiter_too_early
 
                         ; This should be our first real digit. We could in
                         ; theory do some first processing here, but we don't
@@ -323,8 +318,9 @@ _number_done:
                         jmp lexer_next_same_char
 
 
-_terminator_too_early:
-_delimiter_too_early:
+lexer_illegal_radix:
+lexer_terminator_too_early:
+lexer_delimiter_too_early:
                 ; We were given a terminator or another delimiter too early, 
                 ; return an error and restart REPL
                 lda #str_bad_number

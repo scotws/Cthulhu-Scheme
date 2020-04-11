@@ -113,12 +113,12 @@ _not_true_token:
                 ; ---- Check for number token
 _not_false_token:
                 cmp #T_NUM_START
-                bne _not_num
+                bne parser_not_num
 
                 ; We have a number start token, which means that the next bytes
                 ; are going to be:
                 ;
-                ;       - radix: 2, 8, 10, or 16 (one byte)
+                ;       - radix: 2, 10, 16, or possibly 8 (one byte)
                 ;       - length of number sequence including sign (one byte)
                 ;       - sign token, either T_PLUS or T_MINUS (one byte)
                 ;       - digits in ASCII (at least one byte)
@@ -129,22 +129,30 @@ _not_false_token:
                 ; are correct. However, we have not tested the actual digits
                 ; themselves
 
+                ; TODO currently, the lexer does not check to see if the radix
+                ; is a valid #b, #d, #h or possibly #o. We just assume it's
+                ; fine for the moment.
+
                 ; TODO Later we will have to decide if this is going to be
                 ; a fixnum or a bignum. For the moment, we just go with fixnums
                 inx                     ; skip over T_NUM_START TOKEN
 
-                ; This should be the radix, which can be one of $02, $08, $0A
-                ; or $10. We assume that the lexer didn't screw up and just
-                ; save this for now
+                ; This should be the radix, which can be one of $02, $0A,
+                ; $10 and possibly $08. We assume that the lexer didn't screw up
+                ; and just save this for now
                 lda tkb,x
-                sta tmp0
+                sta tmp0        ; radix
                 inx
 
                 ; This should be the length of the string, including the sign
-                ; byte
+                ; byte. Note this means that bignums are limited to 254
+                ; characters as well
                 lda tkb,x
                 
+                .if DEBUG == true 
+                ; -----------------------------------------------------------
                 ; TODO for testing, we just print the numbers, prefixed by the
+                phx
                 pha
                 lda #AscLF
                 jsr help_emit_a
@@ -158,19 +166,106 @@ _testing_loop:
                 inx
                 lda tkb,x
                 cmp #T_NUM_END
-                beq _num_end
+                beq _testing_end
 
                 ; TODO for testing, just print out the numbers
                 jsr help_emit_a
                 bra _testing_loop
+_testing_end:
+                plx
+                ; -----------------------------------------------------------
+                .fi
+
+                tay             ; we need the length of the string later ...
+                dey             ; ... but we don't need to include the sign
+
+                inx             ; Move to token for sign, T_PLUS or T_MINUS 
+                lda tkb,x
+                sta tmp0+1      ; Just store it for now 
+
+                inx
+
+                ; We are now pointed to the first digit of the number sequence.
+                ; The lexer should not allow numbers without digits, so we
+                ; should be safe.
+
+                ; There are two ways to convert the numbers from their ASCII
+                ; representations to something we can actually use: Either with
+                ; on general routine for all number bases or with individual
+                ; ones for binary, decimal, hex, and (sigh) octal. At the
+                ; moment, we are more worried about speed than about size, so
+                ; we go with the specialized versions. 
+                lda tmp0        ; radix
+
+                cmp #$0A
+                bne _not_dec
+
+                ; ---- Convert decimal ----
+                ; This should be the most common case so we do it first We
+                ; arrive here with with X as the index to the first digit in
+                ; the token buffer, Y the length of the string including the
+                ; sign, and A as the radix. 
+                
+                ; TODO convert decimal
+                bra _common_num
+                
+_not_dec:
+                cmp #$10
+                bne _not_hex
+
+                ; ---- Convert hex ----
+
+                ; Having the length of the hex digit sequence makes it easy to
+                ; decide if we have a fixnum or a bignum: If it is more than
+                ; three digits, it's a bignum. 
+
+                ; TODO HIER HIER
+                
+                bra _common_num
+                
+_not_hex:               
+                cmp #$02
+                bne _not_binary
+
+                ; ---- Convert binary ----
+                ; TODO convert binary
+                bra _common_num
+
+_not_binary:
+                ; if 'OCTAL == false' in the platform file we drop through 
+                ; to _illegal_radix
+
+                .if OCTAL == true
+                cmp #$08
+                bne _illegal_radix
+
+                ; ---- Convert octal ----
+                ; TODO convert octal
+                bra _common_num
+                .fi
+                
+_illegal_radix:
+                ; This really shouldn't happen, but then again, it can. If we
+                ; landed here, we have a radix we don't recognize because the
+                ; lexer screwed up. Panic and return to REPL
+                pha                             ; save the evil radix
+                lda #str_bad_radix
+                jsr help_print_string_no_lf
+                bra parser_common_panic         ; prints offending byte and LF
+
+
+                ; ---- Common processing for all numbers ----
+_common_num:    
+                ; TODO this will change a lot once we have bignum
+                ; TODO add num object
+
 
 _num_end:
-                ; TODO add fixnum object
                 jmp parser_loop
 
 
 
-_not_num: 
+parser_not_num: 
                 ; TODO ADD NEXT CHECK HERE TODO 
                 
                 ; ---- No match found
@@ -180,8 +275,11 @@ paser_bad_token:
                 pha                             ; save the evil token
                 lda #str_bad_token
                 jsr help_print_string_no_lf
+parser_common_panic:
                 pla
                 jsr help_byte_to_ascii          ; print bad token as hex number
+                lda #AscLF
+                jsr help_emit_a
                 jmp repl
 
 
