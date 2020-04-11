@@ -1,13 +1,14 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Sat Apr 11 10:46:58 2020
+; Sat Apr 11 11:01:57 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
 ;******  Processing input file: platforms/platform-py65mon.asm
 
 =true					DEBUG = true
+=false					OCTAL = false
 =$0000					ram_start = $0000       ; Start of RAM. Must contain the Zero Page
 =$8000					ram_size  = $8000       ; assumes 32 KiB of RAM
 =$0000					zp_start  = $0000       ; start of zero page,

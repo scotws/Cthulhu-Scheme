@@ -2,18 +2,23 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 10. Apr 2020
+; This version: 11. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
 ; bottom of the file with your own code and adapt the memory map to your layout
 
 
-; ==== DEBUGGING ====
+; ==== ASSEMBERLER FLAGS ====
 
 ; Set this to 'false' for production code. As 'true', this will assemble the
 ; debugging routines in debug.asm and various parts of the code
 DEBUG = true
+
+; Normal people don't use octal (#o) numbers anymore, but there are bound to be
+; freaks out there who still use it. As a compromise, we include the code but
+; don't actually use it unless this is set to true. You know who you are.
+OCTAL = false
 
 
 ; ==== BASIC MACHINE DEFINITIONS ====

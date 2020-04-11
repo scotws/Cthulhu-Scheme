@@ -35,9 +35,8 @@ include::ch_overview.adoc[]
 TODO
 
 == Invoking the Old Ones: Running Cthulhu Scheme
-// include::ch_running.adoc[]
+include::ch_running.adoc[]
 TODO
-
 
 // --------------------------------------------------------
 = Developer Guide

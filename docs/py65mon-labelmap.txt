@@ -13,6 +13,7 @@ parser		= $8170
 debug_emit_a	= $83af
 ot_bool		= $10
 strtbl		= $0016
+OCTAL		= false
 s_bad_object	= $847c
 lexer_add_token	= $8165
 proc_read	= $82f5

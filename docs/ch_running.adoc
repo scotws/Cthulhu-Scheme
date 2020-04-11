@@ -1,0 +1,25 @@
+=== Horror out the box: py65mon
+
+Cthulhu Scheme is set up so it will run with py65mon from the get-go. 
+
+
+=== Specialized mayhem: Assembler flags
+
+`DEBUG` (boolean). If set to `true`, the debug routines and calls are turned on
+and a bunch of internal data is published. You probably don't want to use this
+unless you really want to get into the internals. 
+
+NOTE: Currently, debug mode is enabled by default. This will change once we hit
+a higher version number.
+
+`OCTAL` (boolean). One of the unspeakable nameless ancient horrors are octal
+numbers. The Scheme language supports them via `#o` syntax, but since normal,
+sane people don't use them anymore, they are turned off here by default with a
+`false` value. Set this to true if you are into 70's horror.
+
+
+=== Your very own monster: Adapting for hardware
+
+To make it easier to adapt Cthulhu Scheme to actual hardware, you can add your
+own configuration file in the `platforms` folder.
+
