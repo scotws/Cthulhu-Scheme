@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 10. Apr 2020
+; This version: 11. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -110,11 +110,37 @@ _not_true_token:
                 jsr parser_add_object
                 jmp parser_loop
 
-
+                ; ---- Check for number token
 _not_false_token:
+                cmp #T_NUM_START
+                bne _not_fixnum
+
+                ; We have a start token, which means that the next bytes
+                ; are going to be unsigned ASCII decimal digits (for the moment). 
+-
+                inx                     ; skip over T_NUM_START TOKEN
+                lda tkb,x
+
+                ; TODO panic if there is an end token before the string was
+                ; terminated cleanly
+
+                cmp #T_NUM_END
+                beq _fixnum_end
+
+                ; TODO for testing, just print out the numbers
+                jsr help_emit_a
+                bra - 
+
+_fixnum_end:
+                ; TODO add fixnum object
+                jmp parser_loop
+
+
+
+
+_not_fixnum: 
                 ; TODO ADD NEXT CHECK HERE TODO 
-
-
+                
                 ; ---- No match found
 paser_bad_token:
                 ; This really shouldn't happen. Panic and return to main loop.
@@ -123,7 +149,7 @@ paser_bad_token:
                 lda #str_bad_token
                 jsr help_print_string_no_lf
                 pla
-                jsr help_emit_a                 ; print bad token as hex number
+                jsr help_byte_to_ascii          ; print bad token as hex number
                 jmp repl
 
 

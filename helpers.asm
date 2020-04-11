@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 10. Apr 2020
+; This version: 11. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -141,9 +141,12 @@ help_is_delimiter:
         ; cleared means it is not. See the list of delimiters at
         ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
         ; """
-        ; TODO check for whitespace, because whitespace is delimiters
-        ; TODO check for ();"'`|
-        ; TODO check for []{}
+                jsr help_is_whitespace
+                bcs _delimiter_done
+                ; TODO check for ()
+                ; TODO check for ;"'`|
+                ; TODO check for []{}
+_delimiter_done:
                 rts
 
 
