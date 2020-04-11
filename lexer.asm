@@ -144,7 +144,7 @@ _not_vector:
         ;
         ;       #b for binary
         ;       #d for explicit decimal (default)
-        ;       #o for octal
+        ;       #o for octal (only if 'OCTAL = true' in platform file)
         ;       #x for hexadecimal
         ;
         ; The lexer stores numbers by starting with a T_NUM_START token, which
@@ -172,21 +172,42 @@ _not_hexnum:
 
 _not_binnum:
                         cmp #'d'        ; #d is explicit decimal
+
+                        ; Our failure jump target depends if we have assembled
+                        ; support for octal numbers or not. This makes the code
+                        ; slightly messy. Did I mention I hate octal?
+                        .if OCTAL == true
                         bne _not_expldecnum
+                        .else
+                        bne lexer_got_number
+                        .fi
+
                         lda #$0A        ; Base 10
+
+                        .if OCTAL == true
                         bra lexer_got_number
                         
 _not_expldecnum:
                         ; Nobody in their right mind still uses octal, right?
-                        ; Still, we have to check for it
+                        ; Still, we have to check for it if the OCTAL flag is
+                        ; set to true in the platforms file
                         cmp #'o'        ; #o is octal
                         bne lexer_not_octnum
                         lda #$08        ; Base 8
+                        .fi 
                         
-                        ; fall through to lexer_got_number
+                        ; TODO If it wasn't one of #b, #d, #x, and possibly #o, this
+                        ; is bad, because this means we have some malformed
+                        ; number such as #s. We'll leave it for the moment but
+                        ; have to come back to this. The parser has a routine
+                        ; for malformed numbers but we'd hate to jump right in
+                        ; the middle of that code.
+
+                        ; drop through to lexer_got_number (for the moment)
 
 lexer_got_number:
-        ; We have a number. We jump here with the radix in A (2, 8, 10 or 16).
+        ; We have a number. We jump here with the radix in A (2, 10, 16, and
+        ; possibly 8 if OCTAL is true).
                         pha                     ; Save the radix for the moment
                         lda #T_NUM_START
                         jsr lexer_add_token
