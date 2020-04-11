@@ -113,32 +113,64 @@ _not_true_token:
                 ; ---- Check for number token
 _not_false_token:
                 cmp #T_NUM_START
-                bne _not_fixnum
+                bne _not_num
 
-                ; We have a start token, which means that the next bytes
-                ; are going to be unsigned ASCII decimal digits (for the moment). 
--
+                ; We have a number start token, which means that the next bytes
+                ; are going to be:
+                ;
+                ;       - radix: 2, 8, 10, or 16 (one byte)
+                ;       - length of number sequence including sign (one byte)
+                ;       - sign token, either T_PLUS or T_MINUS (one byte)
+                ;       - digits in ASCII (at least one byte)
+                ;       - number sequence terminator T_NUM_END
+                ;
+                ; We assume that the lexer did its job and there are no
+                ; formatting errors present and that the length and sign values
+                ; are correct. However, we have not tested the actual digits
+                ; themselves
+
+                ; TODO Later we will have to decide if this is going to be
+                ; a fixnum or a bignum. For the moment, we just go with fixnums
                 inx                     ; skip over T_NUM_START TOKEN
+
+                ; This should be the radix, which can be one of $02, $08, $0A
+                ; or $10. We assume that the lexer didn't screw up and just
+                ; save this for now
                 lda tkb,x
+                sta tmp0
+                inx
 
-                ; TODO panic if there is an end token before the string was
-                ; terminated cleanly
+                ; This should be the length of the string, including the sign
+                ; byte
+                lda tkb,x
+                
+                ; TODO for testing, we just print the numbers, prefixed by the
+                pha
+                lda #AscLF
+                jsr help_emit_a
+                pla
+                ; length of the string
+                jsr help_byte_to_ascii
+                lda #AscSP
+                jsr help_emit_a
 
+_testing_loop:
+                inx
+                lda tkb,x
                 cmp #T_NUM_END
-                beq _fixnum_end
+                beq _num_end
 
                 ; TODO for testing, just print out the numbers
                 jsr help_emit_a
-                bra - 
+                bra _testing_loop
 
-_fixnum_end:
+_num_end:
                 ; TODO add fixnum object
                 jmp parser_loop
 
 
 
-
-_not_fixnum: 
+_not_num: 
                 ; TODO ADD NEXT CHECK HERE TODO 
                 
                 ; ---- No match found
