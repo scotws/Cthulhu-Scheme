@@ -16,12 +16,14 @@ str_bad_token  = 4
 str_bad_object = 5
 str_bad_number = 6
 str_bad_radix  = 7
+str_cant_yet   = 8      ; TODO temp during development
 
 ; Since we can't fit a 16-bit address in a register, we use indexes as offsets
 ; to tables as error and string numbers.
 string_table:
         .word s_unbound, s_unspec, s_true, s_false      ; 0-3
         .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
+        .word s_cant_yet                                             ; 8-11
 
 ; TODO see if we want to keep the ';' in the individual error strings
 s_unbound:      .null   ";Unbound variable: "           ; REPL input error
@@ -32,6 +34,7 @@ s_bad_token:    .null   "PANIC: Bad token: $"           ; from parser
 s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
 s_bad_number:   .null   ";Ill-formed number"            ; from lexer
 s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
+s_cant_yet      .null   "ALPHA: Can't do that yet"      ; from parser
 
 ; ---- Other Strings ----
 

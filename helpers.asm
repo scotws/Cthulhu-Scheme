@@ -51,7 +51,7 @@ help_to_lowercase:
                 rts
 
 
-; ---- Emit A ----
+; ---- Emit character in A quickly ----
 help_emit_a:
         ; Print the character in A without fooling around. This still allows
         ; the output to be vectored. Call it with JSR. 
@@ -66,7 +66,7 @@ help_key_a:
                 jmp (input)             ; JSR/RTS
 
 
-; ---- System print routines----
+; ---- System print routines ----
 
 help_print_string_no_lf:
         ; """Given the number of a zero terminated string in A, print to the
@@ -149,7 +149,6 @@ help_is_delimiter:
 _delimiter_done:
                 rts
 
-
 help_is_whitespace:
         ; """Given in a character in A, see if it is legally a Scheme
         ; whitespace character. Result is returned in the Carry flag: Set means
@@ -182,3 +181,59 @@ _done:
                 rts
 .bend
  
+; ---- Parser helpers ----
+
+help_hexascii_to_value:
+        ; """Given a character that is probably a ASCII hex digit, return the
+        ; corresponding value as the lower nibble. For instance 'F' is returned
+        ; as $0F. If there was an error, the sign bit (bit 7) is set. This
+        ; routine has been tested for correct digits, but not yet for incorrect
+        ; digits.
+        ; """
+.block        
+                jsr help_is_decdigit
+                bcc _see_if_letter
+
+                ; It's a digit 0-1
+                sec
+                sbc #'0'
+                bra _done
+                
+_see_if_letter:
+                ; What is really annoying is that this can be an uppercase or
+                ; lower case letter, and that there are characters in the ASCII
+                ; table between '9' and 'A'. 
+                cmp #'A'        ; lower than 'A' can't be right
+                bcc _error
+                cmp #'g'        ; 'g' or above can't be right
+                bcs _error
+
+                ; We assume that we will mostly be writing in lowercase,
+                ; because that's what I do. 
+                cmp #'a'
+                bcc _uppercase
+
+                ; We know for sure now it's a legal lowercase letter
+                sec
+                sbc #71         ; moves 'a' to 10 ($0A)
+_done:
+                and #$0F        ; paranoid
+                rts
+
+_uppercase:
+                ; It might be uppercase, but we can't be sure yet
+                cmp #'G'
+                bcs _error
+
+                ; It's uppercase
+                sec
+                sbc #55         ; moves 'A' to 10 ($0A)
+                bra _done
+
+_error:
+                ; Something went wrong and we don't really care what, so we
+                ; just return with bit 7 set
+                lda #$80
+                rts
+
+.bend
