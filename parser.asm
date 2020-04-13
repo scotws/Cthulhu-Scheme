@@ -316,8 +316,8 @@ _done_hex_shuffle:
                 ; Our hex number is now in the correct format to be built into
                 ; an object. We still haven't taken the sign into account,
                 ; though, and are pointing to the number terminator token in
-                ; the token stream. We can deal with that before we move on.
-                inx
+                ; the token stream. We don't have to do anything about that
+                ; because the next loop passage will do it for us.
                 jmp parser_common_fixnum
                 
 _not_hex:               
@@ -358,21 +358,33 @@ parser_common_fixnum:
                 ; pointed to the next token after the number sequence.
 
                 ; TODO this will change a lot once we have bignum
-                ; TODO currently just print the contents of tmp1 and tmp1+1
-                ; where the number is stored. Note we didn't store this little
-                ; endian
-                lda #AscLF
-                jsr help_emit_a
-                lda tmp1
-                jsr help_byte_to_ascii
-                lda tmp1+1
-                jsr help_byte_to_ascii
-                lda #AscLF
-                jsr help_emit_a
+                
+                ; If we have a positive number, we're done and just need to
+                ; construct the fixnum object
+                lda tmp0+1
+                cmp #T_MINUS
+                beq _negative_number
 
+                ; We're in luck, it's positive. The tag for a fixnum object is
+                ; $20
+                lda #OT_FIXNUM
+                ora tmp1
+                sta tmp1
+
+                bra _add_fixnum_to_ast
+
+_negative_number:
+                ; TODO handle negative numbers
+                ; drop through to _add_fixnum_to_ast
+
+_add_fixnum_to_ast:
+                lda tmp1+1
+                ldy tmp1
+                jsr parser_add_object
+
+                ; Fixnum taken care of. Next token please!
 _num_end:
                 jmp parser_loop
-
 
 
 parser_not_num: 

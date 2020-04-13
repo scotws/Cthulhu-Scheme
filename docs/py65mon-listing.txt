@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Apr 13 15:32:57 2020
+; Mon Apr 13 15:45:06 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -322,10 +322,10 @@
 .81dd	a5 00		lda $00		                lda tmp0        ; radix
 .81df	c9 0a		cmp #$0a	                cmp #$0a
 .81e1	d0 03		bne $81e6	                bne _not_dec
-.81e3	4c 66 82	jmp $8266	                jmp parser_common_fixnum
+.81e3	4c 65 82	jmp $8265	                jmp parser_common_fixnum
 .81e6					_not_dec:
 .81e6	c9 10		cmp #$10	                cmp #$10
-.81e8	d0 6e		bne $8258	                bne _not_hex
+.81e8	d0 6d		bne $8257	                bne _not_hex
 .81ea	98		tya		                tya
 .81eb	c9 04		cmp #$04	                cmp #$04
 .81ed	90 03		bcc $81f2	                bcc _dec_fixnum
@@ -388,27 +388,30 @@
 .8250	05 03		ora $03		                ora tmp1+1      ; $23
 .8252	85 03		sta $03		                sta tmp1+1
 .8254					_done_hex_shuffle:
-.8254	e8		inx		                inx
-.8255	4c 66 82	jmp $8266	                jmp parser_common_fixnum
-.8258					_not_hex:
-.8258	c9 02		cmp #$02	                cmp #$02
-.825a	d0 02		bne $825e	                bne _not_binary
-.825c	80 08		bra $8266	                bra parser_common_fixnum
-.825e					_not_binary:
-.825e					_illegal_radix:
-.825e	48		pha		                pha                             ; save the evil radix
-.825f	a9 07		lda #$07	                lda #str_bad_radix
-.8261	20 63 83	jsr $8363	                jsr help_print_string_no_lf
-.8264	80 1d		bra $8283	                bra parser_common_panic         ; prints offending byte and LF
-.8266					parser_common_fixnum:
-.8266	a9 0a		lda #$0a	                lda #AscLF
-.8268	20 5d 83	jsr $835d	                jsr help_emit_a
-.826b	a5 02		lda $02		                lda tmp1
-.826d	20 46 83	jsr $8346	                jsr help_byte_to_ascii
-.8270	a5 03		lda $03		                lda tmp1+1
-.8272	20 46 83	jsr $8346	                jsr help_byte_to_ascii
-.8275	a9 0a		lda #$0a	                lda #AscLF
-.8277	20 5d 83	jsr $835d	                jsr help_emit_a
+.8254	4c 65 82	jmp $8265	                jmp parser_common_fixnum
+.8257					_not_hex:
+.8257	c9 02		cmp #$02	                cmp #$02
+.8259	d0 02		bne $825d	                bne _not_binary
+.825b	80 08		bra $8265	                bra parser_common_fixnum
+.825d					_not_binary:
+.825d					_illegal_radix:
+.825d	48		pha		                pha                             ; save the evil radix
+.825e	a9 07		lda #$07	                lda #str_bad_radix
+.8260	20 63 83	jsr $8363	                jsr help_print_string_no_lf
+.8263	80 1e		bra $8283	                bra parser_common_panic         ; prints offending byte and LF
+.8265					parser_common_fixnum:
+.8265	a5 01		lda $01		                lda tmp0+1
+.8267	c9 ff		cmp #$ff	                cmp #T_MINUS
+.8269	f0 08		beq $8273	                beq _negative_number
+.826b	a9 20		lda #$20	                lda #OT_FIXNUM
+.826d	05 02		ora $02		                ora tmp1
+.826f	85 02		sta $02		                sta tmp1
+.8271	80 00		bra $8273	                bra _add_fixnum_to_ast
+.8273					_negative_number:
+.8273					_add_fixnum_to_ast:
+.8273	a5 03		lda $03		                lda tmp1+1
+.8275	a4 02		ldy $02		                ldy tmp1
+.8277	20 9f 82	jsr $829f	                jsr parser_add_object
 .827a					_num_end:
 .827a	4c 98 81	jmp $8198	                jmp parser_loop
 .827d					parser_not_num:
@@ -848,11 +851,11 @@
 >0200					cib:    .fill cib_size          ; current input buffer
 >0300					tkb:    .fill tkb_size          ; token buffer
 >0400					heap:   .fill heap_size         ; RAM available for heap
-=$00					ot_meta         = $00    ; used for end of input and other markers
-=$10					ot_bool         = $10    ; used for #t and #f; immediate
-=$20					ot_fixnum       = $20    ; used for fixed numbers; immediate
-=$30					ot_bignum       = $30    ; used for bignum
-=$40					ot_char         = $40    ; used for chars; immediate
+=$00					OT_META         = $00    ; used for end of input and other markers
+=$10					OT_BOOL         = $10    ; used for #t and #f; immediate
+=$20					OT_FIXNUM       = $20    ; used for fixed numbers; immediate
+=$30					OT_BIGNUM       = $30    ; used for bignum
+=$40					OT_CHAR         = $40    ; used for chars; immediate
 =$50					ot_undefined_05 = $50
 =$60					ot_undefined_06 = $60
 =$70					ot_undefined_07 = $70
