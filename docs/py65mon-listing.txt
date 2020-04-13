@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Apr 13 22:08:23 2020
+; Mon Apr 13 22:19:25 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -51,6 +51,9 @@
 .8029					repl:
 .8029	64 0a		stz $0a		                stz ciblen
 .802b	64 0b		stz $0b		                stz ciblen+1
+
+;******  Processing file: platforms/../reader.asm
+
 .802d					repl_read:
 .802d	a0 00		ldy #$00	                ldy #0
 .802f	a9 3e		lda #$3e	                lda #'>'
@@ -103,6 +106,9 @@
 .808c	a9 08		lda #$08	                lda #AscBS      ; move back over space
 .808e	20 66 83	jsr $8366	                jsr help_emit_a
 .8091	80 a6		bra $8039	                bra repl_read_loop
+
+;******  Return to file: platforms/../cthulhu.asm
+
 
 ;******  Processing file: platforms/../lexer.asm
 
