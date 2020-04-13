@@ -25,8 +25,7 @@ printer_loop:
         ; code is sound we can move to a table-driven system for speed.
 .block
         ; Move down one line
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 ldy #3                  ; MSB of the next node entry down ...
                 lda (tmp1),y            ; ...  which contains the tag nibble

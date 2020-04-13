@@ -12,8 +12,7 @@ debug_dump_input:
         ; Hexdump contents of the character input buffer (cib)
         ; Destroys X
 .block
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 lda #strd_dump_input            ; "Input: "
                 jsr debug_print_string_no_lf
@@ -39,8 +38,7 @@ debug_dump_token:
         ; byte long. Currently not clever enough to handle multi-byte tokens.
         ; Destroys X
 .block
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 lda #strd_dump_token            ; "Token: "
                 jsr debug_print_string_no_lf
@@ -69,8 +67,7 @@ _done:
 
 debug_dump_hp:
         ; Print the value of the heap pointer
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 lda #strd_dump_hp               ; "Heap pointer: "
                 jsr debug_print_string_no_lf
@@ -87,8 +84,7 @@ debug_dump_ast:
         ; a linked list, we don't really have to walk anything, just follow the
         ; list. This routine will have to be updated as the AST is. 
 .block
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 lda #strd_dump_ast              ; "AST: "
                 jsr debug_print_string_no_lf
@@ -162,14 +158,12 @@ _done:
 debug_emit_a:
         ; Print a single char, usally to show where we are. Char is in A
                 pha
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
 
                 pla
                 jsr help_emit_a
 
-                lda #AscLF
-                jmp help_emit_a         ; JSR/RTS
+                jmp help_emit_lf        ; JSR/RTS
 
 
 debug_print_string_no_lf:
@@ -210,8 +204,7 @@ debug_print_string:
         ; Assumes number of string is in A.
         ; """
                 jsr debug_print_string_no_lf
-                lda #AscLF              ; we don't use (newline) because of string
-                jmp help_emit_a         ; JSR/RTS
+                jmp help_emit_lf        ; JSR/RTS
 
 
 ; ===== DEBUGGING STRINGS ====

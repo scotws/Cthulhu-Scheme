@@ -400,8 +400,7 @@ paser_bad_token:
 parser_common_panic:
                 pla
                 jsr help_byte_to_ascii          ; print bad token as hex number
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
                 jmp repl
 
 

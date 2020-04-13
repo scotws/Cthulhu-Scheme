@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 11. Apr 2020
+; This version: 13. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -50,6 +50,12 @@ help_to_lowercase:
 ; TODO Add conversion routine to lower case
                 rts
 
+; ---- Emit line feed quickly
+help_emit_lf:
+        ; Print a line feed. Since we do this so often it is worth the savings. 
+                lda #AscLF
+
+                ; drop through to help_emit_a
 
 ; ---- Emit character in A quickly ----
 help_emit_a:

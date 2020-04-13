@@ -359,8 +359,7 @@ lexer_error:
                 jsr help_print_string_no_lf
                 pla
                 jsr help_byte_to_ascii
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
                 jmp repl
 
 lexer_next:

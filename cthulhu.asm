@@ -141,8 +141,7 @@ repl_input_end:
                 ; the question. MIT Scheme prints out "Moriturus te saluto."
                 ; but we have better things in mind. Might need to be shortened
                 ; if we really run out of space.
-                lda #AscLF
-                jsr help_emit_a
+                jsr help_emit_lf
                 lda #str_end_input
                 jsr help_print_string
                 lda #str_chant
