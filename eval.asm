@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 10. Apr 2020
+; This version: 13. Apr 2020
 
 eval: 
 
@@ -18,7 +18,7 @@ eval:
 ; TODO walk the tree, executing the entries
 
 ; TODO we can skip this all for the moment because we can only do #t and #f and
-; they both just evaluate to themselves
+; fixnumbers and they all just evaluate to themselves
 
 
 ; ==== CONTINUE TO PRINTER ====

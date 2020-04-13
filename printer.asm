@@ -1,22 +1,13 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 10. Apr 2020
+; This version: 13. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions
 
 ; ==== PRINTER ====
 printer: 
-
-; ---- Debug routines ---- 
-
-        .if DEBUG == true
-;       jsr debug_dump_ast
-;       jsr debug_dump_hp
-        lda #AscLF
-        jsr help_emit_a
-        .fi
 
 ; ==== PRINT MAIN LOOP ====
 
@@ -33,13 +24,17 @@ printer_loop:
         ; know what we are doing - this is one big case statement. Once the
         ; code is sound we can move to a table-driven system for speed.
 .block
+        ; Move down one line
+                lda #AscLF
+                jsr help_emit_a
+
                 ldy #3                  ; MSB of the next node entry down ...
                 lda (tmp1),y            ; ...  which contains the tag nibble
                 and #$f0                ; mask all but tag nibble
 
 _check_for_meta:
         ; The most common and important meta will be the end of the AST
-                cmp #ot_meta
+                cmp #OT_META
                 bne _not_meta
 
                 ; ---- See if end of AST
@@ -57,7 +52,7 @@ _not_meta:
                 ; a separate routine to print them. This will obviously have to
                 ; change once we have a table-driven printing system, but for
                 ; now, this is good enough to get us off the ground
-                cmp #ot_bool
+                cmp #OT_BOOL
                 bne _not_bool
 
                 ; We have a bool, now we need to figure out which one
@@ -69,12 +64,30 @@ _not_meta:
 _bool_true:
                 lda #str_true
 _bool_printer:
-                jsr help_print_string
+                jsr help_print_string_no_lf
                 jmp printer_next
 
 _not_bool: 
-                ; ---- See if TODO object
+                ; ---- See if fixnum object
+                cmp #OT_FIXNUM
+                bne _not_fixnum
 
+                ; We have a fixnum object, which we will now print. 
+
+                ; TODO For the moment, however, we will just print it out in
+                ; hex until we have everything else working
+                ldy #3          ; tag nibble and high nibble of number
+                lda (tmp1),y    ; MSB nibble
+                and #$0F        ; Mask tab
+                ; TODO handle negative numbers
+                jsr help_byte_to_ascii
+                ldy #2
+                lda (tmp1),y    ; LSB
+                jsr help_byte_to_ascii
+                jmp printer_next
+
+
+_not_fixnum: 
 ; **** TODO HERE TODO  ****
 
                 ; ADD NEW PRINTS HERE 
@@ -113,3 +126,4 @@ printer_next:
 ; ===== RETURN TO REPL ====
 printer_done:
                 ; fall through to repl_done
+
