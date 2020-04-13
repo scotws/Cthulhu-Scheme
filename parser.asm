@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 11. Apr 2020
+; This version: 13. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -213,6 +213,11 @@ _dec_fixnum:
                 ; digits, and we haven't taken care of upper and lower case
                 ; problems. We use a helper function for that.
 
+                ; TODO This is probably not the best way to do this. Once code
+                ; is stable or we at least have a testing suite working, come
+                ; back and rewrite it, shifting nibbles in from the right like
+                ; we do it with binary fixnums.
+
                 ; We have already cleared tmp1 and tmp1+1 above for all fixnums
 
                 ; -- First digit --
@@ -325,8 +330,56 @@ _not_hex:
                 bne _not_binary
 
                 ; ---- Convert binary ----
-                ; TODO convert binary
-                bra parser_common_fixnum
+                
+                ; Having the length of the binary digit sequence makes it easy to
+                ; decide if we have a fixnum or a bignum: If it is more than
+                ; twelve digits, it's a bignum. 
+                tya
+                cmp #12
+                bcc _bin_fixnum
+
+                ; We arrive here with what should be a binary bignum, but we
+                ; can't do that yet so we just whine and go back to the loop.
+                jmp function_not_available
+
+_bin_fixnum:
+                ; We arrive here at the first digit of a binary number that can
+                ; be up to twelve bits long. We haven't made sure these are
+                ; legal chars either. 
+                
+                ; We have already cleared tmp1 and tmp1+1 above for all fixnums
+
+                ; We need at least one bit or the lexer would not have
+                ; constructed the fixnum. This means we don't have to compare
+                ; with T_NUM_END, but we still do it here anyway because it
+                ; makes the loop easier
+_bin_fixnum_loop:
+                lda tkb,x
+                cmp #'0'
+                beq _legal_bit_char
+                cmp #'1'
+                beq _legal_bit_char
+                cmp #T_NUM_END
+                beq _done_bin
+
+                ; If it is none of the above, something is wrong
+                jmp parser_bad_digit
+
+_legal_bit_char:
+
+                ; ASCII for '0' is $30 and '1' is $31. We mask the character to
+                ; get the bit we want in bit 0
+                and #$01                ; gives us $00 or $01
+                ror                     ; push the bit into carry flag
+                rol tmp1+1              ; rotate the carry flag into LSB ...
+                rol tmp1                ; ... and highest bit of tmp1+1 to tmp1
+                inx
+                dey
+                bne _bin_fixnum_loop    ; Repeat till we're done
+
+_done_bin:
+                ; Binary number is finished, nothing more to be done
+                jmp parser_common_fixnum
 
 _not_binary:
                 ; if 'OCTAL == false' in the platform file we drop through 
@@ -375,6 +428,7 @@ parser_common_fixnum:
 
 _negative_number:
                 ; TODO handle negative numbers
+
                 ; drop through to _add_fixnum_to_ast
 
 _add_fixnum_to_ast:
