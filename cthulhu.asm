@@ -187,6 +187,9 @@ repl_read_backspace:
 .include "printer.asm"
 
 ; ==== ALL DONE ====
+
+; Usually we fall through to here from the printer. However, if we were given
+; an empty line, the lexer jumps here directly to save time.
 repl_done:
 
 ; TODO TEST keep doing stuff over and over

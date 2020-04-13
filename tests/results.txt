@@ -1,4 +1,4 @@
-Cthulhu Scheme default kernel for py65mon (03. Apr 2020)
+Cthulhu Scheme default kernel for py65mon (13. Apr 2020)
 > #f
 Input Buffer: 23 66 00
 Token Buffer: 11 00
@@ -39,7 +39,8 @@ AST: 044E 0454:1000:0000 045A:1FFF:0000 0000:0100:0000
 Heap pointer: 0460
 #f
 #t
-> #b0
+> 
+Input Buffer: 00> #b0
 Input Buffer: 23 62 30 00
 Token Buffer: 12 02 02 EE 30 82 00
 AST: 0460 0466:2000:0000 0000:0100:0000
@@ -75,7 +76,8 @@ Token Buffer: 12 02 0D EE 31 31 31 31 30 30 30 30 31 31 31 31 82 00
 AST: 049C 04A2:2F0F:0000 0000:0100:0000
 Heap pointer: 04A8
 0F0F
-> #x0
+> 
+Input Buffer: 00> #x0
 Input Buffer: 23 78 30 00
 Token Buffer: 12 10 02 EE 30 82 00
 AST: 04A8 04AE:2000:0000 0000:0100:0000

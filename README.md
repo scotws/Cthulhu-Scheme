@@ -1,7 +1,7 @@
 Cthulhu Scheme for the 65c02   
 Scot W. Stevenson <scot.stevenson@gmail.com>   
 First version: 28. Mar 2020  
-This version: 05. Apr 2020  
+This version: 13. Apr 2020  
 
 ## Dude, I am a Scheme god, all parens tremble before me. Just tell me how to start!
 
@@ -25,6 +25,10 @@ is because I am using this project to get familiar with the 64tass assembler
 (see http://tass64.sourceforge.net/#conditional-assembly) so there are a lot of
 moving parts at the moment. Honestly, you might want to come back in a few
 months. 
+
+Note that the testing suite is still very primitive - all it does is run a bunch
+of commands, and if it doesn't crash, all is well. This will be updated once we
+get more commands going.
 
 
 ## Even more detail pretty please 

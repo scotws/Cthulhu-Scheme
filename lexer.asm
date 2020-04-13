@@ -1,7 +1,7 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 11. Apr 2020
+; This version: 13. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
@@ -21,6 +21,14 @@ lexer:
                 stz cibp+1      ; MSB currently unused
                 stz tkbp
                 stz tkbp+1      ; MSB currently unused
+
+                ; If this is just an empty line - we arrive here just with the
+                ; end of line terminator (a zero) - we get this over as quickly
+                ; as possible and just jump to the REPL again
+                tya
+                ora cib,y
+                bne lexer_loop
+                jmp repl_done 
 
 lexer_loop:
                 lda cib,y
@@ -335,9 +343,8 @@ lexer_not_sharp:
 
                 ; Result is in carry flag: set we have a decimal number, clear
                 ; this is something else
-;                jsr help_is_digit
-;                bcc _not_decnum
-
+                ;jsr help_is_digit
+                ;bcc _not_decnum
 
 
 _not_decnum:
