@@ -34,7 +34,7 @@ s_true:         .null   "#t"
 s_false:        .null   "#f"
 s_bad_token:    .null   "PANIC: Bad token: $"           ; from parser
 s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
-s_bad_number:   .null   ";Ill-formed number"            ; from lexer
+s_bad_number:   .null   ";Ill-formed number: $"         ; from lexer
 s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
 s_cant_yet      .null   "ALPHA: Can't do that yet"      ; from parser
 s_end_input     .null   "End of input stream reached."  ; from reader

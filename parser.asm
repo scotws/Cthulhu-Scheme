@@ -335,7 +335,7 @@ _not_hex:
                 ; decide if we have a fixnum or a bignum: If it is more than
                 ; twelve digits, it's a bignum. 
                 tya
-                cmp #12
+                cmp #$0D                ; "smaller than 13"
                 bcc _bin_fixnum
 
                 ; We arrive here with what should be a binary bignum, but we

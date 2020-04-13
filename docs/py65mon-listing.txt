@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Apr 13 16:46:57 2020
+; Mon Apr 13 16:52:27 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -391,7 +391,7 @@
 .8253	c9 02		cmp #$02	                cmp #$02
 .8255	d0 28		bne $827f	                bne _not_binary
 .8257	98		tya		                tya
-.8258	c9 0c		cmp #$0c	                cmp #12
+.8258	c9 0d		cmp #$0d	                cmp #$0D                ; "smaller than 13"
 .825a	90 03		bcc $825f	                bcc _bin_fixnum
 .825c	4c b7 82	jmp $82b7	                jmp function_not_available
 .825f					_bin_fixnum:
@@ -922,8 +922,8 @@
 =10					str_chant      = 10
 .8531					string_table:
 >8531	47 85 5b 85 75 85 78 85		        .word s_unbound, s_unspec, s_true, s_false      ; 0-3
->8539	7b 85 8f 85 aa 85 bd 85		        .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
->8541	d1 85 ea 85 07 86		        .word s_cant_yet, s_end_input, s_chant                       ; 8-11
+>8539	7b 85 8f 85 aa 85 c0 85		        .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
+>8541	d4 85 ed 85 0a 86		        .word s_cant_yet, s_end_input, s_chant                       ; 8-11
 >8547	3b 55 6e 62 6f 75 6e 64		s_unbound:      .null   ";Unbound variable: "           ; REPL input error
 >854f	20 76 61 72 69 61 62 6c 65 3a 20 00
 >855b	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
@@ -936,22 +936,22 @@
 >858f	50 41 4e 49 43 3a 20 42		s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
 >8597	61 64 20 6f 62 6a 65 63 74 20 69 6e 20 41 53 54
 >85a7	3a 20 00
->85aa	3b 49 6c 6c 2d 66 6f 72		s_bad_number:   .null   ";Ill-formed number"            ; from lexer
->85b2	6d 65 64 20 6e 75 6d 62 65 72 00
->85bd	50 41 4e 49 43 3a 20 42		s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
->85c5	61 64 20 72 61 64 69 78 3a 20 24 00
->85d1	41 4c 50 48 41 3a 20 43		s_cant_yet      .null   "ALPHA: Can't do that yet"      ; from parser
->85d9	61 6e 27 74 20 64 6f 20 74 68 61 74 20 79 65 74
->85e9	00
->85ea	45 6e 64 20 6f 66 20 69		s_end_input     .null   "End of input stream reached."  ; from reader
->85f2	6e 70 75 74 20 73 74 72 65 61 6d 20 72 65 61 63
->8602	68 65 64 2e 00
->8607	50 68 27 6e 67 6c 75 69		s_chant         .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn."   ; from reader
->860f	20 6d 67 6c 77 27 6e 61 66 68 20 43 74 68 75 6c
->861f	68 75 20 52 27 6c 79 65 68 20 77 67 61 68 27 6e
->862f	61 67 6c 20 66 68 74 61 67 6e 2e 00
->863b	21 24 25 26 2a 2b 2d 2e		s_extended:     .null "!$%&*+-./:<=>?@^_~"
->8643	2f 3a 3c 3d 3e 3f 40 5e 5f 7e 00
+>85aa	3b 49 6c 6c 2d 66 6f 72		s_bad_number:   .null   ";Ill-formed number: $"         ; from lexer
+>85b2	6d 65 64 20 6e 75 6d 62 65 72 3a 20 24 00
+>85c0	50 41 4e 49 43 3a 20 42		s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
+>85c8	61 64 20 72 61 64 69 78 3a 20 24 00
+>85d4	41 4c 50 48 41 3a 20 43		s_cant_yet      .null   "ALPHA: Can't do that yet"      ; from parser
+>85dc	61 6e 27 74 20 64 6f 20 74 68 61 74 20 79 65 74
+>85ec	00
+>85ed	45 6e 64 20 6f 66 20 69		s_end_input     .null   "End of input stream reached."  ; from reader
+>85f5	6e 70 75 74 20 73 74 72 65 61 6d 20 72 65 61 63
+>8605	68 65 64 2e 00
+>860a	50 68 27 6e 67 6c 75 69		s_chant         .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn."   ; from reader
+>8612	20 6d 67 6c 77 27 6e 61 66 68 20 43 74 68 75 6c
+>8622	68 75 20 52 27 6c 79 65 68 20 77 67 61 68 27 6e
+>8632	61 67 6c 20 66 68 74 61 67 6e 2e 00
+>863e	21 24 25 26 2a 2b 2d 2e		s_extended:     .null "!$%&*+-./:<=>?@^_~"
+>8646	2f 3a 3c 3d 3e 3f 40 5e 5f 7e 00
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
