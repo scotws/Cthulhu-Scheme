@@ -174,12 +174,11 @@ _not_false_token:
                 ; moment, we are more worried about speed than about size, so
                 ; we go with the specialized versions. 
                 lda tmp0        ; radix
-
                 cmp #$0a
                 bne _not_dec
 
                 ; ---- Convert decimal ----
-                ; This should be the most common case so we do it first We
+                ; This should be the most common case so we do it first. We
                 ; arrive here with with X as the index to the first digit in
                 ; the token buffer, Y the length of the string including the
                 ; sign, and A as the radix, which we can now ignore. The sign
@@ -233,19 +232,25 @@ _legal_hex_digit:
                 asl
                 asl
 
+                ; Shift the nibble in through the right of tmp1+1 and through
+                ; to tmp1
                 rol             ; bit 7 of A now in carry flag
                 rol tmp1+1      ; bit 7 of tmp1+1 now in carry flag
                 rol tmp1        ; now is bit 0 of tmp1
+
                 rol 
                 rol tmp1+1 
                 rol tmp1   
-                rol
-                rol tmp1+1 
-                rol tmp1   
+
                 rol
                 rol tmp1+1 
                 rol tmp1   
 
+                rol
+                rol tmp1+1 
+                rol tmp1   
+
+                ; Loop control
                 inx
                 dey     
                 bne _hex_fixnum_loop
