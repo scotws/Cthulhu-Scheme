@@ -249,7 +249,7 @@ platform_quit:
 ; is easier to see where the kernel ends in hex dumps. This string is
 ; displayed after a successful boot
 s_kernel_id:
-        .null "Cthulhu Scheme default kernel for py65mon (03. Apr 2020)", Asclf
+        .null "Cthulhu Scheme default kernel for py65mon (13. Apr 2020)", Asclf
 .send
 
 

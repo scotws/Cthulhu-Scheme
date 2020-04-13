@@ -202,7 +202,5 @@ AST: 0598 059E:2FFF:0000 0000:0100:0000
 Heap pointer: 05A4
 0FFF
 > 
-Input Buffer: 00;Unbound variable: 00
-> 
 End of input stream reached.
 Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.

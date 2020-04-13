@@ -30,7 +30,7 @@ else
 endif
 
 COMMON_SOURCES=definitions.asm cthulhu.asm native-procedures.asm helpers.asm procedures.asm strings.asm debug.asm lexer.asm parser.asm eval.asm printer.asm
-# TEST_SOURCES=tests/core_a.fs tests/core_b.fs tests/core_c.fs tests/string.fs tests/double.fs tests/facility.fs tests/tali.fs tests/tools.fs tests/block.fs tests/user.fs tests/cycles.fs tests/talitest.py tests/ed.fs tests/search.fs tests/asm.fs
+TEST_SOURCES=tests/main.scm
 
 all:	cthulhu-py65mon.bin
 clean:
@@ -50,6 +50,13 @@ cthulhu-%.prg: platforms/platform-%.asm $(COMMON_SOURCES)
 	-c $<
 
 # Some convenience targets to make running the tests and simulation easier.
+
+# Convenience target for regular tests.
+tests:  tests/results.txt
+
+tests/results.txt:      cthulhu-py65mon.bin $(TEST_SOURCES)
+	cd tests && $(PYTHON) ./cthulhutest.py
+
 
 # Convenience target to run the py65mon simulator.
 # Because cthulhu-py65mon.bin is listed as a dependency, it will be
