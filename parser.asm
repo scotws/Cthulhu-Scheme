@@ -213,111 +213,44 @@ _dec_fixnum:
                 ; digits, and we haven't taken care of upper and lower case
                 ; problems. We use a helper function for that.
 
-                ; TODO This is probably not the best way to do this. Once code
-                ; is stable or we at least have a testing suite working, come
-                ; back and rewrite it, shifting nibbles in from the right like
-                ; we do it with binary fixnums.
-
-                ; We have already cleared tmp1 and tmp1+1 above for all fixnums
-
-                ; -- First digit --
-                ; We need at least one, so we don't have to test for the terminator token
+                ; First digit. We need at least one hex digit, so we don't have
+                ; to test for the terminator token; we do so anyway because it
+                ; makes the loop simpler
+_hex_fixnum_loop:
                 lda tkb,x
-                jsr help_hexascii_to_value
-                bpl _legal_first_hex_digit
-                jmp parser_bad_digit
 
-_legal_first_hex_digit:
-                ; The Scheme objects are not stored little endian, so there are
-                ; not either. 
-                sta tmp1+1      ; MSB, lower nibble
-
-                ; We don't use Y for the length to avoid counting problems, but
-                ; look for the terminator token. 
-                inx
-                lda tkb,x
                 cmp #T_NUM_END
                 beq _done_hex
 
-                ; -- Second digit --
                 jsr help_hexascii_to_value
-                bpl _legal_second_hex_digit
+                bpl _legal_hex_digit
                 jmp parser_bad_digit
 
-_legal_second_hex_digit:
+_legal_hex_digit:
+                ; Shift the nibble to the left side of the A
                 asl
                 asl
                 asl
                 asl
-                ora tmp1+1      ; MSB, both nibbles
-                sta tmp1+1
+
+                rol             ; bit 7 of A now in carry flag
+                rol tmp1+1      ; bit 7 of tmp1+1 now in carry flag
+                rol tmp1        ; now is bit 0 of tmp1
+                rol 
+                rol tmp1+1 
+                rol tmp1   
+                rol
+                rol tmp1+1 
+                rol tmp1   
+                rol
+                rol tmp1+1 
+                rol tmp1   
 
                 inx
-                lda tkb,x
-                cmp #T_NUM_END
-                beq _done_hex
+                dey     
+                bne _hex_fixnum_loop
 
-                ; -- Third digit --
-                jsr help_hexascii_to_value
-                bpl _legal_third_hex_digit
-                jmp parser_bad_digit
-
-_legal_third_hex_digit:
-                sta tmp1        ; LSB, lower nibble, upper is for object tag
-
-                ; If we ended up here with three digits, we haven't checked for
-                ; the number end token. We could check and panic, but we're
-                ; going to trust the lexer here and just skip over it.
-                inx
-                
-                ; drop through to _done_hex
 _done_hex:
-                ; We end here with the number in tmp1 and tmp1+1. However,
-                ; there is a problem: The number is sorted back-to-front. So:
-                ;
-                ;       #x1   --> 0001, want 0001
-                ;       #x12  --> 0021, want 0012
-                ;       #x123 --> 0321, want 0123
-                ;
-                ; We don't want the common routine for fixnumbers to have to
-                ; deal with this, so we do it ourselves here. If there is only
-                ; one digit, we're done:
-                cpy #1
-                beq _done_hex_shuffle
-
-                ; Two digits, we need to swap the nibbles in tmp1+1. See
-                ; http://www.6502.org/source/general/SWN.html for a description
-                ; of this:
-                cpy #2
-                bne _shuffle_three_digits
-                lda tmp1+1      ; $21 for example
-                asl
-                adc #$80
-                rol
-                asl
-                adc #$80
-                rol
-                sta tmp1+1
-                bra _done_hex_shuffle
-
-_shuffle_three_digits:
-                ; Three characters, move stuff around more
-                lda tmp1        ; $03
-                tay
-                lda tmp1+1      ; $21
-                and #$0f        ; $01
-                sta tmp1
-                lda tmp1+1      ; $21
-                and #$f0        ; $20
-                sta tmp1+1
-                tya             ; $03
-                ora tmp1+1      ; $23
-                sta tmp1+1
-               
-                ; drop through to _done_hex_shuffle
-
-_done_hex_shuffle:
-
                 ; Our hex number is now in the correct format to be built into
                 ; an object. We still haven't taken the sign into account,
                 ; though, and are pointing to the number terminator token in
@@ -366,7 +299,6 @@ _bin_fixnum_loop:
                 jmp parser_bad_digit
 
 _legal_bit_char:
-
                 ; ASCII for '0' is $30 and '1' is $31. We mask the character to
                 ; get the bit we want in bit 0
                 and #$01                ; gives us $00 or $01
@@ -550,6 +482,7 @@ parser_add_object:
                 plx             ; get back index for token buffer
 
                 rts
+
 
 ; ==== OBJECT CONSTANTS ====
 
