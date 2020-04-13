@@ -33,6 +33,38 @@ lexer:
 lexer_loop:
                 lda cib,y
 
+                ; ---- Check for comments ----
+                
+                ; We have to deal with comments before we deal with whitespace
+                ; because a LF in a comment will end the comment, and stripping
+                ; whitespace out destroys that end-of-comment function
+                cmp #$3B                        ; semicolon
+                bne _no_comment
+
+                ; There are two kinds of comments in Scheme, but we just deal
+                ; with the ';' here. Skip anything till the end of the line
+                ; character and then continue. We assume that we have a LF in
+                ; the input string, because the reader will store the LF in
+                ; a comment. 
+
+_comment_loop:
+                iny
+                lda cib,y
+
+                ; Remember to check for both LF and CR because
+                ; different computers will store different stuff
+                cmp #AscLF
+                beq _comment_done
+                cmp #AscCR
+                beq _comment_done
+
+                bra _comment_loop
+
+_comment_done:
+                jmp lexer_next
+
+                ; ---- Check for whitespace ----
+_no_comment:
                 ; Deal with whitespace. This includes line feeds because
                 ; we can have those inside delimiters and comments. See the
                 ; discussion at the code for helper_is_whitespace in
