@@ -108,6 +108,10 @@ repl_read_loop:
                 cmp #AscDEL             ; (CTRL-h)
                 beq repl_read_backspace
 
+                ; See if we have CTRL-D
+                cmp #$04
+                beq repl_input_end
+
                 ; That's enough for now. Save and echo character.
                 sta cib,y
                 iny
@@ -131,6 +135,20 @@ repl_read_buffer_full:
                 ; We have the characters in the buffer, now we can parse. The
                 ; lexer is kept in a separate file
                 jmp lexer
+
+repl_input_end:
+                ; We quit, which is pretty much the same as (exit) but without
+                ; the question. MIT Scheme prints out "Moriturus te saluto."
+                ; but we have better things in mind. Might need to be shortened
+                ; if we really run out of space.
+                lda #AscLF
+                jsr help_emit_a
+                lda #str_end_input
+                jsr help_print_string
+                lda #str_chant
+                jsr help_print_string
+                jmp platform_quit
+
 
 repl_read_backspace:
                 ; Handle backspace and delete key, which currently do the same

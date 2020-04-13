@@ -239,9 +239,10 @@ kernel_putc:
                 sta $f001
                 rts
 
-platform_bye:
-        ; TODO explain what this is 
-        
+platform_quit:
+        ; What to do when it is time to quit. This is part of the platform file
+        ; so people can jump back to their own kernel or other system. For
+        ; py65mon, we just halt the processor.
                 brk
 
 ; Leave the following string as the last entry in the kernel routine so it

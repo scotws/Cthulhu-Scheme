@@ -159,7 +159,7 @@ _not_false_token:
 
                 inx             ; Move to token for sign, T_PLUS or T_MINUS 
                 lda tkb,x
-                sta tmp0+1      ; Just store it for now 
+                sta tmp0+1      ; Just store sign for now 
 
                 inx
 
@@ -351,8 +351,12 @@ _illegal_radix:
                 bra parser_common_panic         ; prints offending byte and LF
 
 
-                ; ---- Common processing for all numbers ----
+                ; ---- Common processing for all fixnums ----
 parser_common_fixnum:    
+                ; The number is safe as bigendian in tmp1 and tmp1+1 in three
+                ; nibbles, the sign is in tmp0+1 as T_PLUS or T_MINUS. We are
+                ; pointed to the next token after the number sequence.
+
                 ; TODO this will change a lot once we have bignum
                 ; TODO currently just print the contents of tmp1 and tmp1+1
                 ; where the number is stored. Note we didn't store this little
