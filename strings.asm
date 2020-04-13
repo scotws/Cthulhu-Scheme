@@ -27,6 +27,8 @@ string_table:
         .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
         .word s_cant_yet, s_end_input, s_chant                       ; 8-11
 
+; If you change the error strings, you will have to change the test files
+; because the test routines depend on them being exactly the same.
 ; TODO see if we want to keep the ';' in the individual error strings
 s_unbound:      .null   ";Unbound variable: "           ; REPL input error
 s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
