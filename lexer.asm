@@ -56,9 +56,7 @@ _comment_loop:
                 cmp #AscLF
                 beq _comment_done
                 cmp #AscCR
-                beq _comment_done
-
-                bra _comment_loop
+                bne _comment_loop
 
 _comment_done:
                 jmp lexer_next
@@ -68,7 +66,8 @@ _no_comment:
                 ; Deal with whitespace. This includes line feeds because
                 ; we can have those inside delimiters and comments. See the
                 ; discussion at the code for helper_is_whitespace in
-                ; helpers.asm for what is all considered whitespace
+                ; helpers.asm for what is all considered whitespace. This must
+                ; come after we look for comments
                 jsr help_is_whitespace
                 bcc _not_whitespace
 
