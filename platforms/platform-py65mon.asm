@@ -11,6 +11,10 @@
 
 ; ==== ASSEMBERLER FLAGS ====
 
+; Various configuration options for Cthulhu Scheme. In practice, they will
+; mostly allow you to save space by not including code that you won't need.
+; Seriously, when is the last time you used an octal number?
+
 ; Set this to 'false' for production code. As 'true', this will assemble the
 ; debugging routines in debug.asm and various parts of the code
 DEBUG = true
