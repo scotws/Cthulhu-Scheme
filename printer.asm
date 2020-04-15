@@ -8,9 +8,6 @@
 
 ; ==== PRINTER ====
 printer: 
-
-; ==== PRINT MAIN LOOP ====
-
         ; We walk the AST - which should be rather short by now - and print the
         ; results. Don't touch tmp0 because it is used by print routines in
         ; helper.asm
@@ -20,10 +17,6 @@ printer:
                 sta tmp1+1
 
 printer_loop:
-        ; TODO during development, we check the entries individually until we
-        ; know what we are doing - this is one big case statement. Once the
-        ; code is sound we can move to a table-driven system for speed.
-.block
         ; Move down one line
                 jsr help_emit_lf
 
@@ -31,85 +24,18 @@ printer_loop:
                 lda (tmp1),y            ; ...  which contains the tag nibble
                 and #$f0                ; mask all but tag nibble
 
-_check_for_meta:
-        ; The most common and important meta will be the end of the AST
-                cmp #OT_META
-                bne _not_meta
+                ; Use the tag to get the entry in the jump table. First, we
+                ; have to move the nibble over four bits, then multiply it by
+                ; two, which is a left shift, so we end up wit three right
+                ; shifts
+                lsr
+                lsr
+                lsr             ; Fourth LSR and ASL cancle each other
+                tax
 
-                ; ---- See if end of AST
-
-                ; This currently is paranoid because the only meta object we
-                ; have is the end of AST marker, which is $0000. 
-                ora (tmp1)              ; LSB
-                bne printer_error       ; We're in trouble, panic and re-REPL
-                jmp printer_done
-
-_not_meta:
-                ; ---- See if bool object
-
-                ; Booleans are so simple we currently don't bother jumping to
-                ; a separate routine to print them. This will obviously have to
-                ; change once we have a table-driven printing system, but for
-                ; now, this is good enough to get us off the ground
-                cmp #OT_BOOL
-                bne _not_bool
-
-                ; We have a bool, now we need to figure out which one
-                ldy #2
-                lda (tmp1),y            ; LSB
-                bne _bool_true          ; not a zero means true
-                lda #str_false
-                bra _bool_printer
-_bool_true:
-                lda #str_true
-_bool_printer:
-                jsr help_print_string_no_lf
-                jmp printer_next
-
-_not_bool: 
-                ; ---- See if fixnum object
-                cmp #OT_FIXNUM
-                bne _not_fixnum
-
-                ; We have a fixnum object, which we will now print. 
-
-                ; TODO For the moment, however, we will just print it out in
-                ; hex until we have everything else working
-                ldy #3          ; tag nibble and high nibble of number
-                lda (tmp1),y    ; MSB nibble
-                and #$0F        ; Mask tab
-                ; TODO handle negative numbers
-                jsr help_byte_to_ascii
-                ldy #2
-                lda (tmp1),y    ; LSB
-                jsr help_byte_to_ascii
-                jmp printer_next
-
-
-_not_fixnum: 
-; **** TODO HERE TODO  ****
-
-                ; ADD NEW PRINTS HERE 
-
-                ; Fall through to printer_error if we didn't find a match
-.bend
-
-; ---- Print error ----
-printer_error:
-                ; If we landed here something went really wrong because we
-                ; shouldn't have an object we can't print
-                lda str_bad_object
-                jsr help_print_string_no_lf
-
-                ldy #1
-                lda (tmp1),y
-                jsr help_byte_to_ascii
-                lda (tmp1)
-                jsr help_byte_to_ascii
-
-                bra printer_done
-
-; ---- Get next entry ----
+                ; 65c02 specific, see http://6502.org/tutorials/65c02opcodes.html#2
+                jmp (printer_table,X)
+                
 printer_next:
                 ; Get next entry out of AST
                 lda (tmp1)              ; LSB of next entry
@@ -122,7 +48,114 @@ printer_next:
                 jmp printer_loop
 
 
-; ===== RETURN TO REPL ====
+; ==== PRINTER SUBROUTINES ====
+
+; ---- Meta ----
+printer_0_meta:
+        ; This marks the end of the tree (which at the moment is just a list
+        ; anyway) 
+                bra printer_done
+
+
+; ---- Booleans ----
+printer_1_bool:
+        ; Booleans are terribly simple with two different versions
+
+                ldy #2
+                lda (tmp1),y            ; LSB
+                bne _bool_true          ; not a zero means true
+                lda #str_false
+                bra _bool_printer
+_bool_true:
+                lda #str_true
+_bool_printer:
+                jsr help_print_string_no_lf
+                bra printer_next
+
+
+; ---- Fixnums ----
+printer_2_fixnum:
+        ; Print fixnums as decimal with a sign
+        ; TODO Yeah, that is going to happen at some point. For the moment,
+        ; however, we will just print it out in hex until we have everything
+        ; else working
+                ldy #3          ; tag nibble and high nibble of number
+                lda (tmp1),y    ; MSB nibble
+                and #$0F        ; Mask tab
+
+                ; TODO handle negative numbers
+
+                jsr help_byte_to_ascii
+                ldy #2
+                lda (tmp1),y    ; LSB
+                jsr help_byte_to_ascii
+
+                bra printer_next
+
+
+printer_3_bignum:
+        ; TODO define tag and add code
+
+printer_4_char:
+        ; TODO define tag and add code
+
+printer_5_strings:
+        ; TODO define tag and add code
+
+printer_6_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_7_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_8_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_9_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_A_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_B_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_C_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_D_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_E_UNDEFINED:
+        ; TODO define tag and add code
+
+printer_F_UNDEFINED:
+        ; TODO define tag and add code
+
+        ; TODO paranoid catch during testing
+        bra printer_next
+
+
+; ==== PRINTER JUMP TABLE ====
+
+printer_table:
+        ; Based on the offset provided by the object tag nibbles, we use this
+        ; to jump to the individual routines. 
+
+        ;      0 meta        1 bool          2 fixnum          3 bignum
+        .word printer_done, printer_1_bool, printer_2_fixnum, printer_next
+
+        ;      4 char     5 string   6 UNDEF    7 UNDEF
+        .word printer_next, printer_next, printer_next, printer_next
+
+        ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF
+        .word printer_next, printer_next, printer_next, printer_next
+
+        ;      C UNDEF    D UNDEF    E  UNDEF   F UNDEF
+        .word printer_next, printer_next, printer_next, printer_next
+
+
+; ==== RETURN TO REPL ====
 printer_done:
                 ; fall through to repl_done
 
