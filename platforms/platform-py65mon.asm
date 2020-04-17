@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 11. Apr 2020
+; This version: 15. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -19,6 +19,12 @@
 ; debugging routines in debug.asm and various parts of the code
 DEBUG = true
 
+; Some machines send CR when they should be sending LF etc. This can be
+; annoying when saving strings, so we give the option of converting CR in the
+; input stream to a LF to be stored in strings. Default is true, which means
+; convert CR to LF when saving a string.
+STRING_CR_TO_LF = true
+
 ; Normal people don't use octal (#o) numbers anymore, but there are bound to be
 ; freaks out there who still use it. As a compromise, we include the code but
 ; don't actually use it unless this is set to true. You know who you are.
@@ -27,7 +33,7 @@ OCTAL = false
 
 ; ==== BASIC MACHINE DEFINITIONS ====
 
-; 65C02 processor (Cthulhu Scheme will not compile on older 6502)
+; 65C02 processor (Cthulhu Scheme will not compile on the 6502)
         .cpu "65c02"
 
 ; No special text encoding (eg. ASCII)

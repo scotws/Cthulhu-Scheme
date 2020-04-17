@@ -15,48 +15,49 @@ eval:
 
 ; ---- Debugging routines ----
 
-                .if DEBUG == true
-                ; TODO TEST dump contents of AST 
-                jsr debug_dump_ast
-                jsr debug_dump_hp
-                .fi 
-                
+                        .if DEBUG == true
+                        ; TODO TEST dump contents of AST 
+                        jsr debug_dump_ast
+                        jsr debug_dump_hp
+                        .fi 
+                        
 ; ===== EVAL MAIN LOOP =====
         ; We walk the AST - which should be rather short by now - and print the
         ; results. Don't touch tmp0 because it is used by print routines in
         ; helper.asm
-                lda ast 
-                sta tmp1
-                lda ast+1
-                sta tmp1+1
+                        lda ast 
+                        sta tmp1
+                        lda ast+1
+                        sta tmp1+1
 
 eval_loop:
-                ldy #3          ; MSB of the next node entry down ...
-                lda (tmp1),y    ; ...  which contains the tag nibble
-                and #$f0        ; mask all but tag nibble
-        
-                ; Use the tag to get the entry in the jump table. First, we
-                ; have to move the nibble over four bits, then multiply it by
-                ; two, which is a left shift, so we end up wit three right
-                ; shifts
-                lsr     
-                lsr
-                lsr             ; Fourth LSR and ASL cancle each other
-                tax
-                ;
-                ; 65c02 specific, see http://6502.org/tutorials/65c02opcodes.html#2
-                jmp (eval_table,X)
+                        ldy #3          ; MSB of the next node entry down ...
+                        lda (tmp1),y    ; ...  which contains the tag nibble
+                        and #$f0        ; mask all but tag nibble
+                
+                        ; Use the tag to get the entry in the jump table.
+                        ; First, we have to move the nibble over four bits,
+                        ; then multiply it by two, which is a left shift, so we
+                        ; end up wit three right shifts
+                        lsr     
+                        lsr
+                        lsr             ; Fourth LSR and ASL cancle each other
+                        tax
+                        ;
+                        ; 65c02 specific, see
+                        ; http://6502.org/tutorials/65c02opcodes.html#2
+                        jmp (eval_table,X)
 
 eval_next:
-                ; Next incarnation of the loop
-                lda (tmp1)              ; LSB of next entry
-                tax
-                ldy #1
-                lda (tmp1),y            ; MSB of next entry
-                sta tmp1+1
-                stx tmp1
+                        ; Next incarnation of the loop
+                        lda (tmp1)              ; LSB of next entry
+                        tax
+                        ldy #1
+                        lda (tmp1),y            ; MSB of next entry
+                        sta tmp1+1
+                        stx tmp1
 
-                bra eval_loop
+                        bra eval_loop
 
 
 

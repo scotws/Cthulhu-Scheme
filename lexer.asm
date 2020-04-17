@@ -1,7 +1,7 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 15. Apr 2020
+; This version: 17. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
@@ -11,35 +11,35 @@
 ; ==== LEXER CODE ====
 lexer:
                 .if DEBUG == true
-                jsr debug_dump_input
+                        jsr debug_dump_input
                 .fi
 
                 ; Intialized indices to charater and token buffers
                 ; TODO see if we actually need all of these here
-                ldy #0
-                stz cibp
-                stz cibp+1      ; MSB currently unused
-                stz tkbp
-                stz tkbp+1      ; MSB currently unused
+                        ldy #0
+                        stz cibp
+                        stz cibp+1      ; MSB currently unused
+                        stz tkbp
+                        stz tkbp+1      ; MSB currently unused
 
                 ; If this is just an empty line - we arrive here just with the
                 ; end of line terminator (a zero) - we get this over as quickly
                 ; as possible and just jump to the REPL again
-                tya
-                ora cib,y
-                bne lexer_loop
-                jmp repl_done 
+                        tya
+                        ora cib,y
+                        bne lexer_loop
+                        jmp repl_empty_line
 
 lexer_loop:
-                lda cib,y
+                        lda cib,y
 
                 ; ---- Check for comments ----
                 
                 ; We have to deal with comments before we deal with whitespace
                 ; because a LF in a comment will end the comment, and stripping
                 ; whitespace out destroys that end-of-comment function
-                cmp #$3B                        ; semicolon
-                bne _no_comment
+                        cmp #$3B        ; semicolon
+                        bne _no_comment
 
                 ; There are two kinds of comments in Scheme, but we just deal
                 ; with the ';' here. Skip anything till the end of the line
@@ -48,18 +48,18 @@ lexer_loop:
                 ; a comment. 
 
 _comment_loop:
-                iny
-                lda cib,y
+                        iny
+                        lda cib,y
 
                 ; Remember to check for both LF and CR because
                 ; different computers will store different stuff
-                cmp #AscLF
-                beq _comment_done
-                cmp #AscCR
-                bne _comment_loop
+                        cmp #AscLF
+                        beq _comment_done
+                        cmp #AscCR
+                        bne _comment_loop
 
 _comment_done:
-                jmp lexer_next
+                        jmp lexer_next
 
                 ; ---- Check for whitespace ----
 _no_comment:
@@ -68,11 +68,11 @@ _no_comment:
                 ; discussion at the code for helper_is_whitespace in
                 ; helpers.asm for what is all considered whitespace. This must
                 ; come after we look for comments
-                jsr help_is_whitespace
-                bcc _not_whitespace
+                        jsr help_is_whitespace
+                        bcc _not_whitespace
 
                 ; It's whitespace, so we skip it
-                jmp lexer_next
+                        jmp lexer_next
 
 _not_whitespace:
                 ; ---- Check for parens ----
@@ -85,16 +85,16 @@ _test_parens:
                 ; ---- Check for end of input ----
 _test_done:      
                 ; We have a zero byte as a marker that the line is over
-                bne _not_done
-                jmp lexer_end_of_input          ; not the same as lexer_done
+                        bne _not_done
+                        jmp lexer_end_of_input          ; not the same as lexer_done
 
 
                 ; ---- Check for sharp stuff ----
 _not_done:
                 ; See if first character is #
-                cmp #'#'
-                beq _got_sharp 
-                jmp lexer_not_sharp             ; too far for branch
+                        cmp #'#'
+                        beq _got_sharp 
+                        jmp lexer_not_sharp             ; too far for branch
 
 _got_sharp:
                 ; We have a #, so see which type it is. First, see if this is
@@ -102,16 +102,16 @@ _got_sharp:
                 ; a lot. ("Probably" of course is not really good enough, at
                 ; some point we should do some research to see just how common
                 ; they are)
-                iny                     
-                lda cib,y
-                
+                        iny                     
+                        lda cib,y
+                        
                 ; TODO see if this past the end of the buffer
 
-                cmp #'t'                ; We're optimists so we check for true first
-                bne _not_true
+                        cmp #'t'        ; We're optimists so we check for true first
+                        bne _not_true
 
                 ; We have a true bool. Add this to the token buffer
-                lda #T_TRUE
+                        lda #T_TRUE
 
                 ; It's tempting to want to put the jmp instruction in the
                 ; subroutine to add the token, and in this case, it would
@@ -120,17 +120,17 @@ _got_sharp:
                 ; heap, so we can't do that. There might be a clever solution
                 ; for this, but for the moment, we stick with the ugly JSR/JMP
                 ; combination here
-                jsr lexer_add_token
-                jmp lexer_next
+                        jsr lexer_add_token
+                        jmp lexer_next
 
 _not_true:
-                cmp #'f'
-                bne _not_false
+                        cmp #'f'
+                        bne _not_false
 
                 ; We have a false bool. Add this to the token buffer
-                lda #T_FALSE
-                jsr lexer_add_token
-                jmp lexer_next
+                        lda #T_FALSE
+                        jsr lexer_add_token
+                        jmp lexer_next
 
 
 _not_false:
@@ -139,8 +139,8 @@ _not_false:
                 ; A whole group of stuff starts with a sharp and a backslash.
                 ; If this is not the case, we can skip over this part of the
                 ; tokenization
-                cmp #'\'
-                bne _no_backslash
+                        cmp #'\'
+                        bne _no_backslash
 
                 ; ---- Check for single char #\a ----
                 
@@ -165,7 +165,7 @@ _not_single_char:
         ;       #\space
         ;       #\tab                     HT
         ; Before we do any of this, we need to see how much space this 
-        ; is going to take
+        ; is going to take.
 
 _not_named_char:                
                 ; ---- Error in input ----
@@ -334,7 +334,7 @@ _number_loop:
                         bra _number_loop
                 
 _legal_terminator:
-        ; TODO The number string is over because the whole line is over. At the
+        ; TODO The digit sequence is over because the whole line is over. At the
         ; moment, we just drop through to the code to end with a line and then
         ; let the normal check at the top of the main lexer loop handle the
         ; fact that we're done with the input. We do waste a few cycles this
@@ -360,11 +360,11 @@ _number_done:
 lexer_illegal_radix:
 lexer_terminator_too_early:
 lexer_delimiter_too_early:
-                ; We were given a terminator or another delimiter too early, 
-                ; return an error and restart REPL
-                lda #str_bad_number
-                jsr help_print_string
-                jmp repl
+                        ; We were given a terminator or another delimiter too
+                        ; early, return an error and restart REPL
+                        lda #str_bad_number
+                        jsr help_print_string
+                        jmp repl
 
 lexer_not_octnum
 lexer_not_sharp:
@@ -372,15 +372,45 @@ lexer_not_sharp:
 
 ; TODO TODO HIER HIER TODO TODO
 
-                ; Result is in carry flag: set we have a decimal number, clear
-                ; this is something else
-                ;jsr help_is_digit
-                ;bcc _not_decnum
+                        ; Result is in carry flag: set we have a decimal number, clear
+                        ; this is something else
+                        ;jsr help_is_digit
+                        ;bcc _not_decnum
 
 
 _not_decnum:
                 ; ---- Check for strings ----
-                ; TODO Test for strings
+                        cmp #$22        ; '"' ASCII value
+                        bne _not_string
+
+        ; We have the beginning of a string. The way this works is that we add
+        ; a token that marks the beginning of a string, then just add the
+        ; characters as they come until we get another quotation mark, and then
+        ; add the string terminator token. We include a conversion of CR to LF
+        ; depending on how the flag is set in the platform file.
+
+                        lda #T_STR_START
+                        jsr lexer_add_token
+_string_loop:
+                        iny
+                        lda cib,y
+
+                        cmp #$22        ; '"' closes string
+                        beq _string_done
+
+                        .if STRING_CR_TO_LF == true
+                        cmp #AscCR
+                        bne +
+                        lda #AscLF
++
+                        .fi
+                        jsr lexer_add_token
+                        bra _string_loop
+_string_done:
+                        lda #T_STR_END
+                        jsr lexer_add_token
+                        bra lexer_next
+
 
                 ; ---- Check for comment ---- 
 _not_string:
@@ -392,36 +422,36 @@ _not_string:
                 ; ---- Lexer errors ----
 lexer_error:
                 ; Error, this isn't valid input. Complain and try again
-                pha
-                lda #str_unbound
-                jsr help_print_string_no_lf
-                pla
-                jsr help_byte_to_ascii
-                jsr help_emit_lf
-                jmp repl
+                        pha
+                        lda #str_unbound
+                        jsr help_print_string_no_lf
+                        pla
+                        jsr help_byte_to_ascii
+                        jsr help_emit_lf
+                        jmp repl
 
 lexer_next:
                 ; Move on to the next character in the input or, if we're all
                 ; done, add the end-of-input token. Note this is a failsafe, we
                 ; usually should just end when we find the zero byte
-                iny
+                        iny
 
 lexer_next_same_char:
                 ; Make sure we don't go past the end of the input buffer, this
                 ; is slightly paranoid
-                cpy ciblen
-                beq lexer_end_of_input
+                        cpy ciblen
+                        beq lexer_end_of_input
 
-                jmp lexer_loop
+                        jmp lexer_loop
 
 lexer_end_of_input:
                 ; Add end-of-input token. The parser assumes that this will
                 ; always be present so we really, really need to get this right
-                lda #T_END
-                jsr lexer_add_token
+                        lda #T_END
+                        jsr lexer_add_token
 
-                ; Continue with parsing
-                jmp lexer_done
+                        ; Continue with parsing
+                        jmp lexer_done
 
 
 
@@ -434,13 +464,13 @@ lexer_end_of_input:
 lexer_add_token:
         ; Add a token to token buffer. Assumes token is an 8-bit number in A.
         ; TODO make sure we don't move past the end of the token buffer
-                phy             ; Could also store in cibp
-                ldy tkbp
-                sta tkb,y       ; LSB is in A
-                iny
-                sty tkbp
-                ply
-                rts
+                        phy             ; Could also store in cibp
+                        ldy tkbp
+                        sta tkb,y       ; LSB is in A
+                        iny
+                        sty tkbp
+                        ply
+                        rts
 
 
 ; ==== TOKEN LIST ====
@@ -469,8 +499,10 @@ T_SHARP         = $03   ; '#' - note '#f', '#t' and others are precprocessed
 T_TRUE       = $10   ; '#t'
 T_FALSE      = $11   ; '#f'
 T_NUM_START  = $12   ; Marks beginning of a number sequence
+T_STR_START  = $13   ; Marks beginning of a string
 
 T_NUM_END    = $82   ; Marks end of a number sequence, see T_NUM_START
+T_STR_END    = $83   ; Marks end of a string, see T_STR_START
 
 T_PLUS       = $EE   ; Also used in number token sequence
 T_MINUS      = $FF   ; Also used in number token sequence
