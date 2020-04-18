@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 17. Apr 2020
+; This version: 18. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -16,11 +16,11 @@
 ; are set to 0000. See the manual for details.
 ;
 ;                       +----------------+
-;        prev node -->  |  Node Link     |  ---> next node
+;        prev node -->  |  Node Pointer  |  ---> next node
 ;                       +----------------+
 ;                       |  Scheme Object |  tag + object payload
 ;                       +----------------+
-;                       |  Child Link    |  ---> child nodes  
+;                       |  Child Pointer |  ---> child nodes  
 ;                       +----------------+
 ;
 ; This design allows simpler tree-walking code because it uses a single node
@@ -151,7 +151,7 @@ _not_false_token:
                         sta tmp0        ; radix
                         inx
 
-                ; This should be the length of the string, including the sign
+                ; This should be the length of the digit sequence, including the sign
                 ; byte. Note this means that bignums are limited to 254
                 ; characters as well
                         lda tkb,x
@@ -400,12 +400,13 @@ parser_not_num:
                 lda hp+1
                 sta tmp1+1              ; MSB
 
-        ; Create string object. Remember LSB in Y and MSB in A for parser add
-        ; object, and the the token is in the MSB. The MSB of the the first
-        ; byte of the heap (later: string memory segment) is still in A
-                ora #$0F                ; mask high nibble (paranoid)
+        ; Create string object. Remember the LSB goes in A and the MSB (which
+        ; starts with the tag nibble) is in Y. The MSB of the the first byte of
+        ; the heap (later: string memory segment) is still in A.
+                and #$0F                ; mask high nibble (paranoid)
                 ora #OT_STRING          ; object tag nibble for strings
-                ldy tmp1
+                tay                     ; MSB (with tag)
+                lda tmp1                ; LSB
                 jsr parser_add_object   ; Updates heap pointer
 
         ; TODO add entry to string table
@@ -419,11 +420,11 @@ parser_not_num:
 _string_loop:
                 lda tkb,x
                 cmp #T_STR_END
-                beq _string_done
+                beq _string_end
 
                 sta (hp),y
                 iny
-                inx 
+                inx
                 bra _string_loop
                 
         ; Update heap pointer (later: string memory segment)
@@ -431,14 +432,31 @@ _string_loop:
                 clc
                 adc hp
                 sta hp
+                bcc _string_end
+                inc hp+1
+
+        ; Add a zero to mark the end of the string
+_string_end:
+
+                ; TODO testing
+                jsr help_emit_lf
+                lda hp+1
+                jsr help_byte_to_ascii
+                lda hp
+                jsr help_byte_to_ascii
+
+
+                lda #0
+                sta (hp)
+                inc hp
                 bcc _string_done
                 inc hp+1
 
-        ; String interned, next token please!
 _string_done:
                 jmp parser_loop
  
                 
+                ; ---- TODO NEXT CHECK ----
 parser_not_string:                
                 ; TODO ADD NEXT CHECK HERE TODO 
 
@@ -447,28 +465,29 @@ parser_not_string:
 paser_bad_token:
         ; Oh dear, this really shouldn't happen. Panic and return
         ; to main loop. The bad token should still be in A
-                        pha                             ; save the evil token
-                        lda #str_bad_token
-                        jsr help_print_string_no_lf
+                pha                             ; save the evil token
+                lda #str_bad_token
+                jsr help_print_string_no_lf
+
 parser_common_panic:
-                        pla
-                        jsr help_byte_to_ascii          ; print bad token as hex number
-                        jsr help_emit_lf
-                        jmp repl
+                pla
+                jsr help_byte_to_ascii          ; print bad token as hex number
+                jsr help_emit_lf
+                jmp repl
 
 parser_bad_digit:
         ; Error routine if we found a digit that doesn't belong there
-                        pha
-                        lda #str_bad_number
-                        jsr help_print_string_no_lf
-                        bra parser_common_panic
+                pha
+                lda #str_bad_number
+                jsr help_print_string_no_lf
+                bra parser_common_panic
 
 
 function_not_available:
         ; TODO This is during development only
-                        lda #str_cant_yet
-                        jsr help_print_string
-                        jmp repl
+                lda #str_cant_yet
+                jsr help_print_string
+                jmp repl
 
 
 ; ==== PARSER HELPER ROUTINES =====
@@ -476,20 +495,19 @@ function_not_available:
 ; Internel parser functions. Anything here that might be of use in other parts
 ; of Cthulhu Scheme should be moved to helpers.asm
 
-        
 
 parser_add_object: 
-        ; Add a Scheme object to the AST. Assumes that the LSB of the object is in
-        ; A and the MSB is in Y. Currently, we can just add immediate objects
-        ; like booleans. When we arrive here, astp points to the last object in
-        ; the tree we want to link to. We always add to the end of the list
-        ; at which makes life easier. Uses tmp0.
-        ; TODO make sure we don't advance past the end of the heap
+        ; Add a Scheme object to the AST. Assumes that the LSB of the object is
+        ; in A and the MSB (with the tag) is in Y. When we arrive here, astp
+        ; points to the last object in the tree we want to link to. We always
+        ; add to the end of the list at which makes life easier. Uses tmp0.  
+
+        ; TODO make sure we don't advance past the end of the heap 
         ; TODO do something if we require garbage collection
 
                 ; TODO at the moment, we can't add children. 
                         phx             ; save index to token buffer
-                        phy             ; save MSB of the object
+                        phy             ; save MSB of the object (with tag)
                         pha             ; save LSB of the object
                         
                 ; Remember the first free byte of nemory as the start of the
@@ -501,7 +519,8 @@ parser_add_object:
 
                 ; Store the termination object in the new node as the pointer
                 ; to the next node. This marks the end of the tree in memory,
-                ; though trees don't really have ends of course.
+                ; though trees don't really have ends of course. We'll deal
+                ; with that all once we have children
                         lda <#OC_END
                         ldy #0
                         sta (hp),y
@@ -510,11 +529,11 @@ parser_add_object:
                         sta (hp),y
                         iny
                         
-                ; Store the object in the heap
+                ; Store the object in the heap. We are little endian
                         pla             ; retrieve LSB
                         sta (hp),y
                         iny
-                        pla             ; retrieve MSB, was in Y
+                        pla             ; retrieve MSB (with tag), was in Y
                         sta (hp),y
                         iny
 
