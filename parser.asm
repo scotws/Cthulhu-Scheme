@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 13. Apr 2020
+; This version: 17. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -40,25 +40,25 @@ parser:
 ; ---- Debugging routines 
 
                 .if DEBUG == true
-                jsr debug_dump_token
+                        jsr debug_dump_token
                 .fi 
 
 ; ---- Parser setup ----
 
                 ; Clear the old AST
-                stz ast
-                stz ast+1
-                
+                        stz ast
+                        stz ast+1
+                        
                 ; Reset the pointer to the token buffer
-                stz tkbp
-                stz tkbp+1      ; fake, currently only using LSB
-                
+                        stz tkbp
+                        stz tkbp+1      ; fake, currently only using LSB
+                        
                 ; The pointer to the current last entry in the ast should be
                 ; zero at the beginning
-                lda <#ast
-                sta astp
-                lda >#ast       ; paranoid, MSB always 00 for zero page
-                sta astp+1
+                        lda <#ast
+                        sta astp
+                        lda >#ast       ; paranoid, MSB always 00 for zero page
+                        sta astp+1
 
 
 ; ---- Parser main loop 
@@ -67,54 +67,55 @@ parser:
 ; reaches a certain size we should switch to a table-driven method for speed
 ; and size reasons. This makes debugging easier until we know what we are doing
 
-                ldx #$FF
+                        ldx #$FF
 parser_loop:
-                inx
-                lda tkb,x
+                        inx
+                        lda tkb,x
 
                 ; ---- Check for end of input
 _end_token:
                 ; We assume there will always be an end token, so we don't 
                 ; check for an end of the buffer.
-                cmp #T_END      
-                bne _not_end_token
-                jmp parser_done
+                        cmp #T_END      
+                        bne _not_end_token
+                        jmp parser_done
 
                 ; ---- Check for boolean true token
 _not_end_token:
-                cmp #T_TRUE
-                bne _not_true_token
+                        cmp #T_TRUE
+                        bne _not_true_token
 
                 ; We have a true token, which makes our life easy, because we
                 ; have the object as a constant
-                lda <#OC_TRUE
-                ldy >#OC_TRUE
+                        lda <#OC_TRUE
+                        ldy >#OC_TRUE
+
                 ; It is tempting to collapse the next two lines by adding the
                 ; jump to parser_done to the end of parser_add_object and then
                 ; just jumping as a JSR/RTS. In this case, it would work.
                 ; However, other objects might require more stuff added, so for
                 ; the moment, we leave it this way. Check the analog situation
                 ; with the lexer. 
-                jsr parser_add_object
-                jmp parser_loop
+                        jsr parser_add_object
+                        jmp parser_loop
 
                 ; ---- Check for boolean false token
 _not_true_token:
-                cmp #T_FALSE
-                bne _not_false_token
+                        cmp #T_FALSE
+                        bne _not_false_token
 
                 ; We have a false token, which makes our life easy, because we
                 ; have the object as a constant
-                lda <#OC_FALSE
-                ldy >#OC_FALSE
-                jsr parser_add_object
-                jmp parser_loop
+                        lda <#OC_FALSE
+                        ldy >#OC_FALSE
+                        jsr parser_add_object
+                        jmp parser_loop
 
                 ; ---- Check for number token
 _not_false_token:
-                cmp #T_NUM_START
-                beq +
-                jmp parser_not_num              ; Too far for BRA
+                        cmp #T_NUM_START
+                        beq +
+                        jmp parser_not_num              ; Too far for BRA
 +
                 ; We have a number start token, which means that the next bytes
                 ; are going to be:
@@ -136,32 +137,32 @@ _not_false_token:
 
                 ; Temporary storage for fixnums. We do it here to save space. 
                 ; TODO use these for bignums also
-                stz tmp1
-                stz tmp1+1
+                        stz tmp1
+                        stz tmp1+1
 
                 ; TODO Later we will have to decide if this is going to be
                 ; a fixnum or a bignum. For the moment, we just go with fixnums
-                inx                     ; skip over T_NUM_START TOKEN
+                        inx             ; skip over T_NUM_START TOKEN
 
                 ; This should be the radix, which can be one of $02, $0A,
                 ; $10 and possibly $08. We assume that the lexer didn't screw up
                 ; and just save this for now
-                lda tkb,x
-                sta tmp0        ; radix
-                inx
+                        lda tkb,x
+                        sta tmp0        ; radix
+                        inx
 
                 ; This should be the length of the string, including the sign
                 ; byte. Note this means that bignums are limited to 254
                 ; characters as well
-                lda tkb,x
-                tay             ; we need the length of the string later ...
-                dey             ; ... but we don't need to include the sign
+                        lda tkb,x
+                        tay             ; we need the length of the string later ...
+                        dey             ; ... but we don't need to include the sign
 
-                inx             ; Move to token for sign, T_PLUS or T_MINUS 
-                lda tkb,x
-                sta tmp0+1      ; Just store sign for now 
+                        inx             ; Move to token for sign, T_PLUS or T_MINUS 
+                        lda tkb,x
+                        sta tmp0+1      ; Just store sign for now 
 
-                inx
+                        inx
 
                 ; We are now pointed to the first digit of the number sequence.
                 ; The lexer should not allow numbers without digits, so we
@@ -173,9 +174,9 @@ _not_false_token:
                 ; ones for binary, decimal, hex, and (sigh) octal. At the
                 ; moment, we are more worried about speed than about size, so
                 ; we go with the specialized versions. 
-                lda tmp0        ; radix
-                cmp #$0a
-                bne _not_dec
+                        lda tmp0        ; radix
+                        cmp #$0a
+                        bne _not_dec
 
                 ; ---- Convert decimal ----
                 ; This should be the most common case so we do it first. We
@@ -185,36 +186,36 @@ _not_false_token:
                 ; is stored in tmp0+1 as a token.
                 
                 ; TODO convert decimal
-                jmp parser_common_fixnum
+                        jmp parser_common_fixnum
                 
 _not_dec:
-                cmp #$10
-                bne _not_hex
+                        cmp #$10
+                        bne _not_hex
 
                 ; ---- Convert hex ----
 
                 ; Having the length of the hex digit sequence makes it easy to
                 ; decide if we have a fixnum or a bignum: If it is more than
                 ; three digits, it's a bignum. 
-                tya
-                cmp #$04
-                bcc _dec_fixnum
+                        tya
+                        cmp #$04
+                        bcc _dec_fixnum
 
                 ; TODO This would be a bignum, but we can't do that yet. We
                 ; just give up and go get the next token
-                jmp function_not_available
+                        jmp function_not_available
 
 _dec_fixnum:
-                ; We arrive here with a hex ASCII number sequence that is one,
-                ; two, or three bytes long. We need to convert these to
-                ; nibbles. We put our temporary number in tmp1 and tmp1+1. Note
-                ; that we haven't checked yet if these are actually legal hex
-                ; digits, and we haven't taken care of upper and lower case
-                ; problems. We use a helper function for that.
+        ; We arrive here with a hex ASCII number sequence that is one,
+        ; two, or three bytes long. We need to convert these to
+        ; nibbles. We put our temporary number in tmp1 and tmp1+1. Note
+        ; that we haven't checked yet if these are actually legal hex
+        ; digits, and we haven't taken care of upper and lower case
+        ; problems. We use a helper function for that.
 
-                ; First digit. We need at least one hex digit, so we don't have
-                ; to test for the terminator token; we do so anyway because it
-                ; makes the loop simpler
+        ; First digit. We need at least one hex digit, so we don't have
+        ; to test for the terminator token; we do so anyway because it
+        ; makes the loop simpler
 _hex_fixnum_loop:
                 lda tkb,x
 
@@ -226,14 +227,14 @@ _hex_fixnum_loop:
                 jmp parser_bad_digit
 
 _legal_hex_digit:
-                ; Shift the nibble to the left side of the A
+        ; Shift the nibble to the left side of the A
                 asl
                 asl
                 asl
                 asl
 
-                ; Shift the nibble in through the right of tmp1+1 and through
-                ; to tmp1
+        ; Shift the nibble in through the right of tmp1+1 and through
+        ; to tmp1
                 rol             ; bit 7 of A now in carry flag
                 rol tmp1+1      ; bit 7 of tmp1+1 now in carry flag
                 rol tmp1        ; now is bit 0 of tmp1
@@ -256,41 +257,42 @@ _legal_hex_digit:
                 bne _hex_fixnum_loop
 
 _done_hex:
-                ; Our hex number is now in the correct format to be built into
-                ; an object. We still haven't taken the sign into account,
-                ; though, and are pointing to the number terminator token in
-                ; the token stream. We don't have to do anything about that
-                ; because the next loop passage will do it for us.
+        ; Our hex number is now in the correct format to be built into
+        ; an object. We still haven't taken the sign into account,
+        ; though, and are pointing to the number terminator token in
+        ; the token stream. We don't have to do anything about that
+        ; because the next loop passage will do it for us.
                 jmp parser_common_fixnum
                 
 _not_hex:               
                 cmp #$02
                 bne _not_binary
 
-                ; ---- Convert binary ----
-                
-                ; Having the length of the binary digit sequence makes it easy to
-                ; decide if we have a fixnum or a bignum: If it is more than
-                ; twelve digits, it's a bignum. 
+        ; ---- Convert binary ----
+        
+        ; Having the length of the binary digit sequence makes it easy to
+        ; decide if we have a fixnum or a bignum: If it is more than
+        ; twelve digits, it's a bignum. 
                 tya
                 cmp #$0D                ; "smaller than 13"
                 bcc _bin_fixnum
 
-                ; We arrive here with what should be a binary bignum, but we
-                ; can't do that yet so we just whine and go back to the loop.
+        ; We arrive here with what should be a binary bignum, but we
+        ; can't do that yet so we just whine and go back to the loop.
                 jmp function_not_available
 
 _bin_fixnum:
-                ; We arrive here at the first digit of a binary number that can
-                ; be up to twelve bits long. We haven't made sure these are
-                ; legal chars either. 
-                
-                ; We have already cleared tmp1 and tmp1+1 above for all fixnums
+        ; We arrive here at the first digit of a binary number that can
+        ; be up to twelve bits long. We haven't made sure these are
+        ; legal chars either. 
+        
+        ; We have already cleared tmp1 and tmp1+1 above for all fixnums
 
-                ; We need at least one bit or the lexer would not have
-                ; constructed the fixnum. This means we don't have to compare
-                ; with T_NUM_END, but we still do it here anyway because it
-                ; makes the loop easier
+        ; We need at least one bit or the lexer would not have
+        ; constructed the fixnum. This means we don't have to compare
+        ; with T_NUM_END, but we still do it here anyway because it
+        ; makes the loop easier
+
 _bin_fixnum_loop:
                 lda tkb,x
                 cmp #'0'
@@ -300,12 +302,12 @@ _bin_fixnum_loop:
                 cmp #T_NUM_END
                 beq _done_bin
 
-                ; If it is none of the above, something is wrong
+        ; If it is none of the above, something is wrong
                 jmp parser_bad_digit
 
 _legal_bit_char:
-                ; ASCII for '0' is $30 and '1' is $31. We mask the character to
-                ; get the bit we want in bit 0
+        ; ASCII for '0' is $30 and '1' is $31. We mask the character to
+        ; get the bit we want in bit 0
                 and #$01                ; gives us $00 or $01
                 ror                     ; push the bit into carry flag
                 rol tmp1+1              ; rotate the carry flag into LSB ...
@@ -315,48 +317,49 @@ _legal_bit_char:
                 bne _bin_fixnum_loop    ; Repeat till we're done
 
 _done_bin:
-                ; Binary number is finished, nothing more to be done
+        ; Binary number is finished, nothing more to be done
                 jmp parser_common_fixnum
 
 _not_binary:
-                ; if 'OCTAL == false' in the platform file we drop through 
-                ; to _illegal_radix
+        ; if 'OCTAL == false' in the platform file we drop through 
+        ; to _illegal_radix
 
-                .if OCTAL == true
+        .if OCTAL == true
                 cmp #$08
                 bne _illegal_radix
 
-                ; ---- Convert octal ----
-                ; TODO convert octal
+        ; ---- Convert octal ----
+        ; TODO convert octal
                 bra parser_common_fixnum
-                .fi
-                
+        .fi
+        
 _illegal_radix:
-                ; This really shouldn't happen: If we
-                ; landed here, we have a radix we don't recognize because the
-                ; lexer screwed up. Panic and return to REPL
+        ; This really shouldn't happen: If we
+        ; landed here, we have a radix we don't recognize because the
+        ; lexer screwed up. Panic and return to REPL
                 pha                             ; save the evil radix
                 lda #str_bad_radix
                 jsr help_print_string_no_lf
                 bra parser_common_panic         ; prints offending byte and LF
 
 
-                ; ---- Common processing for all fixnums ----
-parser_common_fixnum:    
-                ; The number is safe as bigendian in tmp1 and tmp1+1 in three
-                ; nibbles, the sign is in tmp0+1 as T_PLUS or T_MINUS. We are
-                ; pointed to the next token after the number sequence.
+        ; ---- Common processing for all fixnums ----
 
-                ; TODO this will change a lot once we have bignum
-                
-                ; If we have a positive number, we're done and just need to
-                ; construct the fixnum object
+parser_common_fixnum:    
+        ; The number is safe as bigendian in tmp1 and tmp1+1 in three
+        ; nibbles, the sign is in tmp0+1 as T_PLUS or T_MINUS. We are
+        ; pointed to the next token after the number sequence.
+
+        ; TODO this will change a lot once we have bignum
+        
+        ; If we have a positive number, we're done and just need to
+        ; construct the fixnum object
                 lda tmp0+1
                 cmp #T_MINUS
                 beq _negative_number
 
-                ; We're in luck, it's positive. The tag for a fixnum object is
-                ; $20
+        ; We're in luck, it's positive. The tag for a fixnum object is
+        ; $20
                 lda #OT_FIXNUM
                 ora tmp1
                 sta tmp1
@@ -364,7 +367,7 @@ parser_common_fixnum:
                 bra _add_fixnum_to_ast
 
 _negative_number:
-                ; TODO handle negative numbers
+        ; TODO handle negative numbers
 
                 ; drop through to _add_fixnum_to_ast
 
@@ -373,41 +376,99 @@ _add_fixnum_to_ast:
                 ldy tmp1
                 jsr parser_add_object
 
-                ; Fixnum taken care of. Next token please!
-_num_end:
+        ; Fixnum taken care of. Next token please!
+_num_done:
                 jmp parser_loop
 
 
 parser_not_num: 
-                ; TODO ADD NEXT CHECK HERE TODO 
-                
-                ; ---- No match found
-paser_bad_token:
-                ; This really shouldn't happen. Panic and return to main loop.
-                ; The bad token should still be in A
-                pha                             ; save the evil token
-                lda #str_bad_token
-                jsr help_print_string_no_lf
-parser_common_panic:
-                pla
-                jsr help_byte_to_ascii          ; print bad token as hex number
-                jsr help_emit_lf
-                jmp repl
+        ; ---- See if we have a string ----
+                cmp #T_STR_START
+                bne parser_not_string
 
+        ; We have a string. All strings are interned, that is, saved to the
+        ; heap with only a pointer to the beginning of the string saved in the
+        ; object. They are also saved to the string table so we can later check
+        ; if we have already saved them. 
+        
+        ; TODO add segmented memory region for strings (4 KiB)
+
+        ; Remember first free byte of heap (later: string memory
+        ; segment). We don't want to use tmp0 becase parser_add_object uses it
+                lda hp
+                sta tmp1                ; LSB
+                lda hp+1
+                sta tmp1+1              ; MSB
+
+        ; Create string object. Remember LSB in Y and MSB in A for parser add
+        ; object, and the the token is in the MSB. The MSB of the the first
+        ; byte of the heap (later: string memory segment) is still in A
+                ora #$0F                ; mask high nibble (paranoid)
+                ora #OT_STRING          ; object tag nibble for strings
+                ldy tmp1
+                jsr parser_add_object   ; Updates heap pointer
+
+        ; TODO add entry to string table
+                
+        ; Now we have to actually add the string itself to the heap
+        ; We could probably create a helper subroutine to add bytes to the
+        ; heap, but becase we're going to have to swtich to a segmented memory
+        ; model later anyway, we just leave this routine here for now.
+
+                ldy #00
+_string_loop:
+                lda tkb,x
+                cmp #T_STR_END
+                beq _string_done
+
+                sta (hp),y
+                iny
+                inx 
+                bra _string_loop
+                
+        ; Update heap pointer (later: string memory segment)
+                tya
+                clc
+                adc hp
+                sta hp
+                bcc _string_done
+                inc hp+1
+
+        ; String interned, next token please!
+_string_done:
+                jmp parser_loop
+ 
+                
+parser_not_string:                
+                ; TODO ADD NEXT CHECK HERE TODO 
+
+
+                ; ---- No match found ----
+paser_bad_token:
+        ; Oh dear, this really shouldn't happen. Panic and return
+        ; to main loop. The bad token should still be in A
+                        pha                             ; save the evil token
+                        lda #str_bad_token
+                        jsr help_print_string_no_lf
+parser_common_panic:
+                        pla
+                        jsr help_byte_to_ascii          ; print bad token as hex number
+                        jsr help_emit_lf
+                        jmp repl
 
 parser_bad_digit:
-                ; Error routine if we found a digit that doesn't belong there
-                pha
-                lda #str_bad_number
-                jsr help_print_string_no_lf
-                bra parser_common_panic
+        ; Error routine if we found a digit that doesn't belong there
+                        pha
+                        lda #str_bad_number
+                        jsr help_print_string_no_lf
+                        bra parser_common_panic
 
 
 function_not_available:
-                ; TODO This is used for testing only
-                lda #str_cant_yet
-                jsr help_print_string
-                jmp repl
+        ; TODO This is during development only
+                        lda #str_cant_yet
+                        jsr help_print_string
+                        jmp repl
 
 
 ; ==== PARSER HELPER ROUTINES =====
@@ -415,78 +476,82 @@ function_not_available:
 ; Internel parser functions. Anything here that might be of use in other parts
 ; of Cthulhu Scheme should be moved to helpers.asm
 
+        
+
 parser_add_object: 
         ; Add a Scheme object to the AST. Assumes that the LSB of the object is in
         ; A and the MSB is in Y. Currently, we can just add immediate objects
         ; like booleans. When we arrive here, astp points to the last object in
         ; the tree we want to link to. We always add to the end of the list
-        ; at which makes life easier. Uses tmp0, destroys X
+        ; at which makes life easier. Uses tmp0.
+        ; TODO make sure we don't advance past the end of the heap
+        ; TODO do something if we require garbage collection
 
-        ; TODO at the moment, we can't add children. 
-                phx             ; save index to token buffer
-                phy             ; save MSB of the object
-                pha             ; save LSB of the object
-                
+                ; TODO at the moment, we can't add children. 
+                        phx             ; save index to token buffer
+                        phy             ; save MSB of the object
+                        pha             ; save LSB of the object
+                        
                 ; Remember the first free byte of nemory as the start of the
                 ; new node of the tree
-                lda hp
-                sta tmp0
-                lda hp+1
-                sta tmp0+1
+                        lda hp
+                        sta tmp0
+                        lda hp+1
+                        sta tmp0+1
 
                 ; Store the termination object in the new node as the pointer
                 ; to the next node. This marks the end of the tree in memory,
                 ; though trees don't really have ends of course.
-                lda <#OC_END
-                ldy #0
-                sta (hp),y
-                iny
-                lda >#OC_END
-                sta (hp),y
-                iny
-                
+                        lda <#OC_END
+                        ldy #0
+                        sta (hp),y
+                        iny
+                        lda >#OC_END
+                        sta (hp),y
+                        iny
+                        
                 ; Store the object in the heap
-                pla             ; retrieve LSB
-                sta (hp),y
-                iny
-                pla             ; retrieve MSB, was in Y
-                sta (hp),y
-                iny
+                        pla             ; retrieve LSB
+                        sta (hp),y
+                        iny
+                        pla             ; retrieve MSB, was in Y
+                        sta (hp),y
+                        iny
 
                 ; Store the pointer to the children of this object. Since we
                 ; don't know any objects with children yet, this is just zeros
-                lda #0
-                sta (hp),y
-                iny
-                sta (hp),y
-                iny
+                        lda #0
+                        sta (hp),y
+                        iny
+                        sta (hp),y
+                        iny
 
                 ; Update heap pointer to next free byte in heap
-                tya
-                clc
-                adc hp
-                sta hp
-                bcc +
-                inc hp+1
-+
+                        tya
+                        clc
+                        adc hp
+                        sta hp
+                        bcc _store_address
+                        inc hp+1
+_store_address:
                 ; Store address of new entry in header of old link
-                lda tmp0        ; original LSB of hp
-                tax             ; We'll need it again in a second
-                sta (astp)
-                ldy #1
-                lda tmp0+1      ; original MSB of hp
-                sta (astp),y
-                
+                        lda tmp0        ; original LSB of hp
+                        tax             ; We'll need it again in a second
+                        sta (astp)
+                        ldy #1
+                        lda tmp0+1      ; original MSB of hp
+                        sta (astp),y
+                        
                 ; Store address of new entry in astp. Yes, there are two
                 ; pointers to the last entry in the tree, one from the
                 ; previoius node and one from the outside. This prevents us
                 ; having to walk through the whole tree to add something.
-                sta astp+1      ; MSB, was tmp0+1
-                stx astp        ; LSB, was tmp0
+                        sta astp+1      ; MSB, was tmp0+1
+                        stx astp        ; LSB, was tmp0
 
-                plx             ; get back index for token buffer
+                        plx             ; get back index for token buffer
 
-                rts
+                        rts
 
 
 ; ==== OBJECT CONSTANTS ====
@@ -506,10 +571,9 @@ parser_done:
         ; End parsing with termination object The evaluator assumes that we
         ; have a termination object so it's really, really important to get
         ; this right
-
-                lda <#OC_END
-                ldx >#OC_END
-                jsr parser_add_object
+                        lda <#OC_END
+                        ldx >#OC_END
+                        jsr parser_add_object
 
                 ; fall through to evaluator
 

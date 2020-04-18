@@ -1,15 +1,15 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 15. Apr 2020
+; This version: 17. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions
 
 ; ==== PRINTER ====
 printer: 
-        ; We walk the AST - which should be rather short by now - and print the
-        ; results. Don't touch tmp0 because it is used by print routines in
+        ; We walk the AST - which should be rather short right now - and print 
+        ; the results. Don't touch tmp0 because it is used by print routines in
         ; helper.asm
                         lda ast
                         sta tmp1
@@ -17,28 +17,28 @@ printer:
                         sta tmp1+1
 
 printer_loop:
-        ; Move down one line
+                ; Move down one line
                         jsr help_emit_lf
 
                         ldy #3          ; MSB of the next node entry down ...
                         lda (tmp1),y    ; ...  which contains the tag nibble
                         and #$f0        ; mask all but tag nibble
 
-                        ; Use the tag to get the entry in the jump table.
-                        ; First, we have to move the nibble over four bits,
-                        ; then multiply it by two, which is a left shift, so we
-                        ; end up wit three right shifts
+                ; Use the tag to get the entry in the jump table.
+                ; First, we have to move the nibble over four bits,
+                ; then multiply it by two, which is a left shift, so we
+                ; end up wit three right shifts
                         lsr
                         lsr
                         lsr     ; Fourth LSR and ASL cancle each other
                         tax
 
-                        ; 65c02 specific, see
-                        ; http://6502.org/tutorials/65c02opcodes.html#2
+                ; 65c02 specific, see
+                ; http://6502.org/tutorials/65c02opcodes.html#2
                         jmp (printer_table,X)
                         
 printer_next:
-                        ; Get next entry out of AST
+                ; Get next entry out of AST
                         lda (tmp1)      ; LSB of next entry
                         tax
                         ldy #1
@@ -100,8 +100,8 @@ printer_3_bignum:
 printer_4_char:
         ; TODO define tag and add code
 
-printer_5_strings:
-        ; TODO define tag and add code
+printer_5_string:
+        ; Print strings, handling escaped characters
 
 printer_6_UNDEFINED:
         ; TODO define tag and add code
@@ -147,7 +147,7 @@ printer_table:
         .word printer_done, printer_1_bool, printer_2_fixnum, printer_next
 
         ;      4 char     5 string   6 UNDEF    7 UNDEF
-        .word printer_next, printer_next, printer_next, printer_next
+        .word printer_next, printer_5_string, printer_next, printer_next
 
         ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF
         .word printer_next, printer_next, printer_next, printer_next

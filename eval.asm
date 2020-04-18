@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 15. Apr 2020
+; This version: 17. Apr 2020
 
 eval: 
 
@@ -22,9 +22,9 @@ eval:
                         .fi 
                         
 ; ===== EVAL MAIN LOOP =====
-        ; We walk the AST - which should be rather short by now - and print the
-        ; results. Don't touch tmp0 because it is used by print routines in
-        ; helper.asm
+        ; We walk the AST - which should be rather short at this point - and 
+        ; print the results. Don't touch tmp0 because it is used by print
+        ; routines in helper.asm
                         lda ast 
                         sta tmp1
                         lda ast+1
@@ -72,12 +72,12 @@ eval_1_bool:
 eval_2_fixnum:
 eval_3_bignum:
 eval_4_char:
-eval_5_strings:
+eval_5_string:
         ; All of these are self-evaluating and just print themselves. To
         ; save speed, we don't even come here, but directly jump to eval_next.
         ; We leave these labels here in case we need to do something clever at
         ; some point.
-
+                        bra eval_next           ; paranoid, never reached
 
 eval_6_UNDEFINED:
         ; TODO define tag and add code

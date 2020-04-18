@@ -43,7 +43,20 @@ NOTE: We currently reserve half of the Zero Page area to allow for variables
 that a user's kernel might use. This might change in the future if Cthulhu needs
 more Zero Page memory. 
 
+// TODO add segment map of RAM 
 image::pics/memory_map.png[]
+
+==== RAM Segments
+
+A Cthulhu Scheme object consists of a four bit tag from bits 15 to 12 and a
+12 bit pointer to the object in the heap. With twelve bits, we can only address
+4 Kbit of RAM. Because of this, the available RAM will be divided into segments
+at some point. Currenlty, during development, it is all in one block.
+
+NOTE: Though it is way too early in the development process to think about
+garbage collection, one possible way would be to reserve one 4 KiB segment for
+reorganizing once one of the other segments fills up. 
+
 
 // -------------------------------------------------------
 === The REPL
@@ -128,11 +141,11 @@ some sacrifices had to be made.
 
 ===== Booleans
 
-The `#t` (true) and `#f` (false) booleans are self-evaluating and therefore the
-first object that was implemented. Though formally, `#t` comes with the object
-`$1111`, in practice we only check the LSB, that is, `$ff`. This might change in
-future versions. The `#f` object is `$1000`. Neither have children in the
-Abstract Syntax Tree (AST) created by the parser. 
+The `#t` (true) and `#f` (false) booleans are self-evaluating and therefore were
+the first object that was implemented. Though formally, `#t` comes with the
+object `$1111`, in practice we only check the LSB, that is, `$ff`. This might
+change in future versions. The `#f` object is `$1000`. Neither have children in
+the Abstract Syntax Tree (AST) created by the parser. 
 
 // TODO add table of boolean object
 
@@ -166,6 +179,14 @@ fixnum or a bignum. Currently, the converted number is cut off brutally at bit
 See
 https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Fixnum-Operations.html
 for a further discussion. 
+
+===== Strings
+
+Stings are **interned**, that is, the actual ASCII characters are stored on the
+heap, zero-terminated. The link to beginning of the string is stored in two
+places: The heap and the **string table**. This is used to compare a new string
+to the already stored strings so we don't share the same entry twice. 
+
 
 ==== Procedures
 
