@@ -1,7 +1,7 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 18. Apr 2020
+; This version: 19. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
 ; platform file for this. All routines start with debug_ . These are currently
@@ -94,13 +94,14 @@ debug_dump_ast:
                 lda rsn_ast             ; RAM segment nibble
                 sta tmp1+1
                 jsr help_byte_to_ascii
-                stz tmp1
+                lda #0                  ; By definitioin
+                sta tmp1
                 jsr help_byte_to_ascii
 
 _loop:
-                ; Space to make it pretty
-                lda #' '
-                jsr help_emit_a
+                ; Make it pretty
+                lda #strd_dump_arrow            ; "--> "
+                jsr debug_print_string_no_lf
 
                 ; First, print next link
                 ldy #1
@@ -212,17 +213,24 @@ debug_print_string:
 ; is debugging in its own file so we save space for later. See strings.asm for
 ; an explanation of the format
 
-strd_dump_token = 0
-strd_dump_ast   = 1
-strd_dump_hp    = 2
-strd_dump_input = 3
+strd_dump_token  = 0
+strd_dump_ast    = 1
+strd_dump_hp     = 2
+strd_dump_input  = 3
+strd_dump_arrow  = 4
+strd_dump_strtbl = 5
+strd_dump_str    = 6
 
 s_dump_token:   .null   "Token Buffer: "
 s_dump_ast:     .null   "AST: "
-s_dump_hp:      .null   "Heap pointer: "
+s_dump_hp:      .null   "AST pointer: "
 s_dump_input:   .null   "Input Buffer: "
+s_dump_arrow:   .null   " --> "
+s_dump_strtbl:  .null   "String table: "
+s_dump_str:     .null   "String pointer: "
 
 sd_table:
-        .word s_dump_token, s_dump_ast, s_dump_hp, s_dump_input      ; 0-3
+        .word s_dump_token, s_dump_ast, s_dump_hp, s_dump_input    ; 0-3
+        .word s_dump_arrow, s_dump_strtbl, s_dump_str              ; 4-7
 
 
