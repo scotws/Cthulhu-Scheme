@@ -34,10 +34,24 @@ cthulhu:
 
         ; Clear the string buffer. At the moment, there is no way to get rid of
         ; strings, but we'll figure that out later. The AST stuff is set by the
-        ; parser
-                stz hp_str      ; LSB
+        ; parser. 
+                ldy #$02          ; First free byte is one word down
+                sty hp_str
                 lda rsn_str     ; MSB of RAM segment for strings
                 sta hp_str+1
+
+        ; Reset the pointer to the current entry in the string table, which is
+        ; the very beginning of the RAM string segment. The MSB is still in A
+                sta strp+1
+                stz strp        ; LSB
+
+        ; Clear the first word in the RAM segment to make clear that table is
+        ; empty
+                lda #00
+                tay
+                sta (hp_str)
+                iny
+                sta (hp_str),y
 
         ; The rest of the heap area is currently not accessable. 
 

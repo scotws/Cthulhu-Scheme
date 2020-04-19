@@ -116,10 +116,10 @@ _loop:
 
                 ; Then, print playload (actual object)
                 ldy #3
-                lda (tmp1),y
+                lda (tmp1),y                    ; MSB
                 jsr help_byte_to_ascii
                 ldy #2
-                lda (tmp1),y
+                lda (tmp1),y                    ; LSB
                 jsr help_byte_to_ascii
 
 

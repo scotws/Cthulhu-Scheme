@@ -13,7 +13,7 @@ printer:
         ; the results. Don't touch tmp0 because it is used by print routines in
         ; helper.asm
                 stz tmp1
-                lda rsn_str     ; RAM segmet nibble
+                lda rsn_ast     ; RAM segmet nibble
                 sta tmp1+1
 
 printer_loop:
@@ -105,27 +105,28 @@ printer_4_char:
         ; ---- Strings ----
 printer_5_string:
         ; Strings are interned, so we just get a pointer to where they are in
-        ; the heap (later: string memory segment). This uses tmp2
+        ; the heap's RAM segment for strings. This uses tmp2
 
                 ldy #2          
-                lda (tmp1),y    ; LSB of address in heap
+                lda (tmp1),y    ; LSB of address in string heap
                 sta tmp2
                 iny
                 lda (tmp1),y    ; MSB with tag and high nibble of pointer
                 and #$0F        ; mask tag
+                ora rsn_str     ; merge with section nibble instead
                 sta tmp2+1      
 
                 ldy #0
 _string_loop:
                 lda (tmp2),y    
-                beq _string_done        ; string is zero terminated
+                beq printer_next       ; string is zero terminated
 
                 ; TODO deal with escaped characters
 
                 jsr help_emit_a
+                iny
+                bra _string_loop
 
-_string_done:
-                bra printer_next
 
 printer_6_UNDEFINED:
         ; TODO define tag and add code

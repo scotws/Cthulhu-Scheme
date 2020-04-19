@@ -57,7 +57,7 @@ parser:
         ; AST
                 stz astp
                 stz astp+1
-                
+
         ; Reset the pointer to the token buffer
                 stz tkbp
                 stz tkbp+1      ; fake, currently only using LSB
@@ -402,70 +402,84 @@ parser_not_num:
         ; We have a string. All strings are interned, that is, saved to the
         ; heap with only a pointer to the beginning of the string saved in the
         ; object. They are also saved to the string table so we can later check
-        ; if we have already saved them. 
+        ; if we have already saved them. In theory, we could add "immediate
+        ; strings" that are two characters long, but for the moment, that is
+        ; more effort that would seem to be worth it. 
         
-        ; TODO add segmented memory region for strings (4 KiB)
+        ; TODO see if we already have this string stored so we don't have to go
+        ; through this all again
 
-        ; Remember first free byte of the heap's RAM segment. We don't want to
-        ; use tmp0 becase parser_add_object_to_ast uses it
-                lda hp_str
-                sta tmp1                ; LSB
-                lda hp_str+1
-                sta tmp1+1              ; MSB
+        ; We store the string in the string table ("interning"), which is
+        ; a simple linked list where the string starts in the byte after the
+        ; pointer to the next entry in the list. The list is terminated by
+        ; 0000, the string by 00. Then we add an object to the AST that points
+        ; to the string (not the entry in the string table). Strings are
+        ; zero-terminated so we don't have to worry about length. 
 
-        ; Create string object. Remember the LSB goes in A and the MSB (which
-        ; starts with the tag nibble) is in Y. The MSB of the the first byte of
-        ; the heap (later: string memory segment) is still in A.
-                and #$0F                ; mask high nibble (paranoid)
-                ora #OT_STRING          ; object tag nibble for strings
-                tay                     ; MSB (with tag)
-                lda tmp1                ; LSB
+        ; At this point, strp points to the end of the string table (most
+        ; recent entry), which should be $0000; hp_str to the next free byte in
+        ; the RAM segment for strings (after the 00 that terminates the
+        ; string). rsn_str is the MSB of the root of the string table, its $00
+        ; the LSB which is not saved explicitly anywhere. 
+         
+        ; We can add the string object to the AST because we have the address
+        ; where the string starts in hp_str - the next free byte
+                lda hp_str+1    ; MSB of next free byte in string RAM segment
+
+                and #$0F        ; mask high nibble (paranoid)
+                ora #OT_STRING  ; object tag nibble for strings
+                tay             ; MSB goes in Y
+                lda hp_str      ; LSB goes in A
+        
                 jsr parser_add_object_to_ast   ; Updates AST heap pointer
 
-        ; TODO add entry to string table
-                
-        ; Now we have to actually add the string itself to the heap in the RAM
-        ; segment. We could probably create a helper subroutine to add bytes
-        ; to the heap, but because we'll have to do this for various segments
-        ; we wait till we know more about what is required before we switch to
-        ; a generalized routine
-                ldy #00
+        ; Now we actually add the string to the RAM segment
+                inx             ; move to first character of string
+                ldy #0
 _string_loop:
                 lda tkb,x
-                cmp #T_STR_END
+                cmp #T_STR_END 
                 beq _string_end
 
                 sta (hp_str),y
                 iny
                 inx
                 bra _string_loop
-                
-        ; Update heap pointer (later: string memory segment)
+
+_string_end:
+                ; Store 00 as the string terminator
+                lda #0
+                iny
+                sta (hp_str),y
+
+                ; Update pointer to next free byte in heap's RAM segment
                 tya
                 clc
                 adc hp_str
                 sta hp_str
-                bcc _string_end
+                bcc +
                 inc hp_str+1
-
-        ; Add a zero to mark the end of the string
-_string_end:
-
-                ; TODO testing
-                jsr help_emit_lf
-                lda hp_str+1
-                jsr help_byte_to_ascii
-                lda hp_str
-                jsr help_byte_to_ascii
-
-
++
+                ; This is where the next terminator for the string table goes
                 lda #0
                 sta (hp_str)
-                inc hp_str
-                bcc _string_done
-                inc hp_str+1
+                ldy #1
+                sta (hp_str),y
 
-_string_done:
+                ; The string pointer needs to point to this terminator
+                lda hp_str
+                sta strp
+                lda hp_str+1
+                sta strp+1
+
+                ; Finally, need to move the hp_str up by two again
+                tya             ; #1
+                inc a
+                clc
+                adc hp_str
+                bcc +
+                inc hp_str+1
++
                 jmp parser_loop
  
                 
@@ -507,7 +521,6 @@ function_not_available:
 
 ; Internel parser functions. Anything here that might be of use in other parts
 ; of Cthulhu Scheme should be moved to helpers.asm
-
 
 parser_add_object_to_ast: 
         ; Add a Scheme object to the AST. Assumes that the LSB of the object is
@@ -551,6 +564,7 @@ parser_add_object_to_ast:
 
         ; Store the pointer to the children of this object. Since we
         ; don't know any objects with children yet, this is just zeros
+        ; TODO don't store pointer if no children possible
                 lda #0
                 sta (hp_ast),y
                 iny
