@@ -1,15 +1,13 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 18. Apr 2020
+This version: 19. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Process strings (adds internment while still self-evaluating; string table)
-- Convert to segmented memory (4 KiB blocks)
 - Process empty list "()" (deal with input of parens with whitespace processing)
 - Process procedures, starting with (and), (display) and (+)
 - Reformat to 17-char indent for code like Tali Forth 2
@@ -22,5 +20,8 @@ TO DO LONG TERM
 
 
 DONE
+
+2020-04-19 - Switch to segmented memory
+2020-04-19 - Handle strings (adds internment; string table)
 2020-04-15 - Create basic skelton for eval (all self-evaluating anyway)
 
