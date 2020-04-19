@@ -10,83 +10,101 @@ cthulhu:
 
 ; ==== SETUP ====
 
-                ; Reset the system. Does not restart the kernel, use the 65c02
-                ; reset for that. 
-                        cld
+        ; Reset the system. Does not restart the kernel, use the 65c02
+        ; reset for that. 
+                cld
 
-                ; Set default output port. We wait to set the input port until
-                ; we've defined all the high-level procedures
-                        lda #<kernel_putc
-                        sta output
-                        lda #>kernel_putc
-                        sta output+1
+        ; Set default output port. We wait to set the input port until
+        ; we've defined all the high-level procedures
+                lda #<kernel_putc
+                sta output
+                lda #>kernel_putc
+                sta output+1
 
-                ; Set up the heap. First, pointer to next free entry
-                        lda <#heap
-                        sta hp
-                        lda >#heap
-                        sta hp+1
+        ; Set up the memory map. We use the default values for the RAM
+        ; segments as defined in the platform file. These are stored in
+        ; their RAM segment nibbles (RSN). Currently, these are
+        ; static, but will probably be dynamic once we have garbage
+        ; collection. This list will be expanded as we add more object
+        ; types
+                lda #RAM_SEGMENT_AST    ; AST, default nibble $10
+                sta rsn_ast
+                lda #RAM_SEGMENT_STR    ; Strings, default nibble $20
+                sta rsn_str
 
-                ; The AST, symbol, string, and bignum tables are all empty
-                        stz symtbl
-                        stz symtbl+1
-                        stz strtbl
-                        stz strtbl+1
-                        stz bnmtbl
-                        stz bnmtbl+1
-                        stz ast
-                        stz ast+1
+        ; Clear the string buffer. At the moment, there is no way to get rid of
+        ; strings, but we'll figure that out later. The AST stuff is set by the
+        ; parser
+                stz hp_str      ; LSB
+                lda rsn_str     ; MSB of RAM segment for strings
+                sta hp_str+1
 
-                ; TODO define high-level procudures by loading from ROM
+        ; The rest of the heap area is currently not accessable. 
 
-                        ; Set default input port
-                        lda #<kernel_getc
-                        sta input
-                        lda #>kernel_putc
-                        sta input+1
+        ; TODO define high-level procudures by loading from ROM
+
+                ; Set default input port
+                lda #<kernel_getc
+                sta input
+                lda #>kernel_putc
+                sta input+1
 
 
 ; ==== REPL ====
 ; TODO https://eecs490.github.io/project-scheme-parser/
-
 repl: 
-                        ; Start overwriting input buffer
-                        stz ciblen
-                        stz ciblen+1
-
-                        ; fall through to reader
 
 ; ==== READER ====
+; The Reader's job is to accept input and place it into the current input
+; buffer. Scheme does some things differently for line feeds in comments,
+; strings, and inside parens. 
 .include "reader.asm"
 
 ; ==== LEXER ====
+; The Lexer (or tokenizer) converts the input string into tokens, stripping out
+; whitespace and other characters we don't need for processing. This also does
+; some basic checks if the input is correct. The result ends up in the token
+; buffer
 .include "lexer.asm"
 
 ; ==== PARSER ====
+; The Parser does the really hard work of converting the token stream into an
+; Abstract Syntax Tree (AST) consisting of Scheme objects. This, for example,
+; is where strings are stored in the string table.
 .include "parser.asm"
 
 ; ==== EVAL ====
+; The Evaluator walks through the AST and actually executes any procedures,
+; changing the AST. This is the actual "running" of the program. The result is
+; a modified AST of Scheme objects, or maybe even just one or none at all.
 .include "eval.asm"
 
 ; ==== PRINTER ====
+;  The Printer returns the result of the whole operation, like printing the
+;  result of  (+ 1 2) to the screen. 
 .include "printer.asm"
+
+; ==== GARGBAGE COLLECTION ====
+; Garbage collection frees up space by reorganizing the various RAM segments of
+; the heap. We'll figure this out later.
+; TODO add garbage collection
 
 ; ==== ALL DONE ====
 
 ; Usually we fall through to here from the printer. However, if we were given
 ; an empty line, the lexer jumps here directly to save time.
 repl_empty_line:
-                        jmp repl
+                jmp repl
 
 repl_quit:
         ; We quit, which is pretty much the same as (exit) but without the
         ; question. MIT Scheme prints out "Moriturus te saluto." but we have
         ; better things in mind. Might need to be shortened if we really run
         ; out of space.
-                        jsr help_emit_lf
-                        lda #str_end_input
-                        jsr help_print_string
-                        lda #str_chant
-                        jsr help_print_string
-                        jmp platform_quit
+                jsr help_emit_lf
+                lda #str_end_input
+                jsr help_print_string
+                lda #str_chant
+                jsr help_print_string
+                jmp platform_quit
 

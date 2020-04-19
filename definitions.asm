@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 13. Apr 2020
+; This version: 18. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -33,22 +33,30 @@
 ; zero page entries here so it must be done in code. 
 
 .section zp
+; Temporary variables
 tmp0:    .word ?     ; temporary storage, eg printing
 tmp1:    .word ?     ; temporary storage
 tmp2:    .word ?     ; temporary storage
+
+; Hardware vectors
 output:  .word ?     ; output port, addr of routine
 input:   .word ?     ; input port, addr of routine
+
+; I/O and parsing buffers
+input_f  .byte ?     ; input flag for Reader, see details there
 ciblen:  .word ?     ; current size of input buffer
 cibp:    .word ?     ; index of current char in input buffer
-input_f  .byte ?     ; input flag for Reader, see details there
 tkblen:  .word ?     ; current size of the token buffer
 tkbp:    .word ?     ; index of current token in token buffer
-hp:      .word ?     ; pointer to next free heap entry
-symtbl:  .word ?     ; pointer to first entry in symbol table in heap
-strtbl:  .word ?     ; pointer to first entry in string table in heap
-bnmtbl:  .word ?     ; pointer to first entry in bignum table in heap
-ast      .word ?     ; pointer to root of Abstract Systax Tree (AST)
+
+; RAM segments
+rsn_ast  .byte ?     ; RAM segment nibble for AST segment (default 1)
 astp     .word ?     ; pointer to current entry in AST
+hp_ast   .word ?     ; next free byte in AST RAM segment
+
+rsn_str  .byte ?     ; RAM segment nibble for strings (default 2)
+strp     .word ?     ; pointer to current entry in string table
+hp_str   .word ?     ; next free byte in string RAM segment
 .send zp
 
 

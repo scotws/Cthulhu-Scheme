@@ -1,7 +1,7 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 10. Apr 2020
+; This version: 18. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
 ; platform file for this. All routines start with debug_ . These are currently
@@ -72,9 +72,9 @@ debug_dump_hp:
                 lda #strd_dump_hp               ; "Heap pointer: "
                 jsr debug_print_string_no_lf
 
-                lda hp+1
+                lda hp_ast+1
                 jsr help_byte_to_ascii
-                lda hp
+                lda hp_ast
                 jmp help_byte_to_ascii          ; JSR/RTS
 
 
@@ -91,11 +91,10 @@ debug_dump_ast:
 
                 ; Start at the beginning of the tree. Print first link. We
                 ; can't use tmp0 because the print routine uses it
-                lda ast+1
+                lda rsn_ast             ; RAM segment nibble
                 sta tmp1+1
                 jsr help_byte_to_ascii
-                lda ast
-                sta tmp1
+                stz tmp1
                 jsr help_byte_to_ascii
 
 _loop:

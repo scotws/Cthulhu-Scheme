@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 15. Apr 2020
+; This version: 18. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -19,7 +19,6 @@
 ; debugging routines in debug.asm and various parts of the code
 DEBUG = true
 
-; Some machines send CR when they should be sending LF etc. This can be
 ; annoying when saving strings, so we give the option of converting CR in the
 ; input stream to a LF to be stored in strings. Default is true, which means
 ; convert CR to LF when saving a string.
@@ -42,30 +41,62 @@ OCTAL = false
 
 ; ==== MEMORY MAP ====
 
+; See the documentation for a graphic of the RAM memory map
+
+; ---- RAM ---- 
+
 ram_start = $0000       ; Start of RAM. Must contain the Zero Page
 ram_size  = $8000       ; assumes 32 KiB of RAM
 
 zp_start  = $0000       ; start of zero page, 
 zp_size   = $80         ; max bytes allowed in Zero Page
 
-; Remember, 65c02 reserves $0100 to $01ff for the stack
+; If you are porting this to another MPU, remember the 65c02 reserves 
+; $0100 to $01ff for the stack
 
 ; We currently allow for a normal keyboard input buffer of 256 chars. This
-; might be expanded once we know how much RAM we will actually need. Currently,
-; there is no history setup for the REPL because of the same reason. It might
-; be added later. 
+; might be expanded once we know how much RAM we will actually need, or we
+; might use a free RAM segment of 4 KiB for keyboard and/or token buffers.
+; Currently, there is no history setup for the REPL because of the same reason.
+; It might be added later. 
 buffers_start   = $0200         ; start of the buffer RAM area
 cib_size        = $100          ; size of the input buffer, used by reader
 tkb_size        = $100          ; size of the token buffer, used by lexer
 
-; The heap is where we store various tables (string table, symbol table, bignum
-; table, etc) and various objects. The variable hp points to the next free byte
-; in the heap. We want to keep this as large as possible. Once we add garbage
-; collection, we will probably have to reserve some space to rebuild things.
-; For the moment, we use what RAM we have for the heap. Remember the 65c02
-; reserves $0000 to $00ff for the zero page and $100 to $1ff for the stack, so
-; we have to subtract $200 as well.
+; Total heap size - the amount of RAM available for all segments. Remember the
+; 65c02 reserves $0000 to $00ff for the zero page and $100 to $1ff for the
+; stack, so we have to subtract $200 as well.
 heap_size       = ram_size - ($200+cib_size+tkb_size)
+
+; Cthulhu Scheme objects are 16 bits in size, consisting of a 4 bit tag (bit
+; 15 to bit 12) that marks the type of the object and a 12 bit payload (bit
+; 11 to bit 0) that is either the data (immediate objects like booleans) or
+; a pointer to where the data is in the heap (interned objects like strings).
+; Because we only have 12 bits for the pointer, we can only access 4 KiB of
+; memory. To deal with this, the heap is split into RAM segments of 4 KiB each
+; which are allocated (later dynmaically) for different types of objects (see
+; the documentation for details). The first segment is reserved for the Zero
+; Page, Stack and other buffers ($0000 to $0FFF, RAM segment 0). 
+
+; At this stage of development, we have two segments, one for the AST and one
+; for strings. By default, they have the following MSB nibbles:
+RAM_SEGMENT_AST  = $10   ; $1000 to $1FFF Abstract Symbol Tree (AST)
+RAM_SEGMENT_STR  = $20   ; $2000 to $2FFF String Table and strings
+
+; Future versions will allocate segments for bignum, lists, and possibly
+; vectors. Depending on how much RAM you have, you might have to change these
+; numbers. These are planned at the moment: 
+
+; RAM_SEGMENT_PROC = $30   ; $3000 to $3FFF Procedures
+; RAM_SEGMENT_SYM  = $40   ; $4000 to $4FFF Symbol Table and symbols
+; RAM_SEGMENT_LIST = $50   ; $5000 to $5FFF Lists
+; RAM_SEGMENT_BIGN = $60   ; $6000 to $6FFF Bignums
+
+; NOTE: Though not enforced yet, RAM segment 7 ($7000 to $7FFF) is considered
+; reserved for future use by the garbage collector. Please avoid accessing the
+; area.
+
+; ---- ROM ----
 
 ; Of the 32 KiB ROM we assume we have, by default we use $8000 to $efff (28
 ; KiB) for code and constant data like strings, $f000 to $f010 for I/O

@@ -35,9 +35,9 @@ The current basic LISP system uses about 12,000 of the 32,000 memory (words) of
 the (IBM) 704.
 <<JM2>>
 
-The big, simple split in Cthulhu Scheme is between things that go in RAM and things that
-go in ROM. The code attempts to use the section functions of the 64tass
-assembler to make the best possible use of both. 
+The basic big, simple split in Cthulhu Scheme is between things that go in RAM
+and things that go in ROM. The code attempts to use the section functions of the
+64tass assembler to make the best possible use of both. 
 
 NOTE: We currently reserve half of the Zero Page area to allow for variables
 that a user's kernel might use. This might change in the future if Cthulhu needs
@@ -48,10 +48,21 @@ image::pics/memory_map.png[]
 
 ==== RAM Segments
 
-A Cthulhu Scheme object consists of a four bit tag from bits 15 to 12 and a
-12 bit pointer to the object in the heap. With twelve bits, we can only address
-4 Kbit of RAM. Because of this, the available RAM will be divided into segments
-at some point. Currenlty, during development, it is all in one block.
+A Cthulhu Scheme object consists of a four bit tag (bits 15 to 12) and a 12 bit
+pointer to the object in the heap (bits 11 to 0). With twelve bits, we can only
+address 4 Kbit of RAM. Because of this, the available RAM is divided into
+segments. Each is numbered by the leading nibble from 0 to $F. These do not
+eactly correspond to the tag nibbles. Currently, we have
+
+- 0 ($0000 to $0FFF): Reserved for Zero Page, Stack, and buffers
+- 1 ($1000 to $1FFF): Default AST segment (`rsn_ast`)
+- 2 ($2000 to $2FFF): Default string segment (`rsn_str`)
+
+As Cthulhu progresses, other segments will be assigned for symbols, bignums and
+procedures.
+
+Everything above segment 8 ($8000) is ROM and not part of the segments. Segment
+7 ($7000 to $7FFF) is reserved for garbage collection in the future. 
 
 NOTE: Though it is way too early in the development process to think about
 garbage collection, one possible way would be to reserve one 4 KiB segment for

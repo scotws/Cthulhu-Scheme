@@ -1,34 +1,38 @@
 ; Reader (REPL) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 13. Apr 2020
-; This version: 17. Apr 2020
+; This version: 18. Apr 2020
 
 reader:
-        ; Original structure taken from Tali Forth 2's REFILL and ACCEPT words.
-        ; We currently don't have a history buffer system set up -- first we
-        ; want to see if we have enough space.
+        ; Original structure adapted from Tali Forth 2's REFILL and ACCEPT
+        ; words. We currently don't have a history buffer system set up --
+        ; first we want to see if we have enough space.
 
-                ; Clear the input flag. We use this to mark if we are in
-                ; a comment, a string, or between delimiters. 
-                ;
-                ;       bit 7   - set: are in comment
-                ;       bit 6   - set: are in string
-                ;       bit 5-0 - counter for open parens
-                ; 
-                ; This limits us to 64 levels of parens. 
+        ; Clear the input flag. We use this to mark if we are in
+        ; a comment, a string, or between delimiters. 
+        ;
+        ;       bit 7   - set: are in comment
+        ;       bit 6   - set: are in string
+        ;       bit 5-0 - RESERVED: counter for open parens
+        ; 
+        ; This limits us to 64 levels of parens. 
                 
-                        ; We start out with all flags cleared and no parens
-                        stz input_f
+        ; We start out with all flags cleared and no parens
+                stz input_f
 
-                        ; The prompt is kept in the strings.asm file so people
-                        ; can change it more easily
-                        lda #str_prompt
-                        jsr help_print_string_no_lf
+        ; Clear the input buffer
+                stz ciblen
+                stz ciblen+1
 
-                        ; Clear index to current input buffer. Do this after we
-                        ; print the prompt because help_print_string_no_lf
-                        ; destroys Y
-                        ldy #0
+        ; The prompt is kept in the strings.asm file so people
+        ; can change it more easily
+                lda #str_prompt
+                jsr help_print_string_no_lf
+
+        ; Clear index to current input buffer. Do this after we
+        ; print the prompt because help_print_string_no_lf
+        ; destroys Y
+                ldy #0
 
 reader_loop:
         ; Main input loop. The hard part is handled by the kernel routines in

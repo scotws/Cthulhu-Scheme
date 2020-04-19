@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 18. Apr 2020
+; This version: 19. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
@@ -12,9 +12,8 @@ printer:
         ; We walk the AST - which should be rather short right now - and print 
         ; the results. Don't touch tmp0 because it is used by print routines in
         ; helper.asm
-                lda ast
-                sta tmp1
-                lda ast+1
+                stz tmp1
+                lda rsn_str     ; RAM segmet nibble
                 sta tmp1+1
 
 printer_loop:

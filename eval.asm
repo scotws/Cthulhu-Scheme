@@ -26,10 +26,9 @@ eval:
         ; We walk the AST - which should be rather short at this point - and 
         ; print the results. Don't touch tmp0 because it is used by print
         ; routines in helper.asm
-                lda ast 
+                lda rsn_ast     ; RAM segment nibble, default $10
                 sta tmp1
-                lda ast+1
-                sta tmp1+1
+                stz tmp1+1      ; Segment must start on 4 KiB line
 
 eval_loop:
                 ldy #3          ; MSB of the next node entry down ...
