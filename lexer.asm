@@ -1,13 +1,12 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 18. Apr 2020
+; This version: 20. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
 ; into tokens which are stored in the token buffer (tkb). We do a lot of
 ; processing in this stage because we don't want to touch the data too much.
-
 lexer:
         .if DEBUG == true
                 jsr debug_dump_input
@@ -79,16 +78,40 @@ _test_parens:
         
         ; We do this early because this is Scheme, and there are going
         ; to be a lot of them
-        ; TODO check for parens
+                cmp #'('        ; check for open parens
+                bne _not_parens_start
 
+        ; We have an open parens. We store the token and move on
+                lda #T_PAREN_START
+                jsr lexer_add_token
+                jmp lexer_next
 
-_test_done:      
+_not_parens_start:
+                cmp #')'        ; check for close parens
+                bne _not_parens_end
+
+        ; We have an close parens. We store the token and move on
+                lda #T_PAREN_END
+                jsr lexer_add_token
+                jmp lexer_next
+
+_not_parens_end:
+        ; ---- Check for tick ----
+        
+        ; Ticks are used quite a lot in Scheme so we do this early as well
+                cmp #$27                ; "'" tick for (quote)
+                bne _not_tick
+
+                lda #T_TICK
+                jsr lexer_add_token
+                jmp lexer_next
+
+_not_tick:
         ; ---- Check for end of input ----
 
         ; We have a zero byte as a marker that the line is over
                 bne _not_done
                 jmp lexer_end_of_input          ; not the same as lexer_done
-
 
 _not_done:
         ; ---- Check for sharp stuff ----
@@ -332,6 +355,8 @@ _number_loop:
         ; a delimiter or the input ends. 
                 lda cib,y
                 beq _legal_terminator
+
+        ; Numbers can be treminated with a parens, for instance (+ #x1 #x2)
                 jsr help_is_delimiter
                 bcs _number_done
                 
@@ -374,13 +399,13 @@ lexer_not_octnum
 lexer_not_sharp:
         ; ---- Check for explicit digits 123 ----
 
+        ; TODO this includes the decimal point so we can check for the period
+        ; later
+
 ; TODO TODO HIER HIER TODO TODO
 
         ; Result is in carry flag: set we have a decimal number, clear
         ; this is something else
-                ; jsr help_is_digit
-                ; bcc _not_decnum
-
 
 _not_decnum:
         ; ---- Check for strings ----
@@ -417,12 +442,18 @@ _string_done:
 
 
 _not_string:
-        ; ---- Check for comment ---- 
+        ; ---- Check for dots ---- 
 
-        ; TODO See if we have a comment. This is a bit tricky because
-        ; we can't just bail to the next input line - the input can
-        ; continue after the end of the line
+        ; Dots are used as parts of pairs, such as ( 1 . 2 ) if the cdr is not
+        ; the empty list
+                cmp #'.'
+                bne _not_dot
+                
+                lda #T_DOT
+                jsr lexer_add_token
+                bra lexer_next
 
+_not_dot:
 
 lexer_error:
         ; ---- Lexer errors ----
@@ -485,33 +516,31 @@ lexer_add_token:
 ; the source code (which is for humans only). Some are followed by pointers or
 ; other data.
 
-; 64tass doesn't seem to have a command for enum so we have to do this the hard
-; way
-        
-; ---- Primitives ---- 
+; Tokens that terminate a sequence of characters must have bit 7 set (for
+; example, T_NUM_END is $82)
 
-T_END           = $00
-T_PAREN_OPEN    = $01   ; '('
-T_PAREN_CLOSED  = $02   ; ')'
-T_SHARP         = $03   ; '#' - note '#f', '#t' and others are precprocessed
+T_END           = $00   ; Terminates token stream
+T_TICK          = $01   ; "'" - tick character
+T_TRUE          = $02   ; '#t'
+T_FALSE         = $03   ; '#f'
+T_SHARP         = $04   ; '#' - note '#f', '#t' and others are precprocessed
+T_DOT           = $05   ; "." - dot/period, used for pairs
 
+T_NUM_START     = $12   ; Marks beginning of a number sequence
+T_STR_START     = $13   ; Marks beginning of a string
+T_ID_START      = $14   ; Marks beginning of an identifier
 
-; ---- Preprocessed ----
+T_PLUS          = $20   ; '+' Also used in number token sequence
+T_MINUS         = $21   ; '-' Also used in number token sequence
+T_STAR          = $22   ; '*' Also used for math
+T_SLASH         = $23   ; '\' Also used for math
 
-; We let the lexer do quite a bit of the heavy lifting so we don't have to
-; touch the data more than we have to. Tokens that terminate a sequence of
-; characters must have bit 7 set (for example, T_NUM_END is $82)
+T_NUM_END       = $82   ; Marks end of a number sequence, see T_NUM_START
+T_STR_END       = $83   ; Marks end of a string, see T_STR_START
+T_ID_END        = $84   ; Makrs end of an identifier, see T_ID_START
 
-T_TRUE       = $10   ; '#t'
-T_FALSE      = $11   ; '#f'
-T_NUM_START  = $12   ; Marks beginning of a number sequence
-T_STR_START  = $13   ; Marks beginning of a string
-
-T_NUM_END    = $82   ; Marks end of a number sequence, see T_NUM_START
-T_STR_END    = $83   ; Marks end of a string, see T_STR_START
-
-T_PLUS       = $EE   ; Also used in number token sequence
-T_MINUS      = $FF   ; Also used in number token sequence
+T_PAREN_START   = $AA   ; '(' - parens open
+T_PAREN_END     = $FF   ; ')' - parens closed
 
 
 ; ===== CONTINUE WITH PARSER ====

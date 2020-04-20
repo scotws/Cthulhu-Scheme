@@ -1,7 +1,7 @@
 ; Reader (REPL) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 13. Apr 2020
-; This version: 18. Apr 2020
+; This version: 19. Apr 2020
 
 reader:
         ; Original structure adapted from Tali Forth 2's REFILL and ACCEPT

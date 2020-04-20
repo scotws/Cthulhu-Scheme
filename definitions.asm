@@ -82,21 +82,21 @@ heap:   .fill heap_size         ; RAM available for heap
 ; as the evaluator so we keep them saved here. Note if we change these, we
 ; migght have to change the Object Constants that live in parser.asm as well.
 
-OT_META         = $00    ; used for end of input and other markers
-OT_BOOL         = $10    ; used for #t and #f; immediate
-OT_FIXNUM       = $20    ; used for fixed numbers; immediate
-OT_BIGNUM       = $30    ; used for bignum
-OT_CHAR         = $40    ; used for chars; immediate
-OT_STRING       = $50
+OT_META         = $00   ; used for the empty list and terminators
+OT_BOOL         = $10   ; used for #t and #f; immediate
+OT_FIXNUM       = $20   ; used for fixed numbers; immediate
+OT_BIGNUM       = $30   ; reserved for bignum
+OT_CHAR         = $40   ; reserved for chars; immediate
+OT_STRING       = $50   ; used for strings; interned
 ot_undefined_06 = $60
 ot_undefined_07 = $70
-ot_undefined_08 = $80
+OT_PAIR         = $80   ; used for pairs
 ot_undefined_09 = $90
 ot_undefined_0a = $a0
 ot_undefined_0b = $b0
 ot_undefined_0c = $c0
 ot_undefined_0d = $d0
 ot_undefined_0e = $e0
-ot_undefined_0f = $f0
+OT_PROC         = $f0   ; used for built-in procedures
 
 ; end

@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 13. Apr 2020
+; This version: 19. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -149,9 +149,24 @@ help_is_delimiter:
         ; """
                 jsr help_is_whitespace
                 bcs _delimiter_done
-                ; TODO check for ()
-                ; TODO check for ;"'`|
+
+                clc
+                cmp #$28        ; '('
+                beq _is_delimiter
+                cmp #$29        ; ')'
+                beq _is_delimiter
+
+                ; TODO check for ;"'`| etc
                 ; TODO check for []{}
+
+                clc
+                bra _delimiter_done
+
+_is_delimiter:
+                sec
+
+                ; drop through to _delimiter_done
+
 _delimiter_done:
                 rts
 

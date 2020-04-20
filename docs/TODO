@@ -8,6 +8,8 @@ project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
+- Add pair objects
+- Switch to linked pairs for AST
 - Process empty list "()" (deal with input of parens with whitespace processing)
 - Process procedures, starting with (and), (display) and (+)
 - Reformat to 17-char indent for code like Tali Forth 2

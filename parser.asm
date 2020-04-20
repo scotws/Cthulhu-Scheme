@@ -1,33 +1,23 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 18. Apr 2020
+; This version: 20. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
-; heap. 
+; heap. Since this is Scheme, we build the AST out of "pairs" which consist of
+; a "car" and "cdr" part of 16-bits each. Linking the cdrs create a "spine"
+; list-like structure that points to the data in cars.  See the manual for
+; details.
 
-; This is mainly based on Terrance Parr's "Language Implementation
-; Patterns" p. 91 Homogeneous AST
+;                       +------------+
+;        prev pair -->  |  cdr cell  |  ---> next pair
+;                       +------------+
+;                       |  car cell  | 
+;                       +------------+
 
-; Each node of the AST consists of three entries, each 16 bit long: A pointer
-; to the next node, the Scheme object of this node, and a pointer to this
-; node's children. If there is no next node and/or no children, these entries
-; are set to 0000. See the manual for details.
-;
-;                       +----------------+
-;        prev node -->  |  Node Pointer  |  ---> next node
-;                       +----------------+
-;                       |  Scheme Object |  tag + object payload
-;                       +----------------+
-;                       |  Child Pointer |  ---> child nodes  
-;                       +----------------+
-;
-; This design allows simpler tree-walking code because it uses a single node
-; type, however, it uses more RAM because even entries that never have children
-; - bools or fixnums, for example - have a slot reserved for them that is
-; always zero. This design might be changed in the future to a heterogeneous
-; node type to save space, but first we want to make sure this works.
+; The pointers to pairs are defined as pair objects with their own tag. See the
+; documentation for more details.
 
 
 ; ==== PARSER CODE ====
@@ -49,7 +39,7 @@ parser:
         ; in the main routine cthulhu.asm
         ; TODO figure out how to deal with the string buffer, probably when we
         ; do garbage collection
-                stz hp_ast      ; LSB
+                stz hp_ast      ; LSB is always zero initially
                 lda rsn_ast     ; MSB of RAM segment for AST
                 sta hp_ast+1
 
@@ -74,7 +64,34 @@ parser_loop:
                 inx
                 lda tkb,x
 
-_end_token:
+        ; ---- Check for tick ("quote")
+
+        ; We check for the "'" and handle the combination "'(" here because it
+        ; turns up a lot
+                cmp #T_TICK
+                bne _not_tick
+
+        ; It's a tick. This is pretty common. 
+                lda #<OC_PROC_QUOTE
+                ldy #>OC_PROC_QUOTE
+                jsr parser_add_object_to_ast
+                jmp parser_loop
+
+_not_tick:
+        ; ---- Check for parens
+        
+        ; This is Scheme, so we're going to have a lot of these. 
+                cmp #T_PAREN_START
+                bne _not_paren_start
+
+                ; 
+
+_not_paren_start:
+                cmp #T_PAREN_END
+                bne _not_paren_end
+
+
+_not_paren_end:
         ; ---- Check for end of input
 
         ; We assume there will always be an end token, so we don't 
@@ -523,51 +540,43 @@ function_not_available:
 ; of Cthulhu Scheme should be moved to helpers.asm
 
 parser_add_object_to_ast: 
-        ; Add a Scheme object to the AST. Assumes that the LSB of the object is
-        ; in A and the MSB (with the tag) is in Y. When we arrive here, astp
-        ; points to the last object in the tree we want to link to. We always
-        ; add to the end of the list at which makes life easier. Uses tmp0.  
+        ; Add a Scheme object to the AST, which in practice means adding a new
+        ; pair. Assumes that the LSB of the object is in A and the MSB (the
+        ; part with the tag that designates the type of object) is in Y. When
+        ; we arrive here, astp points to the last object in the tree we want to
+        ; link to. We always add to the end of the list at which makes life
+        ; easier. The AST lives in the RAM segment for AST. Uses tmp0.  
+        
+        ; We could use (cons) and other built-in Scheme procedures for this but
+        ; we can make it faster with low-level routines. 
 
         ; TODO make sure we don't advance past the end of the heap 
-
-        ; TODO at the moment, we can't add children. 
                 phx             ; save index to token buffer
                 phy             ; save MSB of the object (with tag)
                 pha             ; save LSB of the object
                 
         ; Remember the first free byte of nemory as the start of the
-        ; new node of the tree
+        ; new pair
                 lda hp_ast
                 sta tmp0
                 lda hp_ast+1
                 sta tmp0+1
 
-        ; Store the termination object in the new node as the pointer
-        ; to the next node. This marks the end of the tree in memory,
-        ; though trees don't really have ends of course. We'll deal
-        ; with that all once we have children
-                lda <#OC_END
+        ; Store the empty list in the cdr of the new node, which marks 
+        ; the end of the tree in memory.
+                lda <#OC_EMPTY_LIST
                 ldy #0
                 sta (hp_ast),y
                 iny
-                lda >#OC_END
+                lda >#OC_EMPTY_LIST
                 sta (hp_ast),y
                 iny
                 
-        ; Store the object in the heap. We are little endian
-                pla             ; retrieve LSB
+        ; Store the object in the cdr. We are little endian
+                pla             ; retrieve LSB of object, was in A
                 sta (hp_ast),y
                 iny
                 pla             ; retrieve MSB (with tag), was in Y
-                sta (hp_ast),y
-                iny
-
-        ; Store the pointer to the children of this object. Since we
-        ; don't know any objects with children yet, this is just zeros
-        ; TODO don't store pointer if no children possible
-                lda #0
-                sta (hp_ast),y
-                iny
                 sta (hp_ast),y
                 iny
 
@@ -578,13 +587,17 @@ parser_add_object_to_ast:
                 sta hp_ast
                 bcc _store_address
                 inc hp_ast+1
+
 _store_address:
-        ; Store address of new entry in header of old link
+        ; Store address of new entry in cdr of old link. We need to turn this
+        ; into an official pair object.
                 lda tmp0        ; original LSB of hp
                 tax             ; We'll need it again in a second
                 sta (astp)
                 ldy #1
                 lda tmp0+1      ; original MSB of hp
+                and #$0F        ; mask whatever the high nibble was (paranoid)
+                ora #OT_PAIR
                 sta (astp),y
                 
         ; Store address of new entry in astp. Yes, there are two
@@ -593,7 +606,6 @@ _store_address:
         ; having to walk through the whole tree to add something.
                 sta astp+1      ; MSB, was tmp0+1
                 stx astp        ; LSB, was tmp0
-
                 plx             ; get back index for token buffer
 
                 rts
@@ -605,9 +617,11 @@ _store_address:
 ; constants for speed reasons. These are in capital letters and start with
 ; with OC_
 
-OC_END   = $0000        ; end of input for AST 
-OC_TRUE  = $1fff        ; true bool #t, immediate
-OC_FALSE = $1000        ; false bool #f, immediate
+OC_EMPTY_LIST = $0000   ; end of list terminating object "()"
+OC_TRUE       = $1fff   ; true bool #t, immediate
+OC_FALSE      = $1000   ; false bool #f, immediate
+OC_PROC_APPLY = $F000   ; primitive procedure (apply)
+OC_PROC_QUOTE = $F002   ; primitive procedure (quote)
 
 
 ; ==== CONTINUE TO EVALUATOR ====
@@ -616,8 +630,8 @@ parser_done:
         ; End parsing with termination object The evaluator assumes that we
         ; have a termination object so it's really, really important to get
         ; this right
-                        lda <#OC_END
-                        ldx >#OC_END
+                        lda <#OC_EMPTY_LIST
+                        ldx >#OC_EMPTY_LIST
                         jsr parser_add_object_to_ast
 
                 ; fall through to evaluator

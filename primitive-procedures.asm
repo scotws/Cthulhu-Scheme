@@ -1,18 +1,42 @@
-; Native-coded Procedures for Cthulhu Scheme 
+; Primitive Procedures for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 10. Apr 2020
+; This version: 19. Apr 2020
 
-; This file contains the few procedures of Cthulhu Scheme that are hard-coded
-; in assembler. All such procedures start with the proc_ label followed by
-; their Scheme name with underscores, eg "proc_read_char" for "(read-char)".
-; A question mark is is replaced by '_p', so "(char-whitespace? #\a)" becomes
-; "proc_char_whitespace_p".
+; This file contains the procedures of Cthulhu Scheme that are "primitive",
+; that is, hard-coded in assembler. All such procedures start with the proc_
+; label followed by their Scheme name with underscores, eg "proc_read_char" for
+; "(read-char)".  A question mark is is replaced by '_p', so "(char-whitespace?
+; #\a)" becomes "proc_char_whitespace_p".
 
 ; See https://schemers.org/Documents/Standards/R5RS/HTML/ for details.
 
-; TODO at the moment, these are all empty because we just know #t and #f and
-; they are self-evaluating anyway. 
+procs_table:
+        ; Jump table for primitive procedures. We are limited to 128 procedures
+        ; at the moment because we only use the LSB of the procedure call to
+        ; jump, leaving the one nibble in the MSB unused for now.
+
+        ;     00          02
+        .word proc_apply, proc_quote                    
+
+
+; ===== PROCEDURE ROUTINES ====
+
+
+
+proc_apply:
+        ; """Calls a procedure with a list of arguments. Example:
+        ; '(apply + (list 3 4))'. We jump to this procedure with the pointer to
+        ; the rest of the AST.
+        ; """
+
+proc_quote:
+        ; """Supresses execution of procedure in parens (roughly speaking). Can
+        ; be start with a tick "'" instead.
+        ; """
+        
+
+; ==== TODO FOR LATER ====
 
 proc_char_whitespace_p:
         ; """Return boolean #t if character is whitespace, otherwise return #f.

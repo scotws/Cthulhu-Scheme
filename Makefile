@@ -29,7 +29,7 @@ else
 	PYTHON = python3
 endif
 
-COMMON_SOURCES=definitions.asm cthulhu.asm native-procedures.asm helpers.asm procedures.asm strings.asm debug.asm lexer.asm parser.asm eval.asm printer.asm reader.asm
+COMMON_SOURCES=definitions.asm cthulhu.asm primitive-procedures.asm helpers.asm compound-procedures.asm strings.asm debug.asm lexer.asm parser.asm eval.asm printer.asm reader.asm
 TEST_SOURCES=tests/main.scm
 
 all:	cthulhu-py65mon.bin

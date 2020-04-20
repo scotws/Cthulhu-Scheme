@@ -17,9 +17,9 @@ depending on the object in question.
 We immediately see the challenges of running Scheme on an 8-bit machine with
 small register, address, and word sizes. Even earliest version of Lisp was
 envisioned for a machine with a 36-bit word size and 15-bit pointers, the IBM
-701.<<JM1>> It was first [actually
-implemented](https://en.wikipedia.org/wiki/IBM_704) on an IBM 704 with the same
-word size.<<JM2>> We have less to work with then the first Lispers back in 1960. 
+701.<<JM1>> It was first link:https://en.wikipedia.org/wiki/IBM_704[actually
+implemented] on an IBM 704 with the same word size.<<JM2>> We have less to work
+with then the first Lispers back in 1960. 
 
 For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest nibble
 (four bits, 15-12) for the tag and the remaining 12 bits for either the
@@ -49,7 +49,7 @@ image::pics/memory_map.png[]
 ==== RAM Segments
 
 A Cthulhu Scheme object consists of a four bit tag (bits 15 to 12) and a 12 bit
-pointer to the object in the heap (bits 11 to 0). With twelve bits, we can only
+pointer to the object in the heap (bits 11 to 0). With twelve bits, we can 
 address 4 Kbit of RAM. Because of this, the available RAM is divided into
 segments. Each is numbered by the leading nibble from 0 to $F. These do not
 eactly correspond to the tag nibbles. Currently, we have
@@ -61,12 +61,37 @@ eactly correspond to the tag nibbles. Currently, we have
 As Cthulhu progresses, other segments will be assigned for symbols, bignums and
 procedures.
 
-Everything above segment 8 ($8000) is ROM and not part of the segments. Segment
-7 ($7000 to $7FFF) is reserved for garbage collection in the future. 
+Everything above segment 8 ($8000) is ROM. Segment 7 ($7000 to $7FFF) is
+reserved for garbage collection in the future. 
 
 NOTE: Though it is way too early in the development process to think about
 garbage collection, one possible way would be to reserve one 4 KiB segment for
 reorganizing once one of the other segments fills up. 
+
+
+// -------------------------------------------------------
+=== Compiler stuff
+
+The classic structure of a Lisp or Scheme program are linked pairs. Our Abstract
+Syntax Tree (AST) uses this structure internally with two 16-bit values that
+follow each other: The first one is the `cdr`, the second one the `car`. 
+
+NOTE: As the quote at the beginning of this section indicates, both terms (and
+the `cons` procedure are incredibly stupid and probably have done a lot to keep
+people away from Lisp and Scheme. However, there is simply no way around them at
+this lower level. 
+
+We keep the term AST for the part of memory and the structures that are involved
+in the actual program. 
+
+NOTE: During very early development, Cthulhu Lisp used a different system for
+the AST as scaffolding. This was used until the mechanics for pair processing
+were in place.  
+
+In theory, we could construct other parts such as the string table from linked
+lists as well. However, for reasons of efficiency, we currently use other
+structures.
+
 
 
 // -------------------------------------------------------
