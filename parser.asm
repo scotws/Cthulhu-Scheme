@@ -9,12 +9,12 @@
 ; a "car" and "cdr" part of 16-bits each. Linking the cdrs create a "spine"
 ; list-like structure that points to the data in cars.  See the manual for
 ; details.
-
-;                       +------------+
+;                         LSB   MSB
+;                       +-----+------+
 ;        prev pair -->  |  cdr cell  |  ---> next pair
-;                       +------------+
+;                       +-----+------+
 ;                       |  car cell  | 
-;                       +------------+
+;                       +-----+------+
 
 ; The pointers to pairs are defined as pair objects with their own tag. See the
 ; documentation for more details.
@@ -264,6 +264,7 @@ _hex_fixnum_loop:
 _legal_hex_digit:
         ; We have a legal digit. We shift it as a nibble "through the right"
         ; into the temporary variables
+        ; TODO convert this to correct little-endian format
 
         ; First, shift the nibble to the left side of the A
                 asl

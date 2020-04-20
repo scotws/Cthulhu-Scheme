@@ -1,12 +1,11 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 19. Apr 2020
+; This version: 20. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
 ; the register status 
-; TODO make sure we save the register status
 
 ; ---- Byte to ASCII ----
 help_byte_to_ascii:
@@ -256,5 +255,101 @@ _error:
                 ; just return with bit 7 set
                 lda #$80
                 rts
-
 .bend
+
+; ---- AST Walker ----
+
+; The AST walker walks through a tree constructed out of cons cells by the
+; parser one pair at the time and returns the car and cdr as entries in the
+; Zero Page, and car also in A and Y. It is used by first calling
+; help_walk_init, which puts the first values in the Zero Page. After that, it
+; is used with help_walk_next get the next pair. The walker is used by the
+; Evaluator, Reader and Debug routines. 
+
+; It is assumed that we first have the cdr and then the car. All data is little
+; endian. 
+;                         LSB   MSB
+;                       +-----+------+
+;        prev pair -->  |  cdr cell  |  ---> next pair
+;                       +-----+------+
+;                       |  car cell  |
+;                       +-----+------+
+
+; We do absolutely no checking if the user gave us a correct address. If this
+; is not a pair, we return garbage.
+
+; TODO Currently the walker is not able to handle branches or recursion or
+; "depth first". This will be added once we have an AST that demands it. 
+
+help_walk_init:
+        ; Initialize the walker. Call with the MSB of the first pair in A and
+        ; the LSB in Y ("Little Young Americans", little endian Y and A).  Then
+        ; call this routine. It will load the first car and cdr into their
+        ; respective fields. You can use this routine to set a different root
+        ; of the the tree than the AST it is usually used for. Destroys A and
+        ; Y. If this is the last pair in the tree, carry is set, else cleared.
+                sty walk_curr           ; LSB
+                sta walk_curr+1         ; MSB
+
+                bra help_walk_common
+
+help_walk_next:
+        ; Move on to the next entry, loading its car and cdr into Zero Page and
+        ; the car into Y and A, and setting carry flag depending if this is the
+        ; last entry.
+                lda (walk_curr)
+                pha
+                ldy #1
+                lda (walk_curr),y       ; MSB
+
+                ; Remember that what is stored in the cdr is not a simple 65c02
+                ; address but the Cthulhu Scheme pair object. This means that
+                ; the first nibble of the MSB is the pair tag and not the
+                ; corret address. We have to replace it by the RAM segment
+                ; nibble for the AST
+                
+                ; TODO make this more general so we can walk any pair chain in
+                ; any RAM segment
+                and #$0F                ; mask the pair tag
+                ora rsn_ast             ; replace by nibble for the AST
+
+                sta walk_curr+1 
+                pla
+                sta walk_curr           ; LSB
+
+                ; drop through to help_walk_common
+
+help_walk_common: 
+        ; Common code sequence to copy stuff from current pair into the
+        ; respective Zero Page variables and check to see if this is end of the
+        ; tree
+        
+        ; Start with the cdr which we are pointing to
+                lda (walk_curr)
+                sta walk_cdr            ; LSB
+                ldy #1
+                lda (walk_curr),y
+                sta walk_cdr+1          ; MSB
+                iny
+
+        ; Handle question if this is the last entry. We have the MSB of the cdr
+        ; TODO this is cheating because we assume that OT_EMPTY_LIST is $0000 
+                clc                     ; default is not last pair
+                ora walk_cdr            ; LSB
+                bne _store_car
+                sec                     ; last pair, mark by setting carry flag
+
+        ; Place the car in Zero Page    
+_store_car:
+                lda (walk_curr),y       ; LSB
+                sta walk_car
+                pha                     ; We return this later in Y
+                iny
+                lda (walk_curr),y       ; MSB
+                sta walk_car+1
+
+        ; We return the MSB of the car in A and the LSB of car in Y in addition
+        ; to storing them in the Zero Page. The MSB is still in A.
+                ply
+
+                rts

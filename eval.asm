@@ -14,6 +14,7 @@ eval:
 
         .if DEBUG == true
                 ; TODO TEST dump contents of AST 
+                ; Initialize the AST walker
                 jsr debug_dump_ast
                 jsr debug_dump_hp
         .fi 

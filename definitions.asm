@@ -57,6 +57,12 @@ hp_ast   .word ?     ; next free byte in AST RAM segment
 rsn_str  .byte ?     ; RAM segment nibble for strings (default 2)
 strp     .word ?     ; pointer to current entry in string table
 hp_str   .word ?     ; next free byte in string RAM segment
+
+; AST walker
+walk_curr   .word ?  ; Pointer (addr) to current pair in AST
+walk_car    .word ?  ; Contents of current pair's car field
+walk_cdr    .word ?  ; Contents of current pair's cdr field
+
 .send zp
 
 

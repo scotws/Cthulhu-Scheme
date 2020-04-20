@@ -80,9 +80,8 @@ debug_dump_hp:
 
 
 debug_dump_ast: 
-        ; Dump the raw data of the AST. This is a lower-level version of
-        ; printing the cons cells, so we can use it for anything
-        ; TODO change name once it has settled down
+        ; Dump the raw data of the AST. Uses the generic AST walker from
+        ; helpers
 .block
                 jsr help_emit_lf
 
@@ -93,57 +92,53 @@ debug_dump_ast:
                 ; first pair lives. We can't use tmp0 because the print routine
                 ; uses it
                 lda rsn_ast             ; RAM segment nibble
-                sta tmp1+1
-                jsr help_byte_to_ascii
-                lda #2                  ; By definitioin
-                sta tmp1
-                jsr help_byte_to_ascii
+                pha                     ; save MSB
+                jsr help_byte_to_ascii  ; print MSB
 
-_loop:
+                ldy #2                  ; By definition
+                tya
+                jsr help_byte_to_ascii  ; print LSB
+
+                pla                     ; get MSB back
+
+                ; Initialize walker with MSB of root pair in A and LSB in Y
+                jsr help_walk_init
+
+_debug_dump_ast_loop:
+
+                ; If carry is set we are at the last entry
+                php
+                
                 ; Make it pretty
                 lda #strd_dump_arrow            ; "--> "
                 jsr debug_print_string_no_lf
 
-                ; First, print cdr of pair
-                ldy #1
-                lda (tmp1),y
-                sta tmp2+1                      ; save copy for end check
+                ; Print cdr
+                lda walk_cdr+1
                 jsr help_byte_to_ascii          ; MSB
-                lda (tmp1)
-                sta tmp2                        ; pointer to next entry, LSB
+                lda walk_cdr
                 jsr help_byte_to_ascii          ; LSB
 
+                ; Colon as a divider between cdr and car
                 lda #':'
                 jsr help_emit_a
 
-                ; Then, print playload (actual object)
-                ldy #3
-                lda (tmp1),y                    ; MSB
-                jsr help_byte_to_ascii
-                ldy #2
-                lda (tmp1),y                    ; LSB
-                jsr help_byte_to_ascii
+                ; Print the car
+                lda walk_car+1
+                jsr help_byte_to_ascii          ; MSB
+                lda walk_car
+                jsr help_byte_to_ascii          ; LSB
 
-                ; See if we are at the end of the tree
-                lda tmp2
-                ora tmp2+1      ; Cheating: We know that OC_EMPTY_LIST is 0000
-                beq _done
+                ; Check to see if this was the last entry
+                plp
+                bcs _debug_dump_ast_done
 
-                ; Not done, get linked entry
-                lda tmp2
-                sta tmp1
+                ; Get the next AST pair. If we are at the end, the carry flag
+                ; is set
+                jsr help_walk_next
+                bra _debug_dump_ast_loop
 
-                ; Remember the pointer to the next pair is saved as a pointer
-                ; object, not just an address, so we have to replace the object
-                ; tag by the RAM segment nibble
-                lda tmp2+1
-                and #$0F
-                ora rsn_ast
-                sta tmp1+1
-
-                bra _loop
-
-_done:
+_debug_dump_ast_done:
                 rts
 .bend
 
