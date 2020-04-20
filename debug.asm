@@ -1,12 +1,12 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 19. Apr 2020
+; This version: 20. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
-; platform file for this. All routines start with debug_ . These are currently
-; not really documented, because they are currently changing all the the
-; time 
+; platform file for this. All routines start with debug_ . These are not
+; documented at the moment, because they are currently changing all the the
+; time. 
 
 debug_dump_input:
         ; Hexdump contents of the character input buffer (cib)
@@ -66,7 +66,7 @@ _done:
 .bend
 
 debug_dump_hp:
-        ; Print the value of the heap pointer
+        ; Print the value of the RAM heap pointer for pairs/AST
                 jsr help_emit_lf
 
                 lda #strd_dump_hp               ; "Heap pointer: "
@@ -80,21 +80,22 @@ debug_dump_hp:
 
 
 debug_dump_ast: 
-        ; Dump the raw data of the AST. At the moment, since the AST is just
-        ; a linked list, we don't really have to walk anything, just follow the
-        ; list. This routine will have to be updated as the AST is. 
+        ; Dump the raw data of the AST. This is a lower-level version of
+        ; printing the cons cells, so we can use it for anything
+        ; TODO change name once it has settled down
 .block
                 jsr help_emit_lf
 
-                lda #strd_dump_ast              ; "AST: "
+                lda #strd_dump_ast              ; "AST root: "
                 jsr debug_print_string_no_lf
 
-                ; Start at the beginning of the tree. Print first link. We
-                ; can't use tmp0 because the print routine uses it
+                ; Start at the beginning of the tree. Print address where the
+                ; first pair lives. We can't use tmp0 because the print routine
+                ; uses it
                 lda rsn_ast             ; RAM segment nibble
                 sta tmp1+1
                 jsr help_byte_to_ascii
-                lda #0                  ; By definitioin
+                lda #2                  ; By definitioin
                 sta tmp1
                 jsr help_byte_to_ascii
 
@@ -103,10 +104,10 @@ _loop:
                 lda #strd_dump_arrow            ; "--> "
                 jsr debug_print_string_no_lf
 
-                ; First, print next link
+                ; First, print cdr of pair
                 ldy #1
                 lda (tmp1),y
-                sta tmp2+1
+                sta tmp2+1                      ; save copy for end check
                 jsr help_byte_to_ascii          ; MSB
                 lda (tmp1)
                 sta tmp2                        ; pointer to next entry, LSB
@@ -123,27 +124,21 @@ _loop:
                 lda (tmp1),y                    ; LSB
                 jsr help_byte_to_ascii
 
-
-                lda #':'
-                jsr help_emit_a
-
-                ; Last, print the link to the children if there are any
-                ldy #5
-                lda (tmp1),y
-                jsr help_byte_to_ascii
-                ldy #4
-                lda (tmp1),y
-                jsr help_byte_to_ascii
-
                 ; See if we are at the end of the tree
                 lda tmp2
-                ora tmp2+1      ; Cheating: We know that OC_END is 0000
+                ora tmp2+1      ; Cheating: We know that OC_EMPTY_LIST is 0000
                 beq _done
 
                 ; Not done, get linked entry
                 lda tmp2
                 sta tmp1
+
+                ; Remember the pointer to the next pair is saved as a pointer
+                ; object, not just an address, so we have to replace the object
+                ; tag by the RAM segment nibble
                 lda tmp2+1
+                and #$0F
+                ora rsn_ast
                 sta tmp1+1
 
                 bra _loop
@@ -222,8 +217,8 @@ strd_dump_strtbl = 5
 strd_dump_str    = 6
 
 s_dump_token:   .null   "Token Buffer: "
-s_dump_ast:     .null   "AST: "
-s_dump_hp:      .null   "AST pointer: "
+s_dump_ast:     .null   "AST root: "
+s_dump_hp:      .null   "AST hp pointer: "
 s_dump_input:   .null   "Input Buffer: "
 s_dump_arrow:   .null   " --> "
 s_dump_strtbl:  .null   "String table: "

@@ -35,18 +35,22 @@ parser:
 
 ; ---- Parser setup ----
 
+        ; Set up the RAM memory segment we use for the cons cells (pairs) we
+        ; keep the AST in. 
+
         ; Clear the old AST. We keep the string table for now which is set up
         ; in the main routine cthulhu.asm
         ; TODO figure out how to deal with the string buffer, probably when we
         ; do garbage collection
-                stz hp_ast      ; LSB is always zero initially
+                lda #$02        ; Skip dummy cdr at beginning of RAM
+                sta hp_ast
                 lda rsn_ast     ; MSB of RAM segment for AST
                 sta hp_ast+1
 
-        ; The pointer to current entry in the AST is $0000, signaling an empty
-        ; AST
+        ; The pointer to the current pair starts off pointing to the dummy
+        ; value at the first two bytes of the RAM segment
+                sta astp+1      ; still have MSB of RAM segment
                 stz astp
-                stz astp+1
 
         ; Reset the pointer to the token buffer
                 stz tkbp
@@ -84,11 +88,14 @@ _not_tick:
                 cmp #T_PAREN_START
                 bne _not_paren_start
 
-                ; 
+                ; TODO HERE HIER ADD PARENS
 
 _not_paren_start:
                 cmp #T_PAREN_END
                 bne _not_paren_end
+
+        ; Here is a closing parens
+
 
 
 _not_paren_end:
@@ -555,15 +562,20 @@ parser_add_object_to_ast:
                 phy             ; save MSB of the object (with tag)
                 pha             ; save LSB of the object
                 
-        ; Remember the first free byte of nemory as the start of the
-        ; new pair
+        ; Remember the first free byte of memory as the start of the
+        ; new pair. This is a pure address, not a Scheme pointer; the first
+        ; time is it wherever rsn_ast points to.
                 lda hp_ast
                 sta tmp0
                 lda hp_ast+1
                 sta tmp0+1
 
         ; Store the empty list in the cdr of the new node, which marks 
-        ; the end of the tree in memory.
+        ; the end of the tree in memory. 
+        ; TODO the OC_EMPTY_LIST is currently defined as $0000, but just to be
+        ; safe, we do this the hard way with the constant. Later, once we are
+        ; very, very sure that OC_EMPTY_LIST is always going to be 0000, we can
+        ; simplify this.
                 lda <#OC_EMPTY_LIST
                 ldy #0
                 sta (hp_ast),y
@@ -572,7 +584,7 @@ parser_add_object_to_ast:
                 sta (hp_ast),y
                 iny
                 
-        ; Store the object in the cdr. We are little endian
+        ; Store the object in the new car. We are little endian
                 pla             ; retrieve LSB of object, was in A
                 sta (hp_ast),y
                 iny
@@ -589,23 +601,23 @@ parser_add_object_to_ast:
                 inc hp_ast+1
 
 _store_address:
-        ; Store address of new entry in cdr of old link. We need to turn this
-        ; into an official pair object.
-                lda tmp0        ; original LSB of hp
-                tax             ; We'll need it again in a second
-                sta (astp)
-                ldy #1
-                lda tmp0+1      ; original MSB of hp
+        ; Store address of new entry in cdr of old link - hp_ast needs to be
+        ; moved to wherever astp is pointing to. We need to turn this into an
+        ; official pair object while we are at it. 
+                lda tmp0+1      ; original MSB of hp_ast, which is just an addr
                 and #$0F        ; mask whatever the high nibble was (paranoid)
                 ora #OT_PAIR
+                ldy #1
                 sta (astp),y
-                
-        ; Store address of new entry in astp. Yes, there are two
-        ; pointers to the last entry in the tree, one from the
-        ; previoius node and one from the outside. This prevents us
-        ; having to walk through the whole tree to add something.
+
+                lda tmp0        ; original LSB of hp_ast
+                sta (astp)
+
+        ; Store address of new entry in astp, which is the original hp_ast.
+                sta astp        ; still have original LSB
+                lda tmp0+1
                 sta astp+1      ; MSB, was tmp0+1
-                stx astp        ; LSB, was tmp0
+
                 plx             ; get back index for token buffer
 
                 rts
@@ -627,12 +639,5 @@ OC_PROC_QUOTE = $F002   ; primitive procedure (quote)
 ; ==== CONTINUE TO EVALUATOR ====
                 
 parser_done:
-        ; End parsing with termination object The evaluator assumes that we
-        ; have a termination object so it's really, really important to get
-        ; this right
-                        lda <#OC_EMPTY_LIST
-                        ldx >#OC_EMPTY_LIST
-                        jsr parser_add_object_to_ast
-
                 ; fall through to evaluator
 
