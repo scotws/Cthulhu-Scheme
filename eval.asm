@@ -1,17 +1,14 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 18. Apr 2020
+; This version: 20. Apr 2020
 
 eval: 
 
-        ; We walk the AST and evaluate the nodes. This is the first of two
-        ; places we do this walk - the other is the printer - so we will have
-        ; to see if we can merge the code to save space. Note the object tag
-        ; nibbles live in definitions.asm
-
-        ; TODO currently everything evaluates itself so we're just going
-        ; through the motions for now
+        ; We walk the AST and evaluate the nodes (pairs). This is the first of
+        ; two places we do this walk - the other is the printer - so we will
+        ; have to see if we can merge the code to save space. Note the object
+        ; tag nibbles live in definitions.asm
 
 ; ---- Debugging routines ----
 
@@ -27,11 +24,11 @@ eval:
         ; print the results. Don't touch tmp0 because it is used by print
         ; routines in helper.asm
                 lda rsn_ast     ; RAM segment nibble, default $10
-                sta tmp1
-                stz tmp1+1      ; Segment must start on 4 KiB line
+                sta tmp1+1
+                stz tmp1        ; Segment must start on 4 KiB line
 
 eval_loop:
-                ldy #3          ; MSB of the next node entry down ...
+                ldy #2          ; MSB of the next node entry down ...
                 lda (tmp1),y    ; ...  which contains the tag nibble
                 and #$f0        ; mask all but tag nibble
         
@@ -85,8 +82,9 @@ eval_6_UNDEFINED:
 eval_7_UNDEFINED:
         ; TODO define tag and add code
 
-eval_8_UNDEFINED:
-        ; TODO define tag and add code
+eval_8_pair:
+        ; TODO write code for pair
+                bra eval_next   ; paranoid, currently not reached
 
 eval_9_UNDEFINED:
         ; TODO define tag and add code
@@ -106,9 +104,9 @@ eval_D_UNDEFINED:
 eval_E_UNDEFINED:
         ; TODO define tag and add code
 
-eval_F_UNDEFINED:
-        ; TODO define tag and add code
-
+eval_f_proc:
+        ; TODO write code for proc
+                bra eval_next   ; paranoid, currently not reached
 
 ; ===== EVALUATION JUMP TABLE ====
 
@@ -126,10 +124,10 @@ eval_table:
         .word eval_next, eval_next, eval_next, eval_next
 
         ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF
-        .word eval_next, eval_next, eval_next, eval_next
+        .word eval_8_pair, eval_next, eval_next, eval_next
 
         ;      C UNDEF    D UNDEF    E  UNDEF   F UNDEF
-        .word eval_next, eval_next, eval_next, eval_next
+        .word eval_next, eval_next, eval_next, eval_f_proc
 
 
 ; ==== CONTINUE TO PRINTER ====

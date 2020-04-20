@@ -218,7 +218,7 @@ strd_dump_str    = 6
 
 s_dump_token:   .null   "Token Buffer: "
 s_dump_ast:     .null   "AST root: "
-s_dump_hp:      .null   "AST hp pointer: "
+s_dump_hp:      .null   "AST heap pointer: "
 s_dump_input:   .null   "Input Buffer: "
 s_dump_arrow:   .null   " --> "
 s_dump_strtbl:  .null   "String table: "
