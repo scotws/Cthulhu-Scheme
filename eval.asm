@@ -1,62 +1,50 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
+
+; We walk the AST and actually execute what needs to be executed. Currently,
+; everything is self-evaluating, so this is just going through the motions.
+; This uses the AST walker from helpers.asm 
 eval: 
-
-        ; We walk the AST and evaluate the nodes (pairs). This is the first of
-        ; two places we do this walk - the other is the printer - so we will
-        ; have to see if we can merge the code to save space. Note the object
-        ; tag nibbles live in definitions.asm
-
-; ---- Debugging routines ----
 
         .if DEBUG == true
                 ; TODO TEST dump contents of AST 
-                ; Initialize the AST walker
                 jsr debug_dump_ast
                 jsr debug_dump_hp
         .fi 
                         
-; ===== EVAL MAIN LOOP =====
-
-        ; We walk the AST - which should be rather short at this point - and 
-        ; print the results. Don't touch tmp0 because it is used by print
-        ; routines in helper.asm
-                lda rsn_ast     ; RAM segment nibble, default $10
-                sta tmp1+1
-                stz tmp1        ; Segment must start on 4 KiB line
+        ; Initialize the AST with the address of its RAM segment 
+                lda rsn_ast             ; RAM segment nibble, default $10
+                ldy #2                  ; by definition
+                jsr help_walk_init      ; returns car in A and Y
 
 eval_loop:
-                ldy #2          ; MSB of the next node entry down ...
-                lda (tmp1),y    ; ...  which contains the tag nibble
-                and #$f0        ; mask all but tag nibble
+        ; A contains the MSB of the car, the "payload" of the cons cell (pair).
+        ; We need to mask everything but the object's tag nibble
+                and #$f0
         
-        ; Use the tag to get the entry in the jump table.
-        ; First, we have to move the nibble over four bits,
-        ; then multiply it by two, which is a left shift, so we
-        ; end up wit three right shifts
+        ; Use the tag to get the entry in the jump table. First, we have to
+        ; move the nibble over four bits, then multiply it by two, which is
+        ; a left shift, so we end up wit three right shifts
                 lsr     
                 lsr
-                lsr             ; Fourth LSR and ASL cancle each other
+                lsr             ; fourth LSR and ASL cancle each other out
                 tax
 
-        ; 65c02 specific, see
-        ; http://6502.org/tutorials/65c02opcodes.html#2
+        ; This instruction is 65c02 specific, see
+        ; http://6502.org/tutorials/65c02opcodes.html#2 It is unfortunately not
+        ; available as a subroutine jump, that would be the 65816.
                 jmp (eval_table,X)
 
 eval_next:
-        ; Next incarnation of the loop
-                lda (tmp1)              ; LSB of next entry
-                tax
-                ldy #1
-                lda (tmp1),y            ; MSB of next entry
-                sta tmp1+1
-                stx tmp1
+                jsr help_walk_next
 
-                bra eval_loop
-
+        ; If we have reached the end of the AST, the walker sets the carry
+        ; flag. 
+                bcc eval_loop
+                bra eval_done           ; this will have to be jmp later
 
 
 ; ===== EVALUATION SUBROUTINES ====

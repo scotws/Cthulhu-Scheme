@@ -102,6 +102,7 @@ debug_dump_ast:
                 pla                     ; get MSB back
 
                 ; Initialize walker with MSB of root pair in A and LSB in Y
+                ; (Remember "Little Young Americans", little-endian A and Y)
                 jsr help_walk_init
 
 _debug_dump_ast_loop:

@@ -276,21 +276,24 @@ _error:
 ;                       +-----+------+
 
 ; We do absolutely no checking if the user gave us a correct address. If this
-; is not a pair, we return garbage.
+; is not a pair, so be it, we will return garbage.
 
 ; TODO Currently the walker is not able to handle branches or recursion or
 ; "depth first". This will be added once we have an AST that demands it. 
 
 help_walk_init:
         ; Initialize the walker. Call with the MSB of the first pair in A and
-        ; the LSB in Y ("Little Young Americans", little endian Y and A).  Then
-        ; call this routine. It will load the first car and cdr into their
-        ; respective fields. You can use this routine to set a different root
-        ; of the the tree than the AST it is usually used for. Destroys A and
-        ; Y. If this is the last pair in the tree, carry is set, else cleared.
+        ; the LSB in Y (remember "Little Young Americans", little endian Y and
+        ; A). Then call this routine. It will load the first car and cdr into
+        ; their respective fields. You can use this routine to set a different
+        ; root of the the tree than the AST it is usually used for. Destroys
+        ; A and Y. If this is the last pair in the tree, carry is set, else
+        ; cleared.
                 sty walk_curr           ; LSB
                 sta walk_curr+1         ; MSB
 
+        ; This routine is call less than help_walk_common so we branch here and
+        ; drop through there
                 bra help_walk_common
 
 help_walk_next:
@@ -302,14 +305,14 @@ help_walk_next:
                 ldy #1
                 lda (walk_curr),y       ; MSB
 
-                ; Remember that what is stored in the cdr is not a simple 65c02
-                ; address but the Cthulhu Scheme pair object. This means that
-                ; the first nibble of the MSB is the pair tag and not the
-                ; corret address. We have to replace it by the RAM segment
-                ; nibble for the AST
-                
-                ; TODO make this more general so we can walk any pair chain in
-                ; any RAM segment
+        ; Remember that what is stored in the cdr is not a simple 65c02
+        ; address but the Cthulhu Scheme pair object. This means that
+        ; the first nibble of the MSB is the pair tag and not the
+        ; correct address. We have to replace it by the RAM segment
+        ; nibble for the AST. 
+        
+        ; TODO make this more general so we can walk any pair chain in any RAM
+        ; segment, not just the current AST
                 and #$0F                ; mask the pair tag
                 ora rsn_ast             ; replace by nibble for the AST
 
@@ -324,7 +327,7 @@ help_walk_common:
         ; respective Zero Page variables and check to see if this is end of the
         ; tree
         
-        ; Start with the cdr which we are pointing to
+        ; Start with the cdr which we are pointing to and place it in Zero Page
                 lda (walk_curr)
                 sta walk_cdr            ; LSB
                 ldy #1
@@ -333,7 +336,7 @@ help_walk_common:
                 iny
 
         ; Handle question if this is the last entry. We have the MSB of the cdr
-        ; TODO this is cheating because we assume that OT_EMPTY_LIST is $0000 
+        ; Note this is cheating because we assume that OT_EMPTY_LIST is $0000 
                 clc                     ; default is not last pair
                 ora walk_cdr            ; LSB
                 bne _store_car
@@ -353,3 +356,5 @@ _store_car:
                 ply
 
                 rts
+
+; ---- END ----

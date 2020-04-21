@@ -1,27 +1,33 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
 
-; ==== PRINTER ====
+; We walk the AST, which should be quite a bit shorter by now, and print
+; a representantion of what is left. This uses the AST walker from helpers.asm
 
+; TODO In future, the evaluator might not directly change the original AST but
+; create a second one with the results, so we leave this code separate from the
+; evaluator for the moment, even though it does exactly the just same thing
+; except for the part with the actual jump table. 
 printer: 
-        ; We walk the AST - which should be rather short right now - and print 
-        ; the results. Don't touch tmp0 because it is used by print routines in
-        ; helper.asm
-                stz tmp1
-                lda rsn_ast     ; RAM segmet nibble
-                sta tmp1+1
-
+        .if DEBUG == true
+                ; TODO test dump contents of the AST
+                jsr debug_dump_ast
+        .fi
+               
+        ; Initialize the AST with the address of its RAM segment. 
+                lda rsn_ast     ; RAM segment nibble
+                ldy #02         ; by definition
+                jsr help_walk_init
+                
 printer_loop:
-        ; Move down one line
-                jsr help_emit_lf
 
-                ldy #3          ; MSB of the next node entry down ...
-                lda (tmp1),y    ; ...  which contains the tag nibble
+        ; A contains the MSB of the car ... you know the drill from the
+        ; evaluator.
                 and #$f0        ; mask all but tag nibble
 
         ; Use the tag to get the entry in the jump table.
@@ -33,23 +39,30 @@ printer_loop:
                 lsr     ; Fourth LSR and ASL cancle each other
                 tax
 
-        ; 65c02 specific, see
-        ; http://6502.org/tutorials/65c02opcodes.html#2
+        ; Move down one line
+        ; TODO This is different from the evaluator as well
+                jsr help_emit_lf
+
+        ; This instruction is 65c02 specific, see
+        ; http://6502.org/tutorials/65c02opcodes.html#2 
                 jmp (printer_table,X)
                 
 printer_next:
         ; Get next entry out of AST
-                lda (tmp1)      ; LSB of next entry
-                tax
-                ldy #1
-                lda (tmp1),y    ; MSB of next entry
-                sta tmp1+1
-                stx tmp1
+                jsr help_walk_next
                 
-                jmp printer_loop
+        ; If we have reached the end of the AST, the walker sets the carry flag
+        ; TODO we need to take care of the car of the last entry as well, this
+        ; ends too soon!
+                bcc printer_loop
+                bra printer_done        ; this will have to be jmp later
 
 
 ; ==== PRINTER SUBROUTINES ====
+
+; We land here with the car and cdr stored in walk_car and walk_cdr
+; respectively and the LSB of the car still in Y. The MSB was in A but was
+; destroyed, so we need to reclaim it.
 
 ; ---- Meta ----
 printer_0_meta:
@@ -57,13 +70,13 @@ printer_0_meta:
         ; anyway) 
                 bra printer_done
 
-
 ; ---- Booleans ----
 printer_1_bool:
-        ; Booleans are terribly simple with two different versions
+        ; Booleans are terribly simple with two different versions. 
+                lda walk_car+1          ; MSB of car
+                and #$0F                ; Get rid of tag
+                ora walk_car 
 
-                ldy #2
-                lda (tmp1),y            ; LSB
                 bne _bool_true          ; not a zero means true
                 lda #str_false
                 bra _bool_printer
@@ -80,17 +93,13 @@ printer_2_fixnum:
         ; TODO Yeah, that is going to happen at some point. For the moment,
         ; however, we will just print it out in hex until we have everything
         ; else working
-                ldy #3          ; tag nibble and high nibble of number
-                lda (tmp1),y    ; MSB nibble
-                and #$0F        ; Mask tag
-
-
         ; TODO handle negative numbers
         ; TODO print as decimal number
-
+                lda walk_car+1          ; MSB
+                and #$0F                ; Mask tag
                 jsr help_byte_to_ascii
-                ldy #2
-                lda (tmp1),y    ; LSB
+
+                tya                     ; still Y
                 jsr help_byte_to_ascii
 
                 bra printer_next
@@ -107,21 +116,19 @@ printer_5_string:
         ; Strings are interned, so we just get a pointer to where they are in
         ; the heap's RAM segment for strings. This uses tmp2
 
-                ldy #2          
-                lda (tmp1),y    ; LSB of address in string heap
-                sta tmp2
-                iny
-                lda (tmp1),y    ; MSB with tag and high nibble of pointer
-                and #$0F        ; mask tag
-                ora rsn_str     ; merge with section nibble instead
+                lda walk_car+1          ; MSB
+                and #$0F                ; mask tag
+                ora rsn_str             ; merge with section nibble instead
                 sta tmp2+1      
+                sty tmp2                ; LSB
 
                 ldy #0
 _string_loop:
                 lda (tmp2),y    
                 beq printer_next       ; string is zero terminated
 
-                ; TODO deal with escaped characters
+                ; TODO deal with escaped characters: LF is printed "\n" in the
+                ; string instead of being executed
 
                 jsr help_emit_a
                 iny
