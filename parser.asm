@@ -554,6 +554,7 @@ parser_add_object_to_ast:
         ; we arrive here, astp points to the last object in the tree we want to
         ; link to. We always add to the end of the list at which makes life
         ; easier. The AST lives in the RAM segment for AST. Uses tmp0.  
+        ; TODO change this to MSB in A and LSB in Y
         
         ; We could use (cons) and other built-in Scheme procedures for this but
         ; we can make it faster with low-level routines. 
