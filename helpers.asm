@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -146,28 +146,105 @@ help_is_delimiter:
         ; cleared means it is not. See the list of delimiters at
         ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
         ; """
+        ; TODO this has the basic structure as help_is_extended_alpha, we
+        ; should see if we can combine the two routines
                 jsr help_is_whitespace
                 bcs _delimiter_done
 
+                ; That was the easy one. We now run through the list of
+                ; delimiter characters (see strings.asm) to see if any one is
+                ; here
                 clc
-                cmp #$28        ; '('
-                beq _is_delimiter
-                cmp #$29        ; ')'
-                beq _is_delimiter
+                phx
+                ldx s_delimiters        ; length of delimiter chars string
 
-                ; TODO check for ;"'`| etc
-                ; TODO check for []{}
+_delimiter_loop:
+                ; Check back to front
+                cmp s_delimiters,X
+                beq _found_delimiter
+                dex
+                bne _delimiter_loop
 
+                ; If we end up here we didn't find a delimiter, clear carry
+                ; flag and return
+                plx
                 clc
-                bra _delimiter_done
+                rts
 
+_found_delimiter:
+                plx
+                ; drop through to _is_delimiter
 _is_delimiter:
                 sec
-
                 ; drop through to _delimiter_done
-
 _delimiter_done:
                 rts
+
+
+help_is_extended_alpha:
+        ; """Given a character in A, set the carry flag if it
+        ; is an extende alphabetic character (see strings.asm). Otherwise
+        ; clear the carry flag.
+        ; """
+        ; TODO this has the basic structure as help_is_delimiter_loop, we
+        ; should see if we can combine the two routines
+                clc
+                phx
+                ldx s_extended          ; length of extended chars string
+_alpha_loop:
+                cmp s_extended,X
+                beq _found_extended
+                dex
+                bne _alpha_loop
+
+                ; If we end up here we didn't find a delimiter, clear carry
+                ; flag and return
+                plx
+                clc
+                rts
+
+_found_extended:
+                plx
+                ; drop through to _is_extended
+_is_extrended:
+                sec
+                ; drop through to _extended_done
+_extended_done:
+                rts
+
+
+help_is_letter:
+        ; """Given an upper- or lowercase letter in A, set the carry flag if it
+        ; is a legal letter from 'a' to 'z', and return the lowercase version
+        ; in A. We need to keep this as a separate routine because identifiers
+        ; may only start with a letter or extended alphabetic character. See 
+        ; http://www.obelisk.me.uk/6502/algorithms.html for a discussion of
+        ; this routine
+        ; """
+                ; See if upper case
+                cmp #'A'
+                bcc _not_letter       ; too low
+                cmp #'Z'+1
+                bcc _uppercase
+
+                ; No, but there is still hope for lowercase
+                cmp #'a'
+                bcc _not_letter       ; between upper- and lowercase
+                cmp #'z'+1
+                bcc _is_letter
+
+                ; drop through to _not_letter
+_not_letter:
+                clc
+                rts
+_uppercase:
+                clc
+                adc #'a'-'A'    ; 32, if you're curious
+                ; drop through to _is_letter
+_is_letter:
+                sec             ; TODO testing
+                rts
+
 
 help_is_whitespace:
         ; """Given in a character in A, see if it is legally a Scheme

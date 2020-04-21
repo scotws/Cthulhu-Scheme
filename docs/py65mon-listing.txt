@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Tue Apr 21 08:22:23 2020
+; Tue Apr 21 10:40:12 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -63,10 +63,10 @@
 .802f	64 0d		stz $0d		                stz ciblen
 .8031	64 0e		stz $0e		                stz ciblen+1
 .8033	a9 0b		lda #$0b	                lda #str_prompt
-.8035	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
+.8035	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
 .8038	a0 00		ldy #$00	                ldy #0
 .803a					reader_loop:
-.803a	20 b4 84	jsr $84b4	                        jsr help_key_a
+.803a	20 e5 84	jsr $84e5	                        jsr help_key_a
 .803d	c9 0a		cmp #$0a	                        cmp #AscLF
 .803f	f0 3b		beq $807c	                        beq reader_got_eol
 .8041	c9 0d		cmp #$0d	                        cmp #AscCR
@@ -96,11 +96,11 @@
 .8065	f0 2a		beq $8091	                        beq reader_backspace
 .8067	c9 04		cmp #$04	                        cmp #$04
 .8069	d0 03		bne $806e	                        bne reader_normal_char
-.806b	4c 88 84	jmp $8488	                        jmp repl_quit
+.806b	4c b9 84	jmp $84b9	                        jmp repl_quit
 .806e					reader_normal_char:
 .806e					reader_comment_continue:
 .806e					reader_string_continue:
-.806e	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.806e	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .8071	99 00 02	sta $0200,y	                        sta cib,y
 .8074	c8		iny		                        iny
 .8075	cc 00 01	cpy $0100	                        cpy cib_size
@@ -111,7 +111,7 @@
 .807e	30 09		bmi $8089	                        bmi _eol_in_comment
 .8080	29 7f		and #$7f	                        and #%01111111          ; input_f already in A
 .8082	d0 09		bne $808d	                        bne _eol_in_parens_or_string
-.8084	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.8084	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .8087	80 25		bra $80ae	                        bra reader_input_done
 .8089					_eol_in_comment:
 .8089	a9 80		lda #$80	                        lda #$80
@@ -123,16 +123,16 @@
 .8091	c0 00		cpy #$00	                        cpy #0          ; buffer empty?
 .8093	d0 06		bne $809b	                        bne _skip_bell
 .8095	a9 07		lda #$07	                        lda #AscBELL
-.8097	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.8097	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .809a	c8		iny		                        iny
 .809b					_skip_bell:
 .809b	88		dey		                        dey
 .809c	a9 08		lda #$08	                        lda #AscBS      ; move back one
-.809e	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.809e	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .80a1	a9 20		lda #$20	                        lda #AscSP      ; print a space (rubout)
-.80a3	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.80a3	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .80a6	a9 08		lda #$08	                        lda #AscBS      ; move back over space
-.80a8	20 b1 84	jsr $84b1	                        jsr help_emit_a
+.80a8	20 e2 84	jsr $84e2	                        jsr help_emit_a
 .80ab	4c 3a 80	jmp $803a	                        jmp reader_loop
 .80ae					reader_input_done:
 .80ae					reader_buffer_full:
@@ -147,7 +147,7 @@
 ;******  Processing file: platforms/../lexer.asm
 
 .80b7					lexer:
-.80b7	20 82 85	jsr $8582	                jsr debug_dump_input
+.80b7	20 e2 85	jsr $85e2	                jsr debug_dump_input
 .80ba	a0 00		ldy #$00	                ldy #0
 .80bc	64 0f		stz $0f		                stz cibp
 .80be	64 10		stz $10		                stz cibp+1      ; MSB currently unused
@@ -156,7 +156,7 @@
 .80c4	98		tya		                tya
 .80c5	19 00 02	ora $0200,y	                ora cib,y
 .80c8	d0 03		bne $80cd	                bne lexer_loop
-.80ca	4c 85 84	jmp $8485	                jmp repl_empty_line
+.80ca	4c b6 84	jmp $84b6	                jmp repl_empty_line
 .80cd					lexer_loop:
 .80cd	b9 00 02	lda $0200,y	                lda cib,y
 .80d0	c9 3b		cmp #$3b	                cmp #$3B        ; semicolon
@@ -169,33 +169,33 @@
 .80dc	c9 0d		cmp #$0d	                cmp #AscCR
 .80de	d0 f4		bne $80d4	                bne _comment_loop
 .80e0					_comment_done:
-.80e0	4c f6 81	jmp $81f6	                jmp lexer_next
+.80e0	4c 27 82	jmp $8227	                jmp lexer_next
 .80e3					_no_comment:
-.80e3	20 f8 84	jsr $84f8	                jsr help_is_whitespace
+.80e3	20 58 85	jsr $8558	                jsr help_is_whitespace
 .80e6	90 03		bcc $80eb	                bcc _not_whitespace
-.80e8	4c f6 81	jmp $81f6	                jmp lexer_next
+.80e8	4c 27 82	jmp $8227	                jmp lexer_next
 .80eb					_not_whitespace:
 .80eb					_test_parens:
 .80eb	c9 28		cmp #$28	                cmp #'('        ; check for open parens
 .80ed	d0 08		bne $80f7	                bne _not_parens_start
 .80ef	a9 aa		lda #$aa	                lda #T_PAREN_START
-.80f1	20 06 82	jsr $8206	                jsr lexer_add_token
-.80f4	4c f6 81	jmp $81f6	                jmp lexer_next
+.80f1	20 37 82	jsr $8237	                jsr lexer_add_token
+.80f4	4c 27 82	jmp $8227	                jmp lexer_next
 .80f7					_not_parens_start:
 .80f7	c9 29		cmp #$29	                cmp #')'        ; check for close parens
 .80f9	d0 08		bne $8103	                bne _not_parens_end
 .80fb	a9 ff		lda #$ff	                lda #T_PAREN_END
-.80fd	20 06 82	jsr $8206	                jsr lexer_add_token
-.8100	4c f6 81	jmp $81f6	                jmp lexer_next
+.80fd	20 37 82	jsr $8237	                jsr lexer_add_token
+.8100	4c 27 82	jmp $8227	                jmp lexer_next
 .8103					_not_parens_end:
 .8103	c9 27		cmp #$27	                cmp #$27                ; "'" tick for (quote)
 .8105	d0 08		bne $810f	                bne _not_tick
 .8107	a9 01		lda #$01	                lda #T_TICK
-.8109	20 06 82	jsr $8206	                jsr lexer_add_token
-.810c	4c f6 81	jmp $81f6	                jmp lexer_next
+.8109	20 37 82	jsr $8237	                jsr lexer_add_token
+.810c	4c 27 82	jmp $8227	                jmp lexer_next
 .810f					_not_tick:
 .810f	d0 03		bne $8114	                bne _not_done
-.8111	4c fe 81	jmp $81fe	                jmp lexer_end_of_input          ; not the same as lexer_done
+.8111	4c 2f 82	jmp $822f	                jmp lexer_end_of_input          ; not the same as lexer_done
 .8114					_not_done:
 .8114	c9 23		cmp #$23	                cmp #'#'
 .8116	f0 03		beq $811b	                beq _got_sharp
@@ -206,14 +206,14 @@
 .811f	c9 74		cmp #$74	                cmp #'t'        ; We're optimists so we check for true first
 .8121	d0 08		bne $812b	                bne _not_true
 .8123	a9 02		lda #$02	                lda #T_TRUE
-.8125	20 06 82	jsr $8206	                jsr lexer_add_token
-.8128	4c f6 81	jmp $81f6	                jmp lexer_next
+.8125	20 37 82	jsr $8237	                jsr lexer_add_token
+.8128	4c 27 82	jmp $8227	                jmp lexer_next
 .812b					_not_true:
 .812b	c9 66		cmp #$66	                cmp #'f'
 .812d	d0 08		bne $8137	                bne _not_false
 .812f	a9 03		lda #$03	                lda #T_FALSE
-.8131	20 06 82	jsr $8206	                jsr lexer_add_token
-.8134	4c f6 81	jmp $81f6	                jmp lexer_next
+.8131	20 37 82	jsr $8237	                jsr lexer_add_token
+.8134	4c 27 82	jmp $8227	                jmp lexer_next
 .8137					_not_false:
 .8137	c9 5c		cmp #$5c	                cmp #'\'
 .8139	d0 00		bne $813b	                bne _no_backslash
@@ -240,20 +240,20 @@
 .8156					lexer_got_number:
 .8156	48		pha		                pha                     ; Save the radix for the moment
 .8157	a9 12		lda #$12	                lda #T_NUM_START
-.8159	20 06 82	jsr $8206	                jsr lexer_add_token
+.8159	20 37 82	jsr $8237	                jsr lexer_add_token
 .815c	68		pla		                pla
-.815d	20 06 82	jsr $8206	                jsr lexer_add_token
+.815d	20 37 82	jsr $8237	                jsr lexer_add_token
 .8160	a6 13		ldx $13		                ldx tkbp        ; get index of where length will be
 .8162	86 00		stx $00		                stx tmp0
 .8164	a9 00		lda #$00	                lda #0          ; dummy length value
-.8166	20 06 82	jsr $8206	                jsr lexer_add_token
+.8166	20 37 82	jsr $8237	                jsr lexer_add_token
 .8169	c8		iny		                iny             ; Y is still the input buffer index
 .816a	b9 00 02	lda $0200,y	                lda cib,y
 .816d	a2 00		ldx #$00	                ldx #0          ; X counts length of string
 .816f	c9 2d		cmp #$2d	                cmp #'-'
 .8171	d0 09		bne $817c	                bne _check_for_plus
 .8173	a9 21		lda #$21	                lda #T_MINUS
-.8175	20 06 82	jsr $8206	                jsr lexer_add_token
+.8175	20 37 82	jsr $8237	                jsr lexer_add_token
 .8178	c8		iny		                iny             ; skip minus character
 .8179	e8		inx		                inx             ; string now has length of 1
 .817a	80 0b		bra $8187	                bra _sign_done
@@ -263,35 +263,35 @@
 .8180	c8		iny		                iny
 .8181					_default_plus:
 .8181	a9 20		lda #$20	                lda #T_PLUS
-.8183	20 06 82	jsr $8206	                jsr lexer_add_token
+.8183	20 37 82	jsr $8237	                jsr lexer_add_token
 .8186	e8		inx		                inx             ; string now has length of 1
 .8187					_sign_done:
 .8187	b9 00 02	lda $0200,y	                lda cib,y
 .818a	f0 24		beq $81b0	                beq lexer_terminator_too_early  ; 00 terminates input
-.818c	20 e5 84	jsr $84e5	                jsr help_is_delimiter
+.818c	20 16 85	jsr $8516	                jsr help_is_delimiter
 .818f	b0 1f		bcs $81b0	                bcs lexer_delimiter_too_early
 .8191					_number_loop:
-.8191	20 06 82	jsr $8206	                jsr lexer_add_token
+.8191	20 37 82	jsr $8237	                jsr lexer_add_token
 .8194	e8		inx		                inx             ; String one character longer
 .8195	c8		iny		                iny             ; Next character
 .8196	b9 00 02	lda $0200,y	                lda cib,y
 .8199	f0 07		beq $81a2	                beq _legal_terminator
-.819b	20 e5 84	jsr $84e5	                jsr help_is_delimiter
+.819b	20 16 85	jsr $8516	                jsr help_is_delimiter
 .819e	b0 02		bcs $81a2	                bcs _number_done
 .81a0	80 ef		bra $8191	                bra _number_loop
 .81a2					_legal_terminator:
 .81a2					_number_done:
 .81a2	a9 82		lda #$82	                lda #T_NUM_END
-.81a4	20 06 82	jsr $8206	                jsr lexer_add_token
+.81a4	20 37 82	jsr $8237	                jsr lexer_add_token
 .81a7	8a		txa		                txa             ; number of chars was in X
 .81a8	a6 00		ldx $00		                ldx tmp0        ; index of length byte in token stream
 .81aa	9d 00 03	sta $0300,x	                sta tkb,x
-.81ad	4c f7 81	jmp $81f7	                jmp lexer_next_same_char
+.81ad	4c 28 82	jmp $8228	                jmp lexer_next_same_char
 .81b0					lexer_illegal_radix:
 .81b0					lexer_terminator_too_early:
 .81b0					lexer_delimiter_too_early:
 .81b0	a9 06		lda #$06	                lda #str_bad_number
-.81b2	20 d1 84	jsr $84d1	                jsr help_print_string
+.81b2	20 02 85	jsr $8502	                jsr help_print_string
 .81b5	4c 2d 80	jmp $802d	                jmp repl
 .81b8					lexer_not_octnum
 .81b8					lexer_not_sharp:
@@ -299,7 +299,7 @@
 .81b8	c9 22		cmp #$22	                cmp #$22        ; '"' ASCII value
 .81ba	d0 1f		bne $81db	                bne _not_string
 .81bc	a9 13		lda #$13	                lda #T_STR_START
-.81be	20 06 82	jsr $8206	                jsr lexer_add_token
+.81be	20 37 82	jsr $8237	                jsr lexer_add_token
 .81c1					_string_loop:
 .81c1	c8		iny		                iny
 .81c2	b9 00 02	lda $0200,y	                lda cib,y
@@ -309,45 +309,72 @@
 .81cb	d0 02		bne $81cf	                bne +
 .81cd	a9 0a		lda #$0a	                lda #AscLF
 .81cf					+
-.81cf	20 06 82	jsr $8206	                jsr lexer_add_token
+.81cf	20 37 82	jsr $8237	                jsr lexer_add_token
 .81d2	80 ed		bra $81c1	                bra _string_loop
 .81d4					_string_done:
 .81d4	a9 83		lda #$83	                lda #T_STR_END
-.81d6	20 06 82	jsr $8206	                jsr lexer_add_token
-.81d9	80 1b		bra $81f6	                bra lexer_next
+.81d6	20 37 82	jsr $8237	                jsr lexer_add_token
+.81d9	80 4c		bra $8227	                bra lexer_next
 .81db					_not_string:
 .81db	c9 2e		cmp #$2e	                cmp #'.'
 .81dd	d0 07		bne $81e6	                bne _not_dot
 .81df	a9 05		lda #$05	                lda #T_DOT
-.81e1	20 06 82	jsr $8206	                jsr lexer_add_token
-.81e4	80 10		bra $81f6	                bra lexer_next
+.81e1	20 37 82	jsr $8237	                jsr lexer_add_token
+.81e4	80 41		bra $8227	                bra lexer_next
 .81e6					_not_dot:
-.81e6					lexer_error:
-.81e6	48		pha		                pha
-.81e7	a9 00		lda #$00	                lda #str_unbound
-.81e9	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.81ec	68		pla		                pla
-.81ed	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.81f0	20 af 84	jsr $84af	                jsr help_emit_lf
-.81f3	4c 2d 80	jmp $802d	                jmp repl
-.81f6					lexer_next:
-.81f6	c8		iny		                iny
-.81f7					lexer_next_same_char:
-.81f7	c4 0d		cpy $0d		                cpy ciblen
-.81f9	f0 03		beq $81fe	                beq lexer_end_of_input
-.81fb	4c cd 80	jmp $80cd	                jmp lexer_loop
-.81fe					lexer_end_of_input:
-.81fe	a9 00		lda #$00	                lda #T_END
-.8200	20 06 82	jsr $8206	                jsr lexer_add_token
-.8203	4c 11 82	jmp $8211	                jmp lexer_done
-.8206					lexer_add_token:
-.8206	5a		phy		                phy             ; Could also store in cibp
-.8207	a4 13		ldy $13		                ldy tkbp
-.8209	99 00 03	sta $0300,y	                sta tkb,y       ; LSB is in A
-.820c	c8		iny		                iny
-.820d	84 13		sty $13		                sty tkbp
-.820f	7a		ply		                ply
-.8210	60		rts		                rts
+.81e6	20 41 85	jsr $8541	                jsr help_is_letter
+.81e9	b0 05		bcs $81f0	                bcs _id_found
+.81eb	20 2e 85	jsr $852e	                jsr help_is_extended_alpha
+.81ee	90 27		bcc $8217	                bcc _not_an_id
+.81f0					_id_found:
+.81f0	48		pha		                pha                     ; Save copy of the first character
+.81f1	a9 14		lda #$14	                lda #T_ID_START
+.81f3	20 37 82	jsr $8237	                jsr lexer_add_token
+.81f6	68		pla		                pla
+.81f7					_id_loop:
+.81f7	20 37 82	jsr $8237	                jsr lexer_add_token
+.81fa	c8		iny		                iny
+.81fb	c4 0d		cpy $0d		                cpy ciblen
+.81fd	f0 11		beq $8210	                beq _id_end_of_line     ; Line can just be over
+.81ff	b9 00 02	lda $0200,y	                lda cib,y
+.8202	f0 0c		beq $8210	                beq _id_end_of_line     ; EOL can terminate input
+.8204	20 16 85	jsr $8516	                jsr help_is_delimiter
+.8207	90 ee		bcc $81f7	                bcc _id_loop
+.8209					_id_done:
+.8209	a9 84		lda #$84	                lda #T_ID_END
+.820b	20 37 82	jsr $8237	                jsr lexer_add_token
+.820e	80 18		bra $8228	                bra lexer_next_same_char        ; deal with delimiter
+.8210					_id_end_of_line:
+.8210	a9 84		lda #$84	                lda #T_ID_END
+.8212	20 37 82	jsr $8237	                jsr lexer_add_token
+.8215	80 18		bra $822f	                bra lexer_end_of_input
+.8217					_not_an_id:
+.8217					lexer_error:
+.8217	48		pha		                pha
+.8218	a9 00		lda #$00	                lda #str_unbound
+.821a	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.821d	68		pla		                pla
+.821e	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.8221	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8224	4c 2d 80	jmp $802d	                jmp repl
+.8227					lexer_next:
+.8227	c8		iny		                iny
+.8228					lexer_next_same_char:
+.8228	c4 0d		cpy $0d		                cpy ciblen
+.822a	f0 03		beq $822f	                beq lexer_end_of_input
+.822c	4c cd 80	jmp $80cd	                jmp lexer_loop
+.822f					lexer_end_of_input:
+.822f	a9 00		lda #$00	                lda #T_END
+.8231	20 37 82	jsr $8237	                jsr lexer_add_token
+.8234	4c 42 82	jmp $8242	                jmp lexer_done
+.8237					lexer_add_token:
+.8237	5a		phy		                phy             ; Could also store in cibp
+.8238	a4 13		ldy $13		                ldy tkbp
+.823a	99 00 03	sta $0300,y	                sta tkb,y       ; LSB is in A
+.823d	c8		iny		                iny
+.823e	84 13		sty $13		                sty tkbp
+.8240	7a		ply		                ply
+.8241	60		rts		                rts
 =$00					T_END           = $00   ; Terminates token stream
 =$01					T_TICK          = $01   ; "'" - tick character
 =$02					T_TRUE          = $02   ; '#t'
@@ -366,600 +393,642 @@
 =$84					T_ID_END        = $84   ; Makrs end of an identifier, see T_ID_START
 =$aa					T_PAREN_START   = $AA   ; '(' - parens open
 =$ff					T_PAREN_END     = $FF   ; ')' - parens closed
-.8211					lexer_done:
+.8242					lexer_done:
 
 ;******  Return to file: platforms/../cthulhu.asm
 
 
 ;******  Processing file: platforms/../parser.asm
 
-.8211					parser:
-.8211	20 9f 85	jsr $859f	                jsr debug_dump_token
-.8214	a9 02		lda #$02	                lda #$02        ; Skip dummy cdr at beginning of RAM
-.8216	85 18		sta $18		                sta hp_ast
-.8218	a5 15		lda $15		                lda rsn_ast     ; MSB of RAM segment for AST
-.821a	85 19		sta $19		                sta hp_ast+1
-.821c	85 17		sta $17		                sta astp+1      ; still have MSB of RAM segment
-.821e	64 16		stz $16		                stz astp
-.8220	64 13		stz $13		                stz tkbp
-.8222	64 14		stz $14		                stz tkbp+1      ; fake, currently only using LSB
-.8224	a2 ff		ldx #$ff	                ldx #$FF        ; index -1 at beginning
-.8226					parser_loop:
-.8226	e8		inx		                inx
-.8227	bd 00 03	lda $0300,x	                lda tkb,x
-.822a	c9 01		cmp #$01	                cmp #T_TICK
-.822c	d0 0a		bne $8238	                bne _not_tick
-.822e	a9 02		lda #$02	                lda #<OC_PROC_QUOTE
-.8230	a0 f0		ldy #$f0	                ldy #>OC_PROC_QUOTE
-.8232	20 7b 83	jsr $837b	                jsr parser_add_object_to_ast
-.8235	4c 26 82	jmp $8226	                jmp parser_loop
-.8238					_not_tick:
-.8238	c9 aa		cmp #$aa	                cmp #T_PAREN_START
-.823a	d0 00		bne $823c	                bne _not_paren_start
-.823c					_not_paren_start:
-.823c	c9 ff		cmp #$ff	                cmp #T_PAREN_END
-.823e	d0 00		bne $8240	                bne _not_paren_end
-.8240					_not_paren_end:
-.8240	c9 00		cmp #$00	                cmp #T_END
-.8242	d0 03		bne $8247	                bne _not_end_token
-.8244	4c ba 83	jmp $83ba	                jmp parser_done
-.8247					_not_end_token:
-.8247	c9 02		cmp #$02	                cmp #T_TRUE
-.8249	d0 0a		bne $8255	                bne _not_true_token
-.824b	a9 ff		lda #$ff	                lda <#OC_TRUE
-.824d	a0 1f		ldy #$1f	                ldy >#OC_TRUE
-.824f	20 7b 83	jsr $837b	                jsr parser_add_object_to_ast
-.8252	4c 26 82	jmp $8226	                jmp parser_loop
-.8255					_not_true_token:
-.8255	c9 03		cmp #$03	                cmp #T_FALSE
-.8257	d0 0a		bne $8263	                bne _not_false_token
-.8259	a9 00		lda #$00	                lda <#OC_FALSE
-.825b	a0 10		ldy #$10	                ldy >#OC_FALSE
-.825d	20 7b 83	jsr $837b	                jsr parser_add_object_to_ast
-.8260	4c 26 82	jmp $8226	                jmp parser_loop
-.8263					_not_false_token:
-.8263	c9 12		cmp #$12	                cmp #T_NUM_START
-.8265	f0 03		beq $826a	                beq +
-.8267	4c 10 83	jmp $8310	                jmp parser_not_num      ; too far for BNE
-.826a					+
-.826a	64 02		stz $02		                stz tmp1
-.826c	64 03		stz $03		                stz tmp1+1
-.826e	e8		inx		                inx             ; skip over T_NUM_START token
-.826f	bd 00 03	lda $0300,x	                lda tkb,x
-.8272	85 00		sta $00		                sta tmp0        ; radix
-.8274	e8		inx		                inx
-.8275	bd 00 03	lda $0300,x	                lda tkb,x
-.8278	a8		tay		                tay             ; We need the length of the string later ...
-.8279	88		dey		                dey             ; ... but we don't need to include the sign
-.827a	e8		inx		                inx             ; Move to token for sign, T_PLUS or T_MINUS
-.827b	bd 00 03	lda $0300,x	                lda tkb,x
-.827e	85 01		sta $01		                sta tmp0+1      ; Just store sign for now
-.8280	e8		inx		                inx             ; Move to first digit
-.8281	a5 00		lda $00		                lda tmp0        ; radix
-.8283	c9 0a		cmp #$0a	                cmp #$0a
-.8285	d0 03		bne $828a	                bne _not_dec
-.8287	4c f8 82	jmp $82f8	                jmp parser_common_fixnum
-.828a					_not_dec:
-.828a	c9 10		cmp #$10	                cmp #$10
-.828c	d0 36		bne $82c4	                bne _not_hex
-.828e	98		tya		                tya
-.828f	c9 04		cmp #$04	                cmp #$04
-.8291	90 03		bcc $8296	                bcc _dec_fixnum
-.8293	4c 73 83	jmp $8373	                jmp function_not_available
-.8296					_dec_fixnum:
-.8296					_hex_fixnum_loop:
-.8296	bd 00 03	lda $0300,x	                lda tkb,x
-.8299	c9 82		cmp #$82	                cmp #T_NUM_END
-.829b	f0 24		beq $82c1	                beq _done_hex
-.829d	20 0f 85	jsr $850f	                jsr help_hexascii_to_value
-.82a0	10 03		bpl $82a5	                bpl _legal_hex_digit
-.82a2	4c 6b 83	jmp $836b	                jmp parser_bad_digit
-.82a5					_legal_hex_digit:
-.82a5	0a		asl a		                asl
-.82a6	0a		asl a		                asl
-.82a7	0a		asl a		                asl
-.82a8	0a		asl a		                asl
-.82a9	2a		rol a		                rol             ; bit 7 of A now in carry flag
-.82aa	26 03		rol $03		                rol tmp1+1      ; bit 7 of tmp1+1 now in carry flag
-.82ac	26 02		rol $02		                rol tmp1        ; now is bit 0 of tmp1
-.82ae	2a		rol a		                rol
-.82af	26 03		rol $03		                rol tmp1+1
-.82b1	26 02		rol $02		                rol tmp1
-.82b3	2a		rol a		                rol
-.82b4	26 03		rol $03		                rol tmp1+1
-.82b6	26 02		rol $02		                rol tmp1
-.82b8	2a		rol a		                rol
-.82b9	26 03		rol $03		                rol tmp1+1
-.82bb	26 02		rol $02		                rol tmp1
-.82bd	e8		inx		                inx
-.82be	88		dey		                dey
-.82bf	d0 d5		bne $8296	                bne _hex_fixnum_loop
-.82c1					_done_hex:
-.82c1	4c f8 82	jmp $82f8	                jmp parser_common_fixnum
-.82c4					_not_hex:
-.82c4	c9 02		cmp #$02	                cmp #$02
-.82c6	d0 28		bne $82f0	                bne _not_binary
-.82c8	98		tya		                tya
-.82c9	c9 0d		cmp #$0d	                cmp #$0D                ; "smaller than 13"
-.82cb	90 03		bcc $82d0	                bcc _bin_fixnum
-.82cd	4c 73 83	jmp $8373	                jmp function_not_available
-.82d0					_bin_fixnum:
-.82d0					_bin_fixnum_loop:
-.82d0	bd 00 03	lda $0300,x	                lda tkb,x
-.82d3	c9 30		cmp #$30	                cmp #'0'
-.82d5	f0 0b		beq $82e2	                beq _legal_bit_char
-.82d7	c9 31		cmp #$31	                cmp #'1'
-.82d9	f0 07		beq $82e2	                beq _legal_bit_char
-.82db	c9 82		cmp #$82	                cmp #T_NUM_END
-.82dd	f0 0e		beq $82ed	                beq _done_bin
-.82df	4c 6b 83	jmp $836b	                jmp parser_bad_digit
-.82e2					_legal_bit_char:
-.82e2	29 01		and #$01	                and #$01                ; gives us $00 or $01
-.82e4	6a		ror a		                ror                     ; push the bit into carry flag
-.82e5	26 03		rol $03		                rol tmp1+1              ; rotate the carry flag into LSB ...
-.82e7	26 02		rol $02		                rol tmp1                ; ... and highest bit of tmp1+1 to tmp1
-.82e9	e8		inx		                inx                     ; next character
-.82ea	88		dey		                dey                     ; decrease counter
-.82eb	d0 e3		bne $82d0	                bne _bin_fixnum_loop
-.82ed					_done_bin:
-.82ed	4c f8 82	jmp $82f8	                jmp parser_common_fixnum
-.82f0					_not_binary:
-.82f0					_illegal_radix:
-.82f0	48		pha		                pha                             ; save the evil radix
-.82f1	a9 07		lda #$07	                lda #str_bad_radix
-.82f3	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.82f6	80 69		bra $8361	                bra parser_common_panic         ; prints offending byte and LF
-.82f8					parser_common_fixnum:
-.82f8	a5 01		lda $01		                lda tmp0+1
-.82fa	c9 21		cmp #$21	                cmp #T_MINUS
-.82fc	f0 08		beq $8306	                beq _negative_number
-.82fe	a9 20		lda #$20	                lda #OT_FIXNUM
-.8300	05 02		ora $02		                ora tmp1        ; construct tag byte with MSB of number
-.8302	85 02		sta $02		                sta tmp1
-.8304	80 00		bra $8306	                bra _add_fixnum_to_ast
-.8306					_negative_number:
-.8306					_add_fixnum_to_ast:
-.8306	a5 03		lda $03		                lda tmp1+1
-.8308	a4 02		ldy $02		                ldy tmp1
-.830a	20 7b 83	jsr $837b	                jsr parser_add_object_to_ast
-.830d					_num_done:
-.830d	4c 26 82	jmp $8226	                jmp parser_loop
-.8310					parser_not_num:
-.8310	c9 13		cmp #$13	                cmp #T_STR_START
-.8312	d0 47		bne $835b	                bne parser_not_string
-.8314	a5 1e		lda $1e		                lda hp_str+1    ; MSB of next free byte in string RAM segment
-.8316	29 0f		and #$0f	                and #$0F        ; mask high nibble (paranoid)
-.8318	09 50		ora #$50	                ora #OT_STRING  ; object tag nibble for strings
-.831a	a8		tay		                tay             ; MSB goes in Y
-.831b	a5 1d		lda $1d		                lda hp_str      ; LSB goes in A
-.831d	20 7b 83	jsr $837b	                jsr parser_add_object_to_ast   ; Updates AST heap pointer
-.8320	e8		inx		                inx             ; move to first character of string
-.8321	a0 00		ldy #$00	                ldy #0
-.8323					_string_loop:
-.8323	bd 00 03	lda $0300,x	                lda tkb,x
-.8326	c9 83		cmp #$83	                cmp #T_STR_END
-.8328	f0 06		beq $8330	                beq _string_end
-.832a	91 1d		sta ($1d),y	                sta (hp_str),y
-.832c	c8		iny		                iny
-.832d	e8		inx		                inx
-.832e	80 f3		bra $8323	                bra _string_loop
-.8330					_string_end:
-.8330	a9 00		lda #$00	                lda #0
-.8332	c8		iny		                iny
-.8333	91 1d		sta ($1d),y	                sta (hp_str),y
-.8335	98		tya		                tya
-.8336	18		clc		                clc
-.8337	65 1d		adc $1d		                adc hp_str
-.8339	85 1d		sta $1d		                sta hp_str
-.833b	90 02		bcc $833f	                bcc +
-.833d	e6 1e		inc $1e		                inc hp_str+1
-.833f					+
-.833f	a9 00		lda #$00	                lda #0
-.8341	92 1d		sta ($1d)	                sta (hp_str)
-.8343	a0 01		ldy #$01	                ldy #1
-.8345	91 1d		sta ($1d),y	                sta (hp_str),y
-.8347	a5 1d		lda $1d		                lda hp_str
-.8349	85 1b		sta $1b		                sta strp
-.834b	a5 1e		lda $1e		                lda hp_str+1
-.834d	85 1c		sta $1c		                sta strp+1
-.834f	98		tya		                tya             ; #1
-.8350	1a		inc a		                inc a
-.8351	18		clc		                clc
-.8352	65 1d		adc $1d		                adc hp_str
-.8354	90 02		bcc $8358	                bcc +
-.8356	e6 1e		inc $1e		                inc hp_str+1
-.8358					+
-.8358	4c 26 82	jmp $8226	                jmp parser_loop
-.835b					parser_not_string:
-.835b					paser_bad_token:
-.835b	48		pha		                pha                             ; save the evil token
-.835c	a9 04		lda #$04	                lda #str_bad_token
-.835e	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.8361					parser_common_panic:
-.8361	68		pla		                pla
-.8362	20 98 84	jsr $8498	                jsr help_byte_to_ascii          ; print bad token as hex number
-.8365	20 af 84	jsr $84af	                jsr help_emit_lf
-.8368	4c 2d 80	jmp $802d	                jmp repl
-.836b					parser_bad_digit:
-.836b	48		pha		                pha
-.836c	a9 06		lda #$06	                lda #str_bad_number
-.836e	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.8371	80 ee		bra $8361	                bra parser_common_panic
-.8373					function_not_available:
-.8373	a9 08		lda #$08	                lda #str_cant_yet
-.8375	20 d1 84	jsr $84d1	                jsr help_print_string
-.8378	4c 2d 80	jmp $802d	                jmp repl
-.837b					parser_add_object_to_ast:
-.837b	da		phx		                phx             ; save index to token buffer
-.837c	5a		phy		                phy             ; save MSB of the object (with tag)
-.837d	48		pha		                pha             ; save LSB of the object
-.837e	a5 18		lda $18		                lda hp_ast
-.8380	85 00		sta $00		                sta tmp0
-.8382	a5 19		lda $19		                lda hp_ast+1
-.8384	85 01		sta $01		                sta tmp0+1
-.8386	a9 00		lda #$00	                lda <#OC_EMPTY_LIST
-.8388	a0 00		ldy #$00	                ldy #0
-.838a	91 18		sta ($18),y	                sta (hp_ast),y
-.838c	c8		iny		                iny
-.838d	a9 00		lda #$00	                lda >#OC_EMPTY_LIST
-.838f	91 18		sta ($18),y	                sta (hp_ast),y
-.8391	c8		iny		                iny
-.8392	68		pla		                pla             ; retrieve LSB of object, was in A
-.8393	91 18		sta ($18),y	                sta (hp_ast),y
-.8395	c8		iny		                iny
-.8396	68		pla		                pla             ; retrieve MSB (with tag), was in Y
-.8397	91 18		sta ($18),y	                sta (hp_ast),y
-.8399	c8		iny		                iny
-.839a	98		tya		                tya
-.839b	18		clc		                clc
-.839c	65 18		adc $18		                adc hp_ast
-.839e	85 18		sta $18		                sta hp_ast
-.83a0	90 02		bcc $83a4	                bcc _store_address
-.83a2	e6 19		inc $19		                inc hp_ast+1
-.83a4					_store_address:
-.83a4	a5 01		lda $01		                lda tmp0+1      ; original MSB of hp_ast, which is just an addr
-.83a6	29 0f		and #$0f	                and #$0F        ; mask whatever the high nibble was (paranoid)
-.83a8	09 80		ora #$80	                ora #OT_PAIR
-.83aa	a0 01		ldy #$01	                ldy #1
-.83ac	91 16		sta ($16),y	                sta (astp),y
-.83ae	a5 00		lda $00		                lda tmp0        ; original LSB of hp_ast
-.83b0	92 16		sta ($16)	                sta (astp)
-.83b2	85 16		sta $16		                sta astp        ; still have original LSB
-.83b4	a5 01		lda $01		                lda tmp0+1
-.83b6	85 17		sta $17		                sta astp+1      ; MSB, was tmp0+1
-.83b8	fa		plx		                plx             ; get back index for token buffer
-.83b9	60		rts		                rts
+.8242					parser:
+.8242	20 ff 85	jsr $85ff	                jsr debug_dump_token
+.8245	a9 02		lda #$02	                lda #$02        ; Skip dummy cdr at beginning of RAM
+.8247	85 18		sta $18		                sta hp_ast
+.8249	a5 15		lda $15		                lda rsn_ast     ; MSB of RAM segment for AST
+.824b	85 19		sta $19		                sta hp_ast+1
+.824d	85 17		sta $17		                sta astp+1      ; still have MSB of RAM segment
+.824f	64 16		stz $16		                stz astp
+.8251	64 13		stz $13		                stz tkbp
+.8253	64 14		stz $14		                stz tkbp+1      ; fake, currently only using LSB
+.8255	a2 ff		ldx #$ff	                ldx #$FF        ; index -1 at beginning
+.8257					parser_loop:
+.8257	e8		inx		                inx
+.8258	bd 00 03	lda $0300,x	                lda tkb,x
+.825b	c9 01		cmp #$01	                cmp #T_TICK
+.825d	d0 0a		bne $8269	                bne _not_tick
+.825f	a9 02		lda #$02	                lda #<OC_PROC_QUOTE
+.8261	a0 f0		ldy #$f0	                ldy #>OC_PROC_QUOTE
+.8263	20 ac 83	jsr $83ac	                jsr parser_add_object_to_ast
+.8266	4c 57 82	jmp $8257	                jmp parser_loop
+.8269					_not_tick:
+.8269	c9 aa		cmp #$aa	                cmp #T_PAREN_START
+.826b	d0 00		bne $826d	                bne _not_paren_start
+.826d					_not_paren_start:
+.826d	c9 ff		cmp #$ff	                cmp #T_PAREN_END
+.826f	d0 00		bne $8271	                bne _not_paren_end
+.8271					_not_paren_end:
+.8271	c9 00		cmp #$00	                cmp #T_END
+.8273	d0 03		bne $8278	                bne _not_end_token
+.8275	4c eb 83	jmp $83eb	                jmp parser_done
+.8278					_not_end_token:
+.8278	c9 02		cmp #$02	                cmp #T_TRUE
+.827a	d0 0a		bne $8286	                bne _not_true_token
+.827c	a9 ff		lda #$ff	                lda <#OC_TRUE
+.827e	a0 1f		ldy #$1f	                ldy >#OC_TRUE
+.8280	20 ac 83	jsr $83ac	                jsr parser_add_object_to_ast
+.8283	4c 57 82	jmp $8257	                jmp parser_loop
+.8286					_not_true_token:
+.8286	c9 03		cmp #$03	                cmp #T_FALSE
+.8288	d0 0a		bne $8294	                bne _not_false_token
+.828a	a9 00		lda #$00	                lda <#OC_FALSE
+.828c	a0 10		ldy #$10	                ldy >#OC_FALSE
+.828e	20 ac 83	jsr $83ac	                jsr parser_add_object_to_ast
+.8291	4c 57 82	jmp $8257	                jmp parser_loop
+.8294					_not_false_token:
+.8294	c9 12		cmp #$12	                cmp #T_NUM_START
+.8296	f0 03		beq $829b	                beq +
+.8298	4c 41 83	jmp $8341	                jmp parser_not_num      ; too far for BNE
+.829b					+
+.829b	64 02		stz $02		                stz tmp1
+.829d	64 03		stz $03		                stz tmp1+1
+.829f	e8		inx		                inx             ; skip over T_NUM_START token
+.82a0	bd 00 03	lda $0300,x	                lda tkb,x
+.82a3	85 00		sta $00		                sta tmp0        ; radix
+.82a5	e8		inx		                inx
+.82a6	bd 00 03	lda $0300,x	                lda tkb,x
+.82a9	a8		tay		                tay             ; We need the length of the string later ...
+.82aa	88		dey		                dey             ; ... but we don't need to include the sign
+.82ab	e8		inx		                inx             ; Move to token for sign, T_PLUS or T_MINUS
+.82ac	bd 00 03	lda $0300,x	                lda tkb,x
+.82af	85 01		sta $01		                sta tmp0+1      ; Just store sign for now
+.82b1	e8		inx		                inx             ; Move to first digit
+.82b2	a5 00		lda $00		                lda tmp0        ; radix
+.82b4	c9 0a		cmp #$0a	                cmp #$0a
+.82b6	d0 03		bne $82bb	                bne _not_dec
+.82b8	4c 29 83	jmp $8329	                jmp parser_common_fixnum
+.82bb					_not_dec:
+.82bb	c9 10		cmp #$10	                cmp #$10
+.82bd	d0 36		bne $82f5	                bne _not_hex
+.82bf	98		tya		                tya
+.82c0	c9 04		cmp #$04	                cmp #$04
+.82c2	90 03		bcc $82c7	                bcc _dec_fixnum
+.82c4	4c a4 83	jmp $83a4	                jmp function_not_available
+.82c7					_dec_fixnum:
+.82c7					_hex_fixnum_loop:
+.82c7	bd 00 03	lda $0300,x	                lda tkb,x
+.82ca	c9 82		cmp #$82	                cmp #T_NUM_END
+.82cc	f0 24		beq $82f2	                beq _done_hex
+.82ce	20 6f 85	jsr $856f	                jsr help_hexascii_to_value
+.82d1	10 03		bpl $82d6	                bpl _legal_hex_digit
+.82d3	4c 9c 83	jmp $839c	                jmp parser_bad_digit
+.82d6					_legal_hex_digit:
+.82d6	0a		asl a		                asl
+.82d7	0a		asl a		                asl
+.82d8	0a		asl a		                asl
+.82d9	0a		asl a		                asl
+.82da	2a		rol a		                rol             ; bit 7 of A now in carry flag
+.82db	26 03		rol $03		                rol tmp1+1      ; bit 7 of tmp1+1 now in carry flag
+.82dd	26 02		rol $02		                rol tmp1        ; now is bit 0 of tmp1
+.82df	2a		rol a		                rol
+.82e0	26 03		rol $03		                rol tmp1+1
+.82e2	26 02		rol $02		                rol tmp1
+.82e4	2a		rol a		                rol
+.82e5	26 03		rol $03		                rol tmp1+1
+.82e7	26 02		rol $02		                rol tmp1
+.82e9	2a		rol a		                rol
+.82ea	26 03		rol $03		                rol tmp1+1
+.82ec	26 02		rol $02		                rol tmp1
+.82ee	e8		inx		                inx
+.82ef	88		dey		                dey
+.82f0	d0 d5		bne $82c7	                bne _hex_fixnum_loop
+.82f2					_done_hex:
+.82f2	4c 29 83	jmp $8329	                jmp parser_common_fixnum
+.82f5					_not_hex:
+.82f5	c9 02		cmp #$02	                cmp #$02
+.82f7	d0 28		bne $8321	                bne _not_binary
+.82f9	98		tya		                tya
+.82fa	c9 0d		cmp #$0d	                cmp #$0D                ; "smaller than 13"
+.82fc	90 03		bcc $8301	                bcc _bin_fixnum
+.82fe	4c a4 83	jmp $83a4	                jmp function_not_available
+.8301					_bin_fixnum:
+.8301					_bin_fixnum_loop:
+.8301	bd 00 03	lda $0300,x	                lda tkb,x
+.8304	c9 30		cmp #$30	                cmp #'0'
+.8306	f0 0b		beq $8313	                beq _legal_bit_char
+.8308	c9 31		cmp #$31	                cmp #'1'
+.830a	f0 07		beq $8313	                beq _legal_bit_char
+.830c	c9 82		cmp #$82	                cmp #T_NUM_END
+.830e	f0 0e		beq $831e	                beq _done_bin
+.8310	4c 9c 83	jmp $839c	                jmp parser_bad_digit
+.8313					_legal_bit_char:
+.8313	29 01		and #$01	                and #$01                ; gives us $00 or $01
+.8315	6a		ror a		                ror                     ; push the bit into carry flag
+.8316	26 03		rol $03		                rol tmp1+1              ; rotate the carry flag into LSB ...
+.8318	26 02		rol $02		                rol tmp1                ; ... and highest bit of tmp1+1 to tmp1
+.831a	e8		inx		                inx                     ; next character
+.831b	88		dey		                dey                     ; decrease counter
+.831c	d0 e3		bne $8301	                bne _bin_fixnum_loop
+.831e					_done_bin:
+.831e	4c 29 83	jmp $8329	                jmp parser_common_fixnum
+.8321					_not_binary:
+.8321					_illegal_radix:
+.8321	48		pha		                pha                             ; save the evil radix
+.8322	a9 07		lda #$07	                lda #str_bad_radix
+.8324	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.8327	80 69		bra $8392	                bra parser_common_panic         ; prints offending byte and LF
+.8329					parser_common_fixnum:
+.8329	a5 01		lda $01		                lda tmp0+1
+.832b	c9 21		cmp #$21	                cmp #T_MINUS
+.832d	f0 08		beq $8337	                beq _negative_number
+.832f	a9 20		lda #$20	                lda #OT_FIXNUM
+.8331	05 02		ora $02		                ora tmp1        ; construct tag byte with MSB of number
+.8333	85 02		sta $02		                sta tmp1
+.8335	80 00		bra $8337	                bra _add_fixnum_to_ast
+.8337					_negative_number:
+.8337					_add_fixnum_to_ast:
+.8337	a5 03		lda $03		                lda tmp1+1
+.8339	a4 02		ldy $02		                ldy tmp1
+.833b	20 ac 83	jsr $83ac	                jsr parser_add_object_to_ast
+.833e					_num_done:
+.833e	4c 57 82	jmp $8257	                jmp parser_loop
+.8341					parser_not_num:
+.8341	c9 13		cmp #$13	                cmp #T_STR_START
+.8343	d0 47		bne $838c	                bne parser_not_string
+.8345	a5 1e		lda $1e		                lda hp_str+1    ; MSB of next free byte in string RAM segment
+.8347	29 0f		and #$0f	                and #$0F        ; mask high nibble (paranoid)
+.8349	09 50		ora #$50	                ora #OT_STRING  ; object tag nibble for strings
+.834b	a8		tay		                tay             ; MSB goes in Y
+.834c	a5 1d		lda $1d		                lda hp_str      ; LSB goes in A
+.834e	20 ac 83	jsr $83ac	                jsr parser_add_object_to_ast   ; Updates AST heap pointer
+.8351	e8		inx		                inx             ; move to first character of string
+.8352	a0 00		ldy #$00	                ldy #0
+.8354					_string_loop:
+.8354	bd 00 03	lda $0300,x	                lda tkb,x
+.8357	c9 83		cmp #$83	                cmp #T_STR_END
+.8359	f0 06		beq $8361	                beq _string_end
+.835b	91 1d		sta ($1d),y	                sta (hp_str),y
+.835d	c8		iny		                iny
+.835e	e8		inx		                inx
+.835f	80 f3		bra $8354	                bra _string_loop
+.8361					_string_end:
+.8361	a9 00		lda #$00	                lda #0
+.8363	c8		iny		                iny
+.8364	91 1d		sta ($1d),y	                sta (hp_str),y
+.8366	98		tya		                tya
+.8367	18		clc		                clc
+.8368	65 1d		adc $1d		                adc hp_str
+.836a	85 1d		sta $1d		                sta hp_str
+.836c	90 02		bcc $8370	                bcc +
+.836e	e6 1e		inc $1e		                inc hp_str+1
+.8370					+
+.8370	a9 00		lda #$00	                lda #0
+.8372	92 1d		sta ($1d)	                sta (hp_str)
+.8374	a0 01		ldy #$01	                ldy #1
+.8376	91 1d		sta ($1d),y	                sta (hp_str),y
+.8378	a5 1d		lda $1d		                lda hp_str
+.837a	85 1b		sta $1b		                sta strp
+.837c	a5 1e		lda $1e		                lda hp_str+1
+.837e	85 1c		sta $1c		                sta strp+1
+.8380	98		tya		                tya             ; #1
+.8381	1a		inc a		                inc a
+.8382	18		clc		                clc
+.8383	65 1d		adc $1d		                adc hp_str
+.8385	90 02		bcc $8389	                bcc +
+.8387	e6 1e		inc $1e		                inc hp_str+1
+.8389					+
+.8389	4c 57 82	jmp $8257	                jmp parser_loop
+.838c					parser_not_string:
+.838c					paser_bad_token:
+.838c	48		pha		                pha                             ; save the evil token
+.838d	a9 04		lda #$04	                lda #str_bad_token
+.838f	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.8392					parser_common_panic:
+.8392	68		pla		                pla
+.8393	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii          ; print bad token as hex number
+.8396	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8399	4c 2d 80	jmp $802d	                jmp repl
+.839c					parser_bad_digit:
+.839c	48		pha		                pha
+.839d	a9 06		lda #$06	                lda #str_bad_number
+.839f	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.83a2	80 ee		bra $8392	                bra parser_common_panic
+.83a4					function_not_available:
+.83a4	a9 08		lda #$08	                lda #str_cant_yet
+.83a6	20 02 85	jsr $8502	                jsr help_print_string
+.83a9	4c 2d 80	jmp $802d	                jmp repl
+.83ac					parser_add_object_to_ast:
+.83ac	da		phx		                phx             ; save index to token buffer
+.83ad	5a		phy		                phy             ; save MSB of the object (with tag)
+.83ae	48		pha		                pha             ; save LSB of the object
+.83af	a5 18		lda $18		                lda hp_ast
+.83b1	85 00		sta $00		                sta tmp0
+.83b3	a5 19		lda $19		                lda hp_ast+1
+.83b5	85 01		sta $01		                sta tmp0+1
+.83b7	a9 00		lda #$00	                lda <#OC_EMPTY_LIST
+.83b9	a0 00		ldy #$00	                ldy #0
+.83bb	91 18		sta ($18),y	                sta (hp_ast),y
+.83bd	c8		iny		                iny
+.83be	a9 00		lda #$00	                lda >#OC_EMPTY_LIST
+.83c0	91 18		sta ($18),y	                sta (hp_ast),y
+.83c2	c8		iny		                iny
+.83c3	68		pla		                pla             ; retrieve LSB of object, was in A
+.83c4	91 18		sta ($18),y	                sta (hp_ast),y
+.83c6	c8		iny		                iny
+.83c7	68		pla		                pla             ; retrieve MSB (with tag), was in Y
+.83c8	91 18		sta ($18),y	                sta (hp_ast),y
+.83ca	c8		iny		                iny
+.83cb	98		tya		                tya
+.83cc	18		clc		                clc
+.83cd	65 18		adc $18		                adc hp_ast
+.83cf	85 18		sta $18		                sta hp_ast
+.83d1	90 02		bcc $83d5	                bcc _store_address
+.83d3	e6 19		inc $19		                inc hp_ast+1
+.83d5					_store_address:
+.83d5	a5 01		lda $01		                lda tmp0+1      ; original MSB of hp_ast, which is just an addr
+.83d7	29 0f		and #$0f	                and #$0F        ; mask whatever the high nibble was (paranoid)
+.83d9	09 80		ora #$80	                ora #OT_PAIR
+.83db	a0 01		ldy #$01	                ldy #1
+.83dd	91 16		sta ($16),y	                sta (astp),y
+.83df	a5 00		lda $00		                lda tmp0        ; original LSB of hp_ast
+.83e1	92 16		sta ($16)	                sta (astp)
+.83e3	85 16		sta $16		                sta astp        ; still have original LSB
+.83e5	a5 01		lda $01		                lda tmp0+1
+.83e7	85 17		sta $17		                sta astp+1      ; MSB, was tmp0+1
+.83e9	fa		plx		                plx             ; get back index for token buffer
+.83ea	60		rts		                rts
 =$0000					OC_EMPTY_LIST = $0000   ; end of list terminating object "()"
 =$1fff					OC_TRUE       = $1fff   ; true bool #t, immediate
 =$1000					OC_FALSE      = $1000   ; false bool #f, immediate
 =$f000					OC_PROC_APPLY = $F000   ; primitive procedure (apply)
 =$f002					OC_PROC_QUOTE = $F002   ; primitive procedure (quote)
-.83ba					parser_done:
+.83eb					parser_done:
 
 ;******  Return to file: platforms/../cthulhu.asm
 
 
 ;******  Processing file: platforms/../eval.asm
 
-.83ba					eval:
-.83ba	20 d2 85	jsr $85d2	                jsr debug_dump_ast
-.83bd	20 c0 85	jsr $85c0	                jsr debug_dump_hp
-.83c0	a5 15		lda $15		                lda rsn_ast             ; RAM segment nibble, default $10
-.83c2	a0 02		ldy #$02	                ldy #2                  ; by definition
-.83c4	20 37 85	jsr $8537	                jsr help_walk_init      ; returns car in A and Y
-.83c7					eval_loop:
-.83c7	08		php		                php
-.83c8	29 f0		and #$f0	                and #$f0
-.83ca	4a		lsr a		                lsr
-.83cb	4a		lsr a		                lsr
-.83cc	4a		lsr a		                lsr             ; fourth LSR and ASL cancle each other out
-.83cd	aa		tax		                tax
-.83ce	7c e9 83	jmp ($83e9,x)	                jmp (eval_table,X)
-.83d1					eval_next:
-.83d1	28		plp		                plp
-.83d2	b0 35		bcs $8409	                bcs eval_done           ; probably later a JMP
-.83d4	20 3d 85	jsr $853d	                jsr help_walk_next
-.83d7	80 ee		bra $83c7	                bra eval_loop
-.83d9					eval_0_meta:
-.83d9					eval_1_bool:
-.83d9					eval_2_fixnum:
-.83d9					eval_3_bignum:
-.83d9					eval_4_char:
-.83d9					eval_5_string:
-.83d9	80 f6		bra $83d1	                bra eval_next           ; paranoid, never reached
-.83db					eval_6_UNDEFINED:
-.83db					eval_7_UNDEFINED:
-.83db					eval_8_pair:
-.83db	80 f4		bra $83d1	                bra eval_next   ; paranoid, currently not reached
-.83dd					eval_9_UNDEFINED:
-.83dd					eval_A_UNDEFINED:
-.83dd					eval_B_UNDEFINED:
-.83dd					eval_C_UNDEFINED:
-.83dd					eval_D_UNDEFINED:
-.83dd					eval_E_UNDEFINED:
-.83dd					eval_f_proc:
-.83dd	98		tya		        tya
-.83de	b9 7c 85	lda $857c,y	        lda proc_table_lsb,y    ; LSB of jump target
-.83e1	85 0a		sta $0a		        sta jump
-.83e3	b9 7f 85	lda $857f,y	        lda proc_table_msb,y    ; MSB of jump target
-.83e6	6c 0a 00	jmp ($000a)	        jmp (jump)
-.83e9					eval_table:
->83e9	09 84 d1 83 d1 83 d1 83		        .word eval_done, eval_next, eval_next, eval_next
->83f1	d1 83 d1 83 d1 83 d1 83		        .word eval_next, eval_next, eval_next, eval_next
->83f9	db 83 d1 83 d1 83 d1 83		        .word eval_8_pair, eval_next, eval_next, eval_next
->8401	d1 83 d1 83 d1 83 dd 83		        .word eval_next, eval_next, eval_next, eval_f_proc
-.8409					eval_done:
+.83eb					eval:
+.83eb	20 32 86	jsr $8632	                jsr debug_dump_ast
+.83ee	20 20 86	jsr $8620	                jsr debug_dump_hp
+.83f1	a5 15		lda $15		                lda rsn_ast             ; RAM segment nibble, default $10
+.83f3	a0 02		ldy #$02	                ldy #2                  ; by definition
+.83f5	20 97 85	jsr $8597	                jsr help_walk_init      ; returns car in A and Y
+.83f8					eval_loop:
+.83f8	08		php		                php
+.83f9	29 f0		and #$f0	                and #$f0
+.83fb	4a		lsr a		                lsr
+.83fc	4a		lsr a		                lsr
+.83fd	4a		lsr a		                lsr             ; fourth LSR and ASL cancle each other out
+.83fe	aa		tax		                tax
+.83ff	7c 1a 84	jmp ($841a,x)	                jmp (eval_table,X)
+.8402					eval_next:
+.8402	28		plp		                plp
+.8403	b0 35		bcs $843a	                bcs eval_done           ; probably later a JMP
+.8405	20 9d 85	jsr $859d	                jsr help_walk_next
+.8408	80 ee		bra $83f8	                bra eval_loop
+.840a					eval_0_meta:
+.840a					eval_1_bool:
+.840a					eval_2_fixnum:
+.840a					eval_3_bignum:
+.840a					eval_4_char:
+.840a					eval_5_string:
+.840a	80 f6		bra $8402	                bra eval_next           ; paranoid, never reached
+.840c					eval_6_UNDEFINED:
+.840c					eval_7_UNDEFINED:
+.840c					eval_8_pair:
+.840c	80 f4		bra $8402	                bra eval_next   ; paranoid, currently not reached
+.840e					eval_9_UNDEFINED:
+.840e					eval_A_UNDEFINED:
+.840e					eval_B_UNDEFINED:
+.840e					eval_C_UNDEFINED:
+.840e					eval_D_UNDEFINED:
+.840e					eval_E_UNDEFINED:
+.840e					eval_f_proc:
+.840e	98		tya		        tya
+.840f	b9 dc 85	lda $85dc,y	        lda proc_table_lsb,y    ; LSB of jump target
+.8412	85 0a		sta $0a		        sta jump
+.8414	b9 df 85	lda $85df,y	        lda proc_table_msb,y    ; MSB of jump target
+.8417	6c 0a 00	jmp ($000a)	        jmp (jump)
+.841a					eval_table:
+>841a	3a 84 02 84 02 84 02 84		        .word eval_done, eval_next, eval_next, eval_next
+>8422	02 84 02 84 02 84 02 84		        .word eval_next, eval_next, eval_next, eval_next
+>842a	0c 84 02 84 02 84 02 84		        .word eval_8_pair, eval_next, eval_next, eval_next
+>8432	02 84 02 84 02 84 0e 84		        .word eval_next, eval_next, eval_next, eval_f_proc
+.843a					eval_done:
 
 ;******  Return to file: platforms/../cthulhu.asm
 
 
 ;******  Processing file: platforms/../printer.asm
 
-.8409					printer:
-.8409	20 d2 85	jsr $85d2	                jsr debug_dump_ast
-.840c	a5 15		lda $15		                lda rsn_ast     ; RAM segment nibble
-.840e	a0 02		ldy #$02	                ldy #02         ; by definition
-.8410	20 37 85	jsr $8537	                jsr help_walk_init
-.8413					printer_loop:
-.8413	08		php		                php
-.8414	29 f0		and #$f0	                and #$f0        ; mask all but tag nibble
-.8416	4a		lsr a		                lsr
-.8417	4a		lsr a		                lsr
-.8418	4a		lsr a		                lsr     ; Fourth LSR and ASL cancle each other
-.8419	aa		tax		                tax
-.841a	20 af 84	jsr $84af	                jsr help_emit_lf
-.841d	7c 62 84	jmp ($8462,x)	                jmp (printer_table,X)
-.8420					printer_next:
-.8420	28		plp		                plp                     ; from PHP
-.8421	b0 5f		bcs $8482	                bcs printer_done        ; probably a JMP later
-.8423	20 3d 85	jsr $853d	                jsr help_walk_next
-.8426	80 eb		bra $8413	                bra printer_loop
-.8428					printer_0_meta:
-.8428	80 58		bra $8482	                bra printer_done
-.842a					printer_1_bool:
-.842a	a5 22		lda $22		                lda walk_car+1          ; MSB of car
-.842c	29 0f		and #$0f	                and #$0F                ; Get rid of tag
-.842e	05 21		ora $21		                ora walk_car
-.8430	d0 04		bne $8436	                bne _bool_true          ; not a zero means true
-.8432	a9 03		lda #$03	                lda #str_false
-.8434	80 02		bra $8438	                bra _bool_printer
-.8436					_bool_true:
-.8436	a9 02		lda #$02	                lda #str_true
-.8438					_bool_printer:
-.8438	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.843b	80 e3		bra $8420	                bra printer_next
-.843d					printer_2_fixnum:
-.843d	a5 22		lda $22		                lda walk_car+1          ; MSB
-.843f	29 0f		and #$0f	                and #$0F                ; Mask tag
-.8441	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.8444	98		tya		                tya                     ; still Y
-.8445	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.8448	80 d6		bra $8420	                bra printer_next
-.844a					printer_3_bignum:
-.844a					printer_4_char:
-.844a					printer_5_string:
-.844a	a5 22		lda $22		                lda walk_car+1          ; MSB
-.844c	29 0f		and #$0f	                and #$0F                ; mask tag
-.844e	05 1a		ora $1a		                ora rsn_str             ; merge with section nibble instead
-.8450	85 05		sta $05		                sta tmp2+1
-.8452	84 04		sty $04		                sty tmp2                ; LSB
-.8454	a0 00		ldy #$00	                ldy #0
-.8456					_string_loop:
-.8456	b1 04		lda ($04),y	                lda (tmp2),y
-.8458	f0 c6		beq $8420	                beq printer_next       ; string is zero terminated
-.845a	20 b1 84	jsr $84b1	                jsr help_emit_a
-.845d	c8		iny		                iny
-.845e	80 f6		bra $8456	                bra _string_loop
-.8460					printer_6_UNDEFINED:
-.8460					printer_7_UNDEFINED:
-.8460					printer_8_UNDEFINED:
-.8460					printer_9_UNDEFINED:
-.8460					printer_A_UNDEFINED:
-.8460					printer_B_UNDEFINED:
-.8460					printer_C_UNDEFINED:
-.8460					printer_D_UNDEFINED:
-.8460					printer_E_UNDEFINED:
-.8460					printer_F_UNDEFINED:
-.8460	80 be		bra $8420	                bra printer_next
-.8462					printer_table:
->8462	82 84 2a 84 3d 84 20 84		        .word printer_done, printer_1_bool, printer_2_fixnum, printer_next
->846a	20 84 4a 84 20 84 20 84		        .word printer_next, printer_5_string, printer_next, printer_next
->8472	20 84 20 84 20 84 20 84		        .word printer_next, printer_next, printer_next, printer_next
->847a	20 84 20 84 20 84 20 84		        .word printer_next, printer_next, printer_next, printer_next
-.8482					printer_done:
-.8482	20 af 84	jsr $84af	                jsr help_emit_lf
+.843a					printer:
+.843a	20 32 86	jsr $8632	                jsr debug_dump_ast
+.843d	a5 15		lda $15		                lda rsn_ast     ; RAM segment nibble
+.843f	a0 02		ldy #$02	                ldy #02         ; by definition
+.8441	20 97 85	jsr $8597	                jsr help_walk_init
+.8444					printer_loop:
+.8444	08		php		                php
+.8445	29 f0		and #$f0	                and #$f0        ; mask all but tag nibble
+.8447	4a		lsr a		                lsr
+.8448	4a		lsr a		                lsr
+.8449	4a		lsr a		                lsr     ; Fourth LSR and ASL cancle each other
+.844a	aa		tax		                tax
+.844b	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.844e	7c 93 84	jmp ($8493,x)	                jmp (printer_table,X)
+.8451					printer_next:
+.8451	28		plp		                plp                     ; from PHP
+.8452	b0 5f		bcs $84b3	                bcs printer_done        ; probably a JMP later
+.8454	20 9d 85	jsr $859d	                jsr help_walk_next
+.8457	80 eb		bra $8444	                bra printer_loop
+.8459					printer_0_meta:
+.8459	80 58		bra $84b3	                bra printer_done
+.845b					printer_1_bool:
+.845b	a5 22		lda $22		                lda walk_car+1          ; MSB of car
+.845d	29 0f		and #$0f	                and #$0F                ; Get rid of tag
+.845f	05 21		ora $21		                ora walk_car
+.8461	d0 04		bne $8467	                bne _bool_true          ; not a zero means true
+.8463	a9 03		lda #$03	                lda #str_false
+.8465	80 02		bra $8469	                bra _bool_printer
+.8467					_bool_true:
+.8467	a9 02		lda #$02	                lda #str_true
+.8469					_bool_printer:
+.8469	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.846c	80 e3		bra $8451	                bra printer_next
+.846e					printer_2_fixnum:
+.846e	a5 22		lda $22		                lda walk_car+1          ; MSB
+.8470	29 0f		and #$0f	                and #$0F                ; Mask tag
+.8472	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.8475	98		tya		                tya                     ; still Y
+.8476	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.8479	80 d6		bra $8451	                bra printer_next
+.847b					printer_3_bignum:
+.847b					printer_4_char:
+.847b					printer_5_string:
+.847b	a5 22		lda $22		                lda walk_car+1          ; MSB
+.847d	29 0f		and #$0f	                and #$0F                ; mask tag
+.847f	05 1a		ora $1a		                ora rsn_str             ; merge with section nibble instead
+.8481	85 05		sta $05		                sta tmp2+1
+.8483	84 04		sty $04		                sty tmp2                ; LSB
+.8485	a0 00		ldy #$00	                ldy #0
+.8487					_string_loop:
+.8487	b1 04		lda ($04),y	                lda (tmp2),y
+.8489	f0 c6		beq $8451	                beq printer_next       ; string is zero terminated
+.848b	20 e2 84	jsr $84e2	                jsr help_emit_a
+.848e	c8		iny		                iny
+.848f	80 f6		bra $8487	                bra _string_loop
+.8491					printer_6_UNDEFINED:
+.8491					printer_7_UNDEFINED:
+.8491					printer_8_UNDEFINED:
+.8491					printer_9_UNDEFINED:
+.8491					printer_A_UNDEFINED:
+.8491					printer_B_UNDEFINED:
+.8491					printer_C_UNDEFINED:
+.8491					printer_D_UNDEFINED:
+.8491					printer_E_UNDEFINED:
+.8491					printer_F_UNDEFINED:
+.8491	80 be		bra $8451	                bra printer_next
+.8493					printer_table:
+>8493	b3 84 5b 84 6e 84 51 84		        .word printer_done, printer_1_bool, printer_2_fixnum, printer_next
+>849b	51 84 7b 84 51 84 51 84		        .word printer_next, printer_5_string, printer_next, printer_next
+>84a3	51 84 51 84 51 84 51 84		        .word printer_next, printer_next, printer_next, printer_next
+>84ab	51 84 51 84 51 84 51 84		        .word printer_next, printer_next, printer_next, printer_next
+.84b3					printer_done:
+.84b3	20 e0 84	jsr $84e0	                jsr help_emit_lf
 
 ;******  Return to file: platforms/../cthulhu.asm
 
-.8485					repl_empty_line:
-.8485	4c 2d 80	jmp $802d	                jmp repl
-.8488					repl_quit:
-.8488	20 af 84	jsr $84af	                jsr help_emit_lf
-.848b	a9 09		lda #$09	                lda #str_end_input
-.848d	20 d1 84	jsr $84d1	                jsr help_print_string
-.8490	a9 0a		lda #$0a	                lda #str_chant
-.8492	20 d1 84	jsr $84d1	                jsr help_print_string
-.8495	4c 2b f0	jmp $f02b	                jmp platform_quit
+.84b6					repl_empty_line:
+.84b6	4c 2d 80	jmp $802d	                jmp repl
+.84b9					repl_quit:
+.84b9	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.84bc	a9 09		lda #$09	                lda #str_end_input
+.84be	20 02 85	jsr $8502	                jsr help_print_string
+.84c1	a9 0a		lda #$0a	                lda #str_chant
+.84c3	20 02 85	jsr $8502	                jsr help_print_string
+.84c6	4c 2b f0	jmp $f02b	                jmp platform_quit
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../helpers.asm
 
-.8498					help_byte_to_ascii:
-.8498	48		pha		                pha
-.8499	4a		lsr a		                lsr             ; convert high nibble first
-.849a	4a		lsr a		                lsr
-.849b	4a		lsr a		                lsr
-.849c	4a		lsr a		                lsr
-.849d	20 a1 84	jsr $84a1	                jsr help_nibble_to_ascii
-.84a0	68		pla		                pla
-.84a1					help_nibble_to_ascii:
-.84a1	29 0f		and #$0f	                and #$0F
-.84a3	09 30		ora #$30	                ora #'0'
-.84a5	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
-.84a7	90 02		bcc $84ab	                bcc +
-.84a9	69 06		adc #$06	                adc #$06
-.84ab	4c b1 84	jmp $84b1	+               jmp help_emit_a       ; JSR/RTS
-.84ae					help_to_lowercase:
-.84ae	60		rts		                rts
-.84af					help_emit_lf:
-.84af	a9 0a		lda #$0a	                lda #AscLF
-.84b1					help_emit_a:
-.84b1	6c 06 00	jmp ($0006)	                jmp (output)    ; JSR/RTS
-.84b4					help_key_a:
-.84b4	6c 08 00	jmp ($0008)	                jmp (input)             ; JSR/RTS
-.84b7					help_print_string_no_lf:
-.84b7	0a		asl a		                asl
-.84b8	a8		tay		                tay
-.84b9	b9 b9 86	lda $86b9,y	                lda string_table,y
-.84bc	85 00		sta $00		                sta tmp0                ; LSB
-.84be	c8		iny		                iny
-.84bf	b9 b9 86	lda $86b9,y	                lda string_table,y
-.84c2	85 01		sta $01		                sta tmp0+1              ; MSB
-.84c4					help_print_common:
-.84c4	a0 00		ldy #$00	                ldy #0
-.84c6					_loop:
-.84c6	b1 00		lda ($00),y	                lda (tmp0),y
-.84c8	f0 06		beq $84d0	                beq _done               ; strings are zero-terminated
-.84ca	20 b1 84	jsr $84b1	                jsr help_emit_a         ; allows vectoring via output
-.84cd	c8		iny		                iny
-.84ce	80 f6		bra $84c6	                bra _loop
-.84d0					_done:
-.84d0	60		rts		                rts
-.84d1					help_print_string:
-.84d1	20 b7 84	jsr $84b7	                jsr help_print_string_no_lf
-.84d4	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
-.84d6	4c b1 84	jmp $84b1	                jmp help_emit_a         ; JSR/RTS
-.84d9					help_is_decdigit:
-.84d9	c9 30		cmp #$30	                cmp #'0'
-.84db	90 07		bcc $84e4	                bcc _below_zero         ; A is < '0'
-.84dd	c9 3a		cmp #$3a	                cmp #':'                ; A is >= ':', which is '9'+1
-.84df	b0 02		bcs $84e3	                bcs _above_nine
-.84e1	38		sec		                sec
-.84e2	60		rts		                rts
-.84e3					_above_nine:
-.84e3	18		clc		                clc
-.84e4					_below_zero:
-.84e4	60		rts		                rts
-.84e5					help_is_delimiter:
-.84e5	20 f8 84	jsr $84f8	                jsr help_is_whitespace
-.84e8	b0 0d		bcs $84f7	                bcs _delimiter_done
-.84ea	18		clc		                clc
-.84eb	c9 28		cmp #$28	                cmp #$28        ; '('
-.84ed	f0 07		beq $84f6	                beq _is_delimiter
-.84ef	c9 29		cmp #$29	                cmp #$29        ; ')'
-.84f1	f0 03		beq $84f6	                beq _is_delimiter
-.84f3	18		clc		                clc
-.84f4	80 01		bra $84f7	                bra _delimiter_done
-.84f6					_is_delimiter:
-.84f6	38		sec		                sec
-.84f7					_delimiter_done:
-.84f7	60		rts		                rts
-.84f8					help_is_whitespace:
-.84f8	38		sec		                sec             ; default is whitespace
-.84f9	c9 20		cmp #$20	                cmp #$20        ; SPACE, assumed to be the most common char
-.84fb	f0 11		beq $850e	                beq _done
-.84fd	c9 09		cmp #$09	                cmp #$09        ; TAB, probably the second most common in Scheme
-.84ff	f0 0d		beq $850e	                beq _done
-.8501	c9 0a		cmp #$0a	                cmp #$0A        ; Linefeed, normally ends input but not with Scheme
-.8503	f0 09		beq $850e	                beq _done
-.8505	c9 0d		cmp #$0d	                cmp #$0D        ; Return, normally ends input but not with Scheme
-.8507	f0 05		beq $850e	                beq _done
-.8509	c9 0c		cmp #$0c	                cmp #$0C        ; Page, which is strange, but in the standard
-.850b	f0 01		beq $850e	                beq _done
-.850d	18		clc		                clc             ; If we end up here, it's not whitespace
-.850e					_done:
-.850e	60		rts		                rts
-.850f					help_hexascii_to_value:
-.850f	20 d9 84	jsr $84d9	                jsr help_is_decdigit
-.8512	90 05		bcc $8519	                bcc _see_if_letter
-.8514	38		sec		                sec
-.8515	e9 30		sbc #$30	                sbc #'0'
-.8517	80 0f		bra $8528	                bra _done
-.8519					_see_if_letter:
-.8519	c9 41		cmp #$41	                cmp #'A'        ; lower than 'A' can't be right
-.851b	90 17		bcc $8534	                bcc _error
-.851d	c9 67		cmp #$67	                cmp #'g'        ; 'g' or above can't be right
-.851f	b0 13		bcs $8534	                bcs _error
-.8521	c9 61		cmp #$61	                cmp #'a'
-.8523	90 06		bcc $852b	                bcc _uppercase
-.8525	38		sec		                sec
-.8526	e9 47		sbc #$47	                sbc #71         ; moves 'a' to 10 ($0A)
-.8528					_done:
-.8528	29 0f		and #$0f	                and #$0F        ; paranoid
+.84c9					help_byte_to_ascii:
+.84c9	48		pha		                pha
+.84ca	4a		lsr a		                lsr             ; convert high nibble first
+.84cb	4a		lsr a		                lsr
+.84cc	4a		lsr a		                lsr
+.84cd	4a		lsr a		                lsr
+.84ce	20 d2 84	jsr $84d2	                jsr help_nibble_to_ascii
+.84d1	68		pla		                pla
+.84d2					help_nibble_to_ascii:
+.84d2	29 0f		and #$0f	                and #$0F
+.84d4	09 30		ora #$30	                ora #'0'
+.84d6	c9 3a		cmp #$3a	                cmp #$3A        ; '9+1
+.84d8	90 02		bcc $84dc	                bcc +
+.84da	69 06		adc #$06	                adc #$06
+.84dc	4c e2 84	jmp $84e2	+               jmp help_emit_a       ; JSR/RTS
+.84df					help_to_lowercase:
+.84df	60		rts		                rts
+.84e0					help_emit_lf:
+.84e0	a9 0a		lda #$0a	                lda #AscLF
+.84e2					help_emit_a:
+.84e2	6c 06 00	jmp ($0006)	                jmp (output)    ; JSR/RTS
+.84e5					help_key_a:
+.84e5	6c 08 00	jmp ($0008)	                jmp (input)             ; JSR/RTS
+.84e8					help_print_string_no_lf:
+.84e8	0a		asl a		                asl
+.84e9	a8		tay		                tay
+.84ea	b9 19 87	lda $8719,y	                lda string_table,y
+.84ed	85 00		sta $00		                sta tmp0                ; LSB
+.84ef	c8		iny		                iny
+.84f0	b9 19 87	lda $8719,y	                lda string_table,y
+.84f3	85 01		sta $01		                sta tmp0+1              ; MSB
+.84f5					help_print_common:
+.84f5	a0 00		ldy #$00	                ldy #0
+.84f7					_loop:
+.84f7	b1 00		lda ($00),y	                lda (tmp0),y
+.84f9	f0 06		beq $8501	                beq _done               ; strings are zero-terminated
+.84fb	20 e2 84	jsr $84e2	                jsr help_emit_a         ; allows vectoring via output
+.84fe	c8		iny		                iny
+.84ff	80 f6		bra $84f7	                bra _loop
+.8501					_done:
+.8501	60		rts		                rts
+.8502					help_print_string:
+.8502	20 e8 84	jsr $84e8	                jsr help_print_string_no_lf
+.8505	a9 0a		lda #$0a	                lda #AscLF              ; we don't use (newline) because of string
+.8507	4c e2 84	jmp $84e2	                jmp help_emit_a         ; JSR/RTS
+.850a					help_is_decdigit:
+.850a	c9 30		cmp #$30	                cmp #'0'
+.850c	90 07		bcc $8515	                bcc _below_zero         ; A is < '0'
+.850e	c9 3a		cmp #$3a	                cmp #':'                ; A is >= ':', which is '9'+1
+.8510	b0 02		bcs $8514	                bcs _above_nine
+.8512	38		sec		                sec
+.8513	60		rts		                rts
+.8514					_above_nine:
+.8514	18		clc		                clc
+.8515					_below_zero:
+.8515	60		rts		                rts
+.8516					help_is_delimiter:
+.8516	20 58 85	jsr $8558	                jsr help_is_whitespace
+.8519	b0 12		bcs $852d	                bcs _delimiter_done
+.851b	18		clc		                clc
+.851c	da		phx		                phx
+.851d	ae 44 88	ldx $8844	                ldx s_delimiters        ; length of delimiter chars string
+.8520					_delimiter_loop:
+.8520	dd 44 88	cmp $8844,x	                cmp s_delimiters,X
+.8523	f0 06		beq $852b	                beq _found_delimiter
+.8525	ca		dex		                dex
+.8526	d0 f8		bne $8520	                bne _delimiter_loop
+.8528	fa		plx		                plx
+.8529	18		clc		                clc
 .852a	60		rts		                rts
-.852b					_uppercase:
-.852b	c9 47		cmp #$47	                cmp #'G'
-.852d	b0 05		bcs $8534	                bcs _error
-.852f	38		sec		                sec
-.8530	e9 37		sbc #$37	                sbc #55         ; moves 'A' to 10 ($0A)
-.8532	80 f4		bra $8528	                bra _done
-.8534					_error:
-.8534	a9 80		lda #$80	                lda #$80
-.8536	60		rts		                rts
-.8537					help_walk_init:
-.8537	84 1f		sty $1f		                sty walk_curr           ; LSB
-.8539	85 20		sta $20		                sta walk_curr+1         ; MSB
-.853b	80 10		bra $854d	                bra help_walk_common
-.853d					help_walk_next:
-.853d	b2 1f		lda ($1f)	                lda (walk_curr)
-.853f	48		pha		                pha
-.8540	a0 01		ldy #$01	                ldy #1
-.8542	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; MSB
-.8544	29 0f		and #$0f	                and #$0F                ; mask the pair tag
-.8546	05 15		ora $15		                ora rsn_ast             ; replace by nibble for the AST
-.8548	85 20		sta $20		                sta walk_curr+1
-.854a	68		pla		                pla
-.854b	85 1f		sta $1f		                sta walk_curr           ; LSB
-.854d					help_walk_common:
-.854d	b2 1f		lda ($1f)	                lda (walk_curr)
-.854f	85 23		sta $23		                sta walk_cdr            ; LSB
-.8551	a0 01		ldy #$01	                ldy #1
-.8553	b1 1f		lda ($1f),y	                lda (walk_curr),y
-.8555	85 24		sta $24		                sta walk_cdr+1          ; MSB
-.8557	c8		iny		                iny
-.8558	18		clc		                clc                     ; default is not last pair
-.8559	05 23		ora $23		                ora walk_cdr            ; LSB
-.855b	d0 01		bne $855e	                bne _store_car
-.855d	38		sec		                sec                     ; last pair, mark by setting carry flag
-.855e					_store_car:
-.855e	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; LSB
-.8560	85 21		sta $21		                sta walk_car
-.8562	48		pha		                pha                     ; We return this later in Y
-.8563	c8		iny		                iny
-.8564	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; MSB
-.8566	85 22		sta $22		                sta walk_car+1
-.8568	7a		ply		                ply
-.8569	60		rts		                rts
+.852b					_found_delimiter:
+.852b	fa		plx		                plx
+.852c					_is_delimiter:
+.852c	38		sec		                sec
+.852d					_delimiter_done:
+.852d	60		rts		                rts
+.852e					help_is_extended_alpha:
+.852e	18		clc		                clc
+.852f	da		phx		                phx
+.8530	ae 50 88	ldx $8850	                ldx s_extended          ; length of extended chars string
+.8533					_alpha_loop:
+.8533	dd 50 88	cmp $8850,x	                cmp s_extended,X
+.8536	f0 06		beq $853e	                beq _found_extended
+.8538	ca		dex		                dex
+.8539	d0 f8		bne $8533	                bne _alpha_loop
+.853b	fa		plx		                plx
+.853c	18		clc		                clc
+.853d	60		rts		                rts
+.853e					_found_extended:
+.853e	fa		plx		                plx
+.853f					_is_extrended:
+.853f	38		sec		                sec
+.8540					_extended_done:
+.8540	60		rts		                rts
+.8541					help_is_letter:
+.8541	c9 41		cmp #$41	                cmp #'A'
+.8543	90 0c		bcc $8551	                bcc _not_letter       ; too low
+.8545	c9 5b		cmp #$5b	                cmp #'Z'+1
+.8547	90 0a		bcc $8553	                bcc _uppercase
+.8549	c9 61		cmp #$61	                cmp #'a'
+.854b	90 04		bcc $8551	                bcc _not_letter       ; between upper- and lowercase
+.854d	c9 7b		cmp #$7b	                cmp #'z'+1
+.854f	90 05		bcc $8556	                bcc _is_letter
+.8551					_not_letter:
+.8551	18		clc		                clc
+.8552	60		rts		                rts
+.8553					_uppercase:
+.8553	18		clc		                clc
+.8554	69 20		adc #$20	                adc #'a'-'A'    ; 32, if you're curious
+.8556					_is_letter:
+.8556	38		sec		                sec             ; TODO testing
+.8557	60		rts		                rts
+.8558					help_is_whitespace:
+.8558	38		sec		                sec             ; default is whitespace
+.8559	c9 20		cmp #$20	                cmp #$20        ; SPACE, assumed to be the most common char
+.855b	f0 11		beq $856e	                beq _done
+.855d	c9 09		cmp #$09	                cmp #$09        ; TAB, probably the second most common in Scheme
+.855f	f0 0d		beq $856e	                beq _done
+.8561	c9 0a		cmp #$0a	                cmp #$0A        ; Linefeed, normally ends input but not with Scheme
+.8563	f0 09		beq $856e	                beq _done
+.8565	c9 0d		cmp #$0d	                cmp #$0D        ; Return, normally ends input but not with Scheme
+.8567	f0 05		beq $856e	                beq _done
+.8569	c9 0c		cmp #$0c	                cmp #$0C        ; Page, which is strange, but in the standard
+.856b	f0 01		beq $856e	                beq _done
+.856d	18		clc		                clc             ; If we end up here, it's not whitespace
+.856e					_done:
+.856e	60		rts		                rts
+.856f					help_hexascii_to_value:
+.856f	20 0a 85	jsr $850a	                jsr help_is_decdigit
+.8572	90 05		bcc $8579	                bcc _see_if_letter
+.8574	38		sec		                sec
+.8575	e9 30		sbc #$30	                sbc #'0'
+.8577	80 0f		bra $8588	                bra _done
+.8579					_see_if_letter:
+.8579	c9 41		cmp #$41	                cmp #'A'        ; lower than 'A' can't be right
+.857b	90 17		bcc $8594	                bcc _error
+.857d	c9 67		cmp #$67	                cmp #'g'        ; 'g' or above can't be right
+.857f	b0 13		bcs $8594	                bcs _error
+.8581	c9 61		cmp #$61	                cmp #'a'
+.8583	90 06		bcc $858b	                bcc _uppercase
+.8585	38		sec		                sec
+.8586	e9 47		sbc #$47	                sbc #71         ; moves 'a' to 10 ($0A)
+.8588					_done:
+.8588	29 0f		and #$0f	                and #$0F        ; paranoid
+.858a	60		rts		                rts
+.858b					_uppercase:
+.858b	c9 47		cmp #$47	                cmp #'G'
+.858d	b0 05		bcs $8594	                bcs _error
+.858f	38		sec		                sec
+.8590	e9 37		sbc #$37	                sbc #55         ; moves 'A' to 10 ($0A)
+.8592	80 f4		bra $8588	                bra _done
+.8594					_error:
+.8594	a9 80		lda #$80	                lda #$80
+.8596	60		rts		                rts
+.8597					help_walk_init:
+.8597	84 1f		sty $1f		                sty walk_curr           ; LSB
+.8599	85 20		sta $20		                sta walk_curr+1         ; MSB
+.859b	80 10		bra $85ad	                bra help_walk_common
+.859d					help_walk_next:
+.859d	b2 1f		lda ($1f)	                lda (walk_curr)
+.859f	48		pha		                pha
+.85a0	a0 01		ldy #$01	                ldy #1
+.85a2	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; MSB
+.85a4	29 0f		and #$0f	                and #$0F                ; mask the pair tag
+.85a6	05 15		ora $15		                ora rsn_ast             ; replace by nibble for the AST
+.85a8	85 20		sta $20		                sta walk_curr+1
+.85aa	68		pla		                pla
+.85ab	85 1f		sta $1f		                sta walk_curr           ; LSB
+.85ad					help_walk_common:
+.85ad	b2 1f		lda ($1f)	                lda (walk_curr)
+.85af	85 23		sta $23		                sta walk_cdr            ; LSB
+.85b1	a0 01		ldy #$01	                ldy #1
+.85b3	b1 1f		lda ($1f),y	                lda (walk_curr),y
+.85b5	85 24		sta $24		                sta walk_cdr+1          ; MSB
+.85b7	c8		iny		                iny
+.85b8	18		clc		                clc                     ; default is not last pair
+.85b9	05 23		ora $23		                ora walk_cdr            ; LSB
+.85bb	d0 01		bne $85be	                bne _store_car
+.85bd	38		sec		                sec                     ; last pair, mark by setting carry flag
+.85be					_store_car:
+.85be	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; LSB
+.85c0	85 21		sta $21		                sta walk_car
+.85c2	48		pha		                pha                     ; We return this later in Y
+.85c3	c8		iny		                iny
+.85c4	b1 1f		lda ($1f),y	                lda (walk_curr),y       ; MSB
+.85c6	85 22		sta $22		                sta walk_car+1
+.85c8	7a		ply		                ply
+.85c9	60		rts		                rts
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
 
 ;******  Processing file: platforms/../primitive-procedures.asm
 
-.856a					proc_apply:
-.856a					proc_exit:
-.856a	a9 0c		lda #$0c	        lda #str_exit_kill              ; "Kill Scheme (y or n)?"
-.856c	20 b7 84	jsr $84b7	        jsr help_print_string_no_lf
-.856f	20 b4 84	jsr $84b4	        jsr help_key_a
-.8572	c9 79		cmp #$79	        cmp #'y'                        ; only "y" ends
-.8574	f0 03		beq $8579	        beq _done
-.8576	4c d1 83	jmp $83d1	        jmp eval_next           ; TODO or eval_done?
-.8579					_done:
-.8579	4c 88 84	jmp $8488	        jmp repl_quit
-.857c					proc_quote:
-.857c					proc_table_lsb:
->857c	6a 7c 6a			        .byte <proc_apply, <proc_quote, <proc_exit
-.857f					proc_table_msb:
->857f	85 85 85			        .byte >proc_apply, >proc_quote, >proc_exit
-.8582					proc_char_whitespace_p:
-.8582					proc_newline:
-.8582					proc_display:
-.8582					proc_read:
-.8582					proc_read_char:
-.8582					proc_read_line:
-.8582					proc_write_char:
+.85ca					proc_apply:
+.85ca					proc_exit:
+.85ca	a9 0c		lda #$0c	        lda #str_exit_kill              ; "Kill Scheme (y or n)?"
+.85cc	20 e8 84	jsr $84e8	        jsr help_print_string_no_lf
+.85cf	20 e5 84	jsr $84e5	        jsr help_key_a
+.85d2	c9 79		cmp #$79	        cmp #'y'                        ; only "y" ends
+.85d4	f0 03		beq $85d9	        beq _done
+.85d6	4c 02 84	jmp $8402	        jmp eval_next           ; TODO or eval_done?
+.85d9					_done:
+.85d9	4c b9 84	jmp $84b9	        jmp repl_quit
+.85dc					proc_quote:
+.85dc					proc_table_lsb:
+>85dc	ca dc ca			        .byte <proc_apply, <proc_quote, <proc_exit
+.85df					proc_table_msb:
+>85df	85 85 85			        .byte >proc_apply, >proc_quote, >proc_exit
+.85e2					proc_char_whitespace_p:
+.85e2					proc_newline:
+.85e2					proc_display:
+.85e2					proc_read:
+.85e2					proc_read_char:
+.85e2					proc_read_line:
+.85e2					proc_write_char:
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -972,105 +1041,105 @@
 
 ;******  Processing file: platforms/../debug.asm
 
-.8582					debug_dump_input:
-.8582	20 af 84	jsr $84af	                jsr help_emit_lf
-.8585	a9 03		lda #$03	                lda #strd_dump_input            ; "Input: "
-.8587	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.858a	a2 00		ldx #$00	                ldx #0
-.858c					-
-.858c	bd 00 02	lda $0200,x	                lda cib,x
-.858f	f0 0b		beq $859c	                beq _done
-.8591	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.8594	e8		inx		                inx
-.8595	a9 20		lda #$20	                lda #' '
-.8597	20 b1 84	jsr $84b1	                jsr help_emit_a
-.859a	80 f0		bra $858c	                bra -
-.859c					_done:
-.859c	4c 98 84	jmp $8498	                jmp help_byte_to_ascii          ; JSR/RTS
-.859f					debug_dump_token:
-.859f	20 af 84	jsr $84af	                jsr help_emit_lf
-.85a2	a9 00		lda #$00	                lda #strd_dump_token            ; "Token: "
-.85a4	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.85a7	a2 00		ldx #$00	                ldx #0
-.85a9					-
-.85a9	bd 00 03	lda $0300,x	                lda tkb,x
-.85ac	c9 00		cmp #$00	                cmp #T_END
-.85ae	f0 0d		beq $85bd	                beq _done
-.85b0	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.85b3	e8		inx		                inx
-.85b4	a9 20		lda #$20	                lda #' '
-.85b6	20 b1 84	jsr $84b1	                jsr help_emit_a
-.85b9	e4 13		cpx $13		                cpx tkbp
-.85bb	d0 ec		bne $85a9	                bne -
-.85bd					_done:
-.85bd	4c 98 84	jmp $8498	                jmp help_byte_to_ascii          ; JSR/RTS
-.85c0					debug_dump_hp:
-.85c0	20 af 84	jsr $84af	                jsr help_emit_lf
-.85c3	a9 02		lda #$02	                lda #strd_dump_hp               ; "Heap pointer: "
-.85c5	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.85c8	a5 19		lda $19		                lda hp_ast+1
-.85ca	20 98 84	jsr $8498	                jsr help_byte_to_ascii
-.85cd	a5 18		lda $18		                lda hp_ast
-.85cf	4c 98 84	jmp $8498	                jmp help_byte_to_ascii          ; JSR/RTS
-.85d2					debug_dump_ast:
-.85d2	20 af 84	jsr $84af	                jsr help_emit_lf
-.85d5	a9 01		lda #$01	                lda #strd_dump_ast              ; "AST root: "
-.85d7	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.85da	a5 15		lda $15		                lda rsn_ast             ; RAM segment nibble
-.85dc	48		pha		                pha                     ; save MSB
-.85dd	20 98 84	jsr $8498	                jsr help_byte_to_ascii  ; print MSB
-.85e0	a0 02		ldy #$02	                ldy #2                  ; By definition
-.85e2	98		tya		                tya
-.85e3	20 98 84	jsr $8498	                jsr help_byte_to_ascii  ; print LSB
-.85e6	68		pla		                pla                     ; get MSB back
-.85e7	20 37 85	jsr $8537	                jsr help_walk_init
-.85ea					_debug_dump_ast_loop:
-.85ea	08		php		                php
-.85eb	a9 04		lda #$04	                lda #strd_dump_arrow            ; "--> "
-.85ed	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.85f0	a5 24		lda $24		                lda walk_cdr+1
-.85f2	20 98 84	jsr $8498	                jsr help_byte_to_ascii          ; MSB
-.85f5	a5 23		lda $23		                lda walk_cdr
-.85f7	20 98 84	jsr $8498	                jsr help_byte_to_ascii          ; LSB
-.85fa	a9 3a		lda #$3a	                lda #':'
-.85fc	20 b1 84	jsr $84b1	                jsr help_emit_a
-.85ff	a5 22		lda $22		                lda walk_car+1
-.8601	20 98 84	jsr $8498	                jsr help_byte_to_ascii          ; MSB
-.8604	a5 21		lda $21		                lda walk_car
-.8606	20 98 84	jsr $8498	                jsr help_byte_to_ascii          ; LSB
-.8609	28		plp		                plp
-.860a	b0 05		bcs $8611	                bcs _debug_dump_ast_done
-.860c	20 3d 85	jsr $853d	                jsr help_walk_next
-.860f	80 d9		bra $85ea	                bra _debug_dump_ast_loop
-.8611					_debug_dump_ast_done:
-.8611	60		rts		                rts
-.8612					debug_emit_a:
-.8612	48		pha		                pha
-.8613	20 af 84	jsr $84af	                jsr help_emit_lf
-.8616	68		pla		                pla
-.8617	20 b1 84	jsr $84b1	                jsr help_emit_a
-.861a	4c af 84	jmp $84af	                jmp help_emit_lf        ; JSR/RTS
-.861d					debug_print_string_no_lf:
-.861d	0a		asl a		                asl
-.861e	a8		tay		                tay
-.861f	b9 9f 86	lda $869f,y	                lda sd_table,y
-.8622	85 00		sta $00		                sta tmp0                ; LSB
-.8624	c8		iny		                iny
-.8625	b9 9f 86	lda $869f,y	                lda sd_table,y
-.8628	85 01		sta $01		                sta tmp0+1              ; MSB
-.862a					debug_print_common:
-.862a	a0 00		ldy #$00	                ldy #0
-.862c					_loop:
-.862c	b1 00		lda ($00),y	                lda (tmp0),y
-.862e	f0 06		beq $8636	                beq _done               ; strings are zero-terminated
-.8630	20 b1 84	jsr $84b1	                jsr help_emit_a         ; allows vectoring via output
-.8633	c8		iny		                iny
-.8634	80 f6		bra $862c	                bra _loop
-.8636					_done:
-.8636	60		rts		                rts
-.8637					debug_print_string:
-.8637	20 1d 86	jsr $861d	                jsr debug_print_string_no_lf
-.863a	4c af 84	jmp $84af	                jmp help_emit_lf        ; JSR/RTS
+.85e2					debug_dump_input:
+.85e2	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.85e5	a9 03		lda #$03	                lda #strd_dump_input            ; "Input: "
+.85e7	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.85ea	a2 00		ldx #$00	                ldx #0
+.85ec					-
+.85ec	bd 00 02	lda $0200,x	                lda cib,x
+.85ef	f0 0b		beq $85fc	                beq _done
+.85f1	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.85f4	e8		inx		                inx
+.85f5	a9 20		lda #$20	                lda #' '
+.85f7	20 e2 84	jsr $84e2	                jsr help_emit_a
+.85fa	80 f0		bra $85ec	                bra -
+.85fc					_done:
+.85fc	4c c9 84	jmp $84c9	                jmp help_byte_to_ascii          ; JSR/RTS
+.85ff					debug_dump_token:
+.85ff	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8602	a9 00		lda #$00	                lda #strd_dump_token            ; "Token: "
+.8604	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.8607	a2 00		ldx #$00	                ldx #0
+.8609					-
+.8609	bd 00 03	lda $0300,x	                lda tkb,x
+.860c	c9 00		cmp #$00	                cmp #T_END
+.860e	f0 0d		beq $861d	                beq _done
+.8610	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.8613	e8		inx		                inx
+.8614	a9 20		lda #$20	                lda #' '
+.8616	20 e2 84	jsr $84e2	                jsr help_emit_a
+.8619	e4 13		cpx $13		                cpx tkbp
+.861b	d0 ec		bne $8609	                bne -
+.861d					_done:
+.861d	4c c9 84	jmp $84c9	                jmp help_byte_to_ascii          ; JSR/RTS
+.8620					debug_dump_hp:
+.8620	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8623	a9 02		lda #$02	                lda #strd_dump_hp               ; "Heap pointer: "
+.8625	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.8628	a5 19		lda $19		                lda hp_ast+1
+.862a	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii
+.862d	a5 18		lda $18		                lda hp_ast
+.862f	4c c9 84	jmp $84c9	                jmp help_byte_to_ascii          ; JSR/RTS
+.8632					debug_dump_ast:
+.8632	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8635	a9 01		lda #$01	                lda #strd_dump_ast              ; "AST root: "
+.8637	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.863a	a5 15		lda $15		                lda rsn_ast             ; RAM segment nibble
+.863c	48		pha		                pha                     ; save MSB
+.863d	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii  ; print MSB
+.8640	a0 02		ldy #$02	                ldy #2                  ; By definition
+.8642	98		tya		                tya
+.8643	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii  ; print LSB
+.8646	68		pla		                pla                     ; get MSB back
+.8647	20 97 85	jsr $8597	                jsr help_walk_init
+.864a					_debug_dump_ast_loop:
+.864a	08		php		                php
+.864b	a9 04		lda #$04	                lda #strd_dump_arrow            ; "--> "
+.864d	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.8650	a5 24		lda $24		                lda walk_cdr+1
+.8652	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii          ; MSB
+.8655	a5 23		lda $23		                lda walk_cdr
+.8657	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii          ; LSB
+.865a	a9 3a		lda #$3a	                lda #':'
+.865c	20 e2 84	jsr $84e2	                jsr help_emit_a
+.865f	a5 22		lda $22		                lda walk_car+1
+.8661	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii          ; MSB
+.8664	a5 21		lda $21		                lda walk_car
+.8666	20 c9 84	jsr $84c9	                jsr help_byte_to_ascii          ; LSB
+.8669	28		plp		                plp
+.866a	b0 05		bcs $8671	                bcs _debug_dump_ast_done
+.866c	20 9d 85	jsr $859d	                jsr help_walk_next
+.866f	80 d9		bra $864a	                bra _debug_dump_ast_loop
+.8671					_debug_dump_ast_done:
+.8671	60		rts		                rts
+.8672					debug_emit_a:
+.8672	48		pha		                pha
+.8673	20 e0 84	jsr $84e0	                jsr help_emit_lf
+.8676	68		pla		                pla
+.8677	20 e2 84	jsr $84e2	                jsr help_emit_a
+.867a	4c e0 84	jmp $84e0	                jmp help_emit_lf        ; JSR/RTS
+.867d					debug_print_string_no_lf:
+.867d	0a		asl a		                asl
+.867e	a8		tay		                tay
+.867f	b9 ff 86	lda $86ff,y	                lda sd_table,y
+.8682	85 00		sta $00		                sta tmp0                ; LSB
+.8684	c8		iny		                iny
+.8685	b9 ff 86	lda $86ff,y	                lda sd_table,y
+.8688	85 01		sta $01		                sta tmp0+1              ; MSB
+.868a					debug_print_common:
+.868a	a0 00		ldy #$00	                ldy #0
+.868c					_loop:
+.868c	b1 00		lda ($00),y	                lda (tmp0),y
+.868e	f0 06		beq $8696	                beq _done               ; strings are zero-terminated
+.8690	20 e2 84	jsr $84e2	                jsr help_emit_a         ; allows vectoring via output
+.8693	c8		iny		                iny
+.8694	80 f6		bra $868c	                bra _loop
+.8696					_done:
+.8696	60		rts		                rts
+.8697					debug_print_string:
+.8697	20 7d 86	jsr $867d	                jsr debug_print_string_no_lf
+.869a	4c e0 84	jmp $84e0	                jmp help_emit_lf        ; JSR/RTS
 =0					strd_dump_token  = 0
 =1					strd_dump_ast    = 1
 =2					strd_dump_hp     = 2
@@ -1078,22 +1147,22 @@
 =4					strd_dump_arrow  = 4
 =5					strd_dump_strtbl = 5
 =6					strd_dump_str    = 6
->863d	54 6f 6b 65 6e 20 42 75		s_dump_token:   .null   "Token Buffer: "
->8645	66 66 65 72 3a 20 00
->864c	41 53 54 20 72 6f 6f 74		s_dump_ast:     .null   "AST root: "
->8654	3a 20 00
->8657	41 53 54 20 68 65 61 70		s_dump_hp:      .null   "AST heap pointer: "
->865f	20 70 6f 69 6e 74 65 72 3a 20 00
->866a	49 6e 70 75 74 20 42 75		s_dump_input:   .null   "Input Buffer: "
->8672	66 66 65 72 3a 20 00
->8679	20 2d 2d 3e 20 00		s_dump_arrow:   .null   " --> "
->867f	53 74 72 69 6e 67 20 74		s_dump_strtbl:  .null   "String table: "
->8687	61 62 6c 65 3a 20 00
->868e	53 74 72 69 6e 67 20 70		s_dump_str:     .null   "String pointer: "
->8696	6f 69 6e 74 65 72 3a 20 00
-.869f					sd_table:
->869f	3d 86 4c 86 57 86 6a 86		        .word s_dump_token, s_dump_ast, s_dump_hp, s_dump_input    ; 0-3
->86a7	79 86 7f 86 8e 86		        .word s_dump_arrow, s_dump_strtbl, s_dump_str              ; 4-7
+>869d	54 6f 6b 65 6e 20 42 75		s_dump_token:   .null   "Token Buffer: "
+>86a5	66 66 65 72 3a 20 00
+>86ac	41 53 54 20 72 6f 6f 74		s_dump_ast:     .null   "AST root: "
+>86b4	3a 20 00
+>86b7	41 53 54 20 68 65 61 70		s_dump_hp:      .null   "AST heap pointer: "
+>86bf	20 70 6f 69 6e 74 65 72 3a 20 00
+>86ca	49 6e 70 75 74 20 42 75		s_dump_input:   .null   "Input Buffer: "
+>86d2	66 66 65 72 3a 20 00
+>86d9	20 2d 2d 3e 20 00		s_dump_arrow:   .null   " --> "
+>86df	53 74 72 69 6e 67 20 74		s_dump_strtbl:  .null   "String table: "
+>86e7	61 62 6c 65 3a 20 00
+>86ee	53 74 72 69 6e 67 20 70		s_dump_str:     .null   "String pointer: "
+>86f6	6f 69 6e 74 65 72 3a 20 00
+.86ff					sd_table:
+>86ff	9d 86 ac 86 b7 86 ca 86		        .word s_dump_token, s_dump_ast, s_dump_hp, s_dump_input    ; 0-3
+>8707	d9 86 df 86 ee 86		        .word s_dump_arrow, s_dump_strtbl, s_dump_str              ; 4-7
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -1153,11 +1222,11 @@
 
 ;******  Processing file: platforms/../headers.asm
 
-.86ad					h_newline:
->86ad	00 00				        .addr 0000              ; end of header list
->86af	82 85				        .addr proc_newline
->86b1	07				        .byte 7
->86b2	6e 65 77 6c 69 6e 65		        .text "newline"
+.870d					h_newline:
+>870d	00 00				        .addr 0000              ; end of header list
+>870f	e2 85				        .addr proc_newline
+>8711	07				        .byte 7
+>8712	6e 65 77 6c 69 6e 65		        .text "newline"
 
 ;******  Return to file: platforms/platform-py65mon.asm
 
@@ -1177,42 +1246,49 @@
 =10					str_chant      = 10
 =11					str_prompt     = 11
 =12					str_exit_kill  = 12
-.86b9					string_table:
->86b9	d3 86 e7 86 01 87 04 87		        .word s_unbound, s_unspec, s_true, s_false      ; 0-3
->86c1	07 87 1b 87 36 87 4c 87		        .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
->86c9	60 87 79 87 96 87 ca 87		        .word s_cant_yet, s_end_input, s_chant, s_prompt             ; 8-11
->86d1	cd 87				        .word s_exit_kill                                            ; 12-15
->86d3	3b 55 6e 62 6f 75 6e 64		s_unbound:      .null   ";Unbound variable: "           ; REPL input error
->86db	20 76 61 72 69 61 62 6c 65 3a 20 00
->86e7	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
->86ef	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
->86ff	65 00
->8701	23 74 00			s_true:         .null   "#t"
->8704	23 66 00			s_false:        .null   "#f"
->8707	50 41 4e 49 43 3a 20 42		s_bad_token:    .null   "PANIC: Bad token: $"           ; from parser
->870f	61 64 20 74 6f 6b 65 6e 3a 20 24 00
->871b	50 41 4e 49 43 3a 20 42		s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
->8723	61 64 20 6f 62 6a 65 63 74 20 69 6e 20 41 53 54
->8733	3a 20 00
->8736	3b 49 6c 6c 2d 66 6f 72		s_bad_number:   .null   ";Ill-formed number: $"         ; from lexer
->873e	6d 65 64 20 6e 75 6d 62 65 72 3a 20 24 00
->874c	50 41 4e 49 43 3a 20 42		s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
->8754	61 64 20 72 61 64 69 78 3a 20 24 00
->8760	41 4c 50 48 41 3a 20 43		s_cant_yet:     .null   "ALPHA: Can't do that yet"      ; from parser
->8768	61 6e 27 74 20 64 6f 20 74 68 61 74 20 79 65 74
->8778	00
->8779	45 6e 64 20 6f 66 20 69		s_end_input:    .null   "End of input stream reached."  ; from reader
->8781	6e 70 75 74 20 73 74 72 65 61 6d 20 72 65 61 63
->8791	68 65 64 2e 00
->8796	50 68 27 6e 67 6c 75 69		s_chant:        .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn."
->879e	20 6d 67 6c 77 27 6e 61 66 68 20 43 74 68 75 6c
->87ae	68 75 20 52 27 6c 79 65 68 20 77 67 61 68 27 6e
->87be	61 67 6c 20 66 68 74 61 67 6e 2e 00
->87ca	3e 20 00			s_prompt:       .null   "> "
->87cd	4b 69 6c 6c 20 53 63 68		s_exit_kill:    .null   "Kill Scheme (y or n)? "       ; from proc_exit
->87d5	65 6d 65 20 28 79 20 6f 72 20 6e 29 3f 20 00
->87e4	21 24 25 26 2a 2b 2d 2e		s_extended:     .null "!$%&*+-./:<=>?@^_~"
->87ec	2f 3a 3c 3d 3e 3f 40 5e 5f 7e 00
+.8719					string_table:
+>8719	33 87 47 87 61 87 64 87		        .word s_unbound, s_unspec, s_true, s_false      ; 0-3
+>8721	67 87 7b 87 96 87 ac 87		        .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
+>8729	c0 87 d9 87 f6 87 2a 88		        .word s_cant_yet, s_end_input, s_chant, s_prompt             ; 8-11
+>8731	2d 88				        .word s_exit_kill                                            ; 12-15
+>8733	3b 55 6e 62 6f 75 6e 64		s_unbound:      .null   ";Unbound variable: "           ; REPL input error
+>873b	20 76 61 72 69 61 62 6c 65 3a 20 00
+>8747	3b 55 6e 73 70 65 63 69		s_unspec:       .null   ";Unspecified return value"     ; used eg with (display)
+>874f	66 69 65 64 20 72 65 74 75 72 6e 20 76 61 6c 75
+>875f	65 00
+>8761	23 74 00			s_true:         .null   "#t"
+>8764	23 66 00			s_false:        .null   "#f"
+>8767	50 41 4e 49 43 3a 20 42		s_bad_token:    .null   "PANIC: Bad token: $"           ; from parser
+>876f	61 64 20 74 6f 6b 65 6e 3a 20 24 00
+>877b	50 41 4e 49 43 3a 20 42		s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
+>8783	61 64 20 6f 62 6a 65 63 74 20 69 6e 20 41 53 54
+>8793	3a 20 00
+>8796	3b 49 6c 6c 2d 66 6f 72		s_bad_number:   .null   ";Ill-formed number: $"         ; from lexer
+>879e	6d 65 64 20 6e 75 6d 62 65 72 3a 20 24 00
+>87ac	50 41 4e 49 43 3a 20 42		s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
+>87b4	61 64 20 72 61 64 69 78 3a 20 24 00
+>87c0	41 4c 50 48 41 3a 20 43		s_cant_yet:     .null   "ALPHA: Can't do that yet"      ; from parser
+>87c8	61 6e 27 74 20 64 6f 20 74 68 61 74 20 79 65 74
+>87d8	00
+>87d9	45 6e 64 20 6f 66 20 69		s_end_input:    .null   "End of input stream reached."  ; from reader
+>87e1	6e 70 75 74 20 73 74 72 65 61 6d 20 72 65 61 63
+>87f1	68 65 64 2e 00
+>87f6	50 68 27 6e 67 6c 75 69		s_chant:        .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn."
+>87fe	20 6d 67 6c 77 27 6e 61 66 68 20 43 74 68 75 6c
+>880e	68 75 20 52 27 6c 79 65 68 20 77 67 61 68 27 6e
+>881e	61 67 6c 20 66 68 74 61 67 6e 2e 00
+>882a	3e 20 00			s_prompt:       .null   "> "
+>882d	4b 69 6c 6c 20 53 63 68		s_exit_kill:    .null   "Kill Scheme (y or n)? "       ; from proc_exit
+>8835	65 6d 65 20 28 79 20 6f 72 20 6e 29 3f 20 00
+>8844	0b 5b 5d 7b 7d 7c 60 22		s_delimiters:   .ptext "[]{}|`""';()"
+>884c	27 3b 28 29
+>8850	12 21 24 25 26 2a 2b 2d		s_extended:     .ptext "!$%&*+-./:<=>?@^_~"
+>8858	2e 2f 3a 3c 3d 3e 3f 40 5e 5f 7e
+>8863	61 62 63 64 65 66 67 68		s_letters:      .null "abcdefghijklmnopqrstuvwxyz"
+>886b	69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78
+>887b	79 7a 00
+>887e	30 31 32 33 34 35 36 37		s_digits:       .null "0123456789"
+>8886	38 39 00
 
 ;******  Return to file: platforms/platform-py65mon.asm
 

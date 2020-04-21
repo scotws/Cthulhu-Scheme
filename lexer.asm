@@ -402,7 +402,7 @@ lexer_not_sharp:
         ; TODO this includes the decimal point so we can check for the period
         ; later
 
-; TODO TODO HIER HIER TODO TODO
+        ; TODO compare first digit with string s_digits
 
         ; Result is in carry flag: set we have a decimal number, clear
         ; this is something else
@@ -455,8 +455,62 @@ _not_string:
 _not_dot:
         ; --- Check for identifiers ----
 
-        ; HIER HIER TODO
+        ; If the next word doesn't start with a number, but a letter or an
+        ; "extended alphabetic character, it is some sort of identifier. These
+        ; can by keywords, variables, or symbols. See
+        ; https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_4.html for details.
+
+        ; See if this is a letter
+                jsr help_is_letter
+                bcs _id_found
+
+        ; See if this is an extended alphabetic character. Some of these
+        ; we should already have filtered out
+                jsr help_is_extended_alpha
+                bcc _not_an_id
+
+                ; drop through to _id_found
         
+_id_found:
+        ; We have an identifier of some sort. 
+                pha                     ; Save copy of the first character
+                lda #T_ID_START
+                jsr lexer_add_token
+                pla
+
+        ; Now we just walk through the following characters and save them until
+        ; we have a delimiter. Remember we arrive here with a legal id
+        ; character already in A, which makes this different than the string
+        ; loop. 
+_id_loop:
+                jsr lexer_add_token
+
+                iny
+
+                cpy ciblen
+                beq _id_end_of_line     ; Line can just be over
+
+                lda cib,y
+                beq _id_end_of_line     ; EOL can terminate input
+
+                jsr help_is_delimiter
+                bcc _id_loop
+
+                ; fall through to _id_done
+_id_done:
+                lda #T_ID_END
+                jsr lexer_add_token
+                bra lexer_next_same_char        ; deal with delimiter
+
+_id_end_of_line:
+        ; This should be rare, but we have to check for it: The identifier is
+        ; the very last thing on the line. 
+                lda #T_ID_END
+                jsr lexer_add_token
+                bra lexer_end_of_input
+
+_not_an_id:
+        ; ---- Check for TODO NEXT TODO ---- 
 
 lexer_error:
         ; ---- Lexer errors ----

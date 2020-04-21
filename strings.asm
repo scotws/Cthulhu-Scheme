@@ -49,9 +49,18 @@ s_exit_kill:    .null   "Kill Scheme (y or n)? "       ; from proc_exit
 
 ; ---- Other Strings ----
 
-; Extended alphabetic characters are what Scheme R5RS allows to be used in
-; identifiers. It might make more sense to save this as a ptext string than
-; a null strings
+; We store the string of delimiter characters "Forth style" with the length of
+; the string before the actual string contents. In 64tass, the double quotation
+; mark acts as an escape. We go from back to front so most common delimiters
+; are at the end. See 
+; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Delimiters.html
+; for more on delimiters
+s_delimiters:   .ptext "[]{}|`""';()"
 
-s_extended:     .null "!$%&*+-./:<=>?@^_~"
+; Extended alphabetic characters are what Scheme R5RS allows to be used in
+; identifiers. See https://www-sop.inria.fr/indes/fp/Bigloo/doc/r5rs-5.html
+s_extended:     .ptext "!$%&*+-./:<=>?@^_~"
+
+s_letters:      .null "abcdefghijklmnopqrstuvwxyz"
+s_digits:       .null "0123456789"
 
