@@ -11,18 +11,10 @@
 
 ; See https://schemers.org/Documents/Standards/R5RS/HTML/ for details.
 
-procs_table:
-        ; Jump table for primitive procedures. We are limited to 128 procedures
-        ; at the moment because we only use the LSB of the procedure call to
-        ; jump, leaving the one nibble in the MSB unused for now.
-
-        ;     00          02
-        .word proc_apply, proc_quote                    
-
-
 ; ===== PROCEDURE ROUTINES ====
 
-
+; These are ordered alphabetically. For each procedure, we must add an entry to
+; the 
 
 proc_apply:
         ; """Calls a procedure with a list of arguments. Example:
@@ -30,11 +22,46 @@ proc_apply:
         ; the rest of the AST.
         ; """
 
+proc_exit:
+        ; """Terminate Cthulhu Scheme (exit). We follow the procedure from MIT
+        ; Scheme where we ask the user if (exit) is used and just quit if it is
+        ; CTRL-d
+        ; """
+
+        lda #str_exit_kill              ; "Kill Scheme (y or n)?"
+        jsr help_print_string_no_lf
+        jsr help_key_a
+        cmp #'y'                        ; only "y" ends
+        beq _done
+
+        jmp eval_next           ; TODO or eval_done?
+        
+_done:
+        jmp repl_quit
+
 proc_quote:
         ; """Supresses execution of procedure in parens (roughly speaking). Can
         ; be start with a tick "'" instead.
         ; """
-        
+
+
+
+; ===== JUMP TABLE ===== 
+
+        ; Jump table for primitive procedures. We are limited to 256 procedures
+        ; at the moment because we use one byte for the index to the jump
+        ; tables, which are split in MSB and LSB parts.
+
+proc_table_lsb:
+        ;     00           01          02
+        .byte <proc_apply, <proc_quote, <proc_exit
+
+proc_table_msb:
+
+        ;     00           01          02
+        .byte >proc_apply, >proc_quote, >proc_exit
+
+
 
 ; ==== TODO FOR LATER ====
 

@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 18. Apr 2020
+; This version: 21. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -41,6 +41,7 @@ tmp2:    .word ?     ; temporary storage
 ; Hardware vectors
 output:  .word ?     ; output port, addr of routine
 input:   .word ?     ; input port, addr of routine
+jump:    .word ?     ; target for indirect jumps, used by evaluator
 
 ; I/O and parsing buffers
 input_f  .byte ?     ; input flag for Reader, see details there

@@ -264,7 +264,7 @@ _hex_fixnum_loop:
 _legal_hex_digit:
         ; We have a legal digit. We shift it as a nibble "through the right"
         ; into the temporary variables
-        ; TODO convert this to correct little-endian format
+        ; TODO convert this to correct little-endian format, also the printer
 
         ; First, shift the nibble to the left side of the A
                 asl

@@ -1,11 +1,11 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
-; into tokens which are stored in the token buffer (tkb). We do a lot of
+; into tokens which are stored in the token buffer (tkb). We do some
 ; processing in this stage because we don't want to touch the data too much.
 lexer:
         .if DEBUG == true
@@ -452,8 +452,11 @@ _not_string:
                 lda #T_DOT
                 jsr lexer_add_token
                 bra lexer_next
-
 _not_dot:
+        ; --- Check for identifiers ----
+
+        ; HIER HIER TODO
+        
 
 lexer_error:
         ; ---- Lexer errors ----

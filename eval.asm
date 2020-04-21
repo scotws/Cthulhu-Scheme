@@ -3,7 +3,6 @@
 ; First version: 05. Apr 2020
 ; This version: 21. Apr 2020
 
-
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; everything is self-evaluating, so this is just going through the motions.
 ; This uses the AST walker from helpers.asm 
@@ -101,8 +100,20 @@ eval_E_UNDEFINED:
         ; TODO define tag and add code
 
 eval_f_proc:
-        ; TODO write code for proc
-                bra eval_next   ; paranoid, currently not reached
+        ; Primitive (built-in, natively coded) procedures. We currently only
+        ; use the LSB for these as the index to the jump table in
+        ; primitive-procedures.asm. Note that jump table is split into MSB and
+        ; LSB pairs, so we have 256 possible native procedures. These could
+        ; later be expanded by using the lower nibble of the MSB
+                
+        ; The LSB we use as an index is still in Y
+        tya
+        lda proc_table_lsb,y    ; LSB of jump target
+        sta jump
+        lda proc_table_msb,y    ; MSB of jump target
+        
+        jmp (jump)
+        
 
 ; ===== EVALUATION JUMP TABLE ====
 
