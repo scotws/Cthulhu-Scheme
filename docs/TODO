@@ -1,19 +1,16 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 19. Apr 2020
+This version: 21. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Add pair objects
-- Switch to linked pairs for AST
 - Process empty list "()" (deal with input of parens with whitespace processing)
 - Process procedures, starting with (and), (display) and (+)
-- Reformat to 17-char indent for code like Tali Forth 2
-
+- Move tokenizer from "case" statements to jump table
 
 TO DO LONG TERM
 
@@ -23,6 +20,7 @@ TO DO LONG TERM
 
 DONE
 
+2020-04-21 - Add pair objects, switch to linked pairs (cons cells) for AST
 2020-04-19 - Switch to segmented memory
 2020-04-19 - Handle strings (adds internment; string table)
 2020-04-15 - Create basic skelton for eval (all self-evaluating anyway)
