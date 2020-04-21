@@ -68,6 +68,10 @@ NOTE: Though it is way too early in the development process to think about
 garbage collection, one possible way would be to reserve one 4 KiB segment for
 reorganizing once one of the other segments fills up. 
 
+It is tempting to assign the same tag and segment numbers, so that the tag
+nibble for strings corresponds to the RAM segment nibble. Though that would make
+the code easier, it would mean that the RAM segments are fixed, and it is
+possible that the garbage collection and other actions will move them around.
 
 // -------------------------------------------------------
 === Compiler stuff
@@ -75,18 +79,6 @@ reorganizing once one of the other segments fills up.
 The classic structure of a Lisp or Scheme program are linked pairs. Our Abstract
 Syntax Tree (AST) uses this structure internally with two 16-bit values that
 follow each other: The first one is the `cdr`, the second one the `car`. 
-
-NOTE: As the quote at the beginning of this section indicates, both terms (and
-the `cons` procedure are incredibly stupid and probably have done a lot to keep
-people away from Lisp and Scheme. However, there is simply no way around them at
-this lower level. 
-
-We keep the term AST for the part of memory and the structures that are involved
-in the actual program. 
-
-NOTE: During very early development, Cthulhu Lisp used a different system for
-the AST as scaffolding. This was used until the mechanics for pair processing
-were in place.  
 
 In theory, we could construct other parts such as the string table from linked
 lists as well. However, for reasons of efficiency, we currently use other
@@ -118,31 +110,26 @@ here, but not much.
 
 ==== Parser
 
-The parser creates an Abstract Syntax Tree (AST) with homogeneous nodes based on
-the description in _Language Implementation Patters_ by Terence Parr.<<TP>> Each
-node consists of three 16-bit fields:
+The parser takes the linear token stream and converts it to an Abstract Syntax
+Tree (AST) consisting of **cons cells** - pairs of 16-bit Scheme objects.
 
-. A pointer to the *next node*. If there is no next node, this is `0000`. 
-. The *Scheme object* of the node. This is constructed out of the token stream.
-  See below for a more thorough discussion of objects.
-. A pointer to the *children nodes*. If there are no children nodes, this is
-`0000`. 
+NOTE: During very early development, Cthulhu Scheme used a different system for
+the AST as scaffolding, based on homogeneous nodes from the the description in
+_Language Implementation Patters_ by Terence Parr.<<TP>> This has since been
+replaced by the classic Lisp cons cell design. We keep the term "AST" because it
+is by now more familiar.
+
+The terms used for the pairs are traditional in Lisp and Scheme and rather
+stupid: `cdr` is the first 16-bit cell, which usually holds a Scheme pointer (designated by 
+the object tag as a **pair object**) or the **empty list object** to signal the
+end of a list. The second cell is the `car`, which is the "payload" of the pair.
+If it too contains a pair object, this is a branch in the AST. 
 
 image::pics/ast_node.png[]
-
-NOTE: This design currently uses more memory that it has to by including a
-pointer to a child node even for objects like booleans that are immediate and
-never have children. At the moment, this design is kept because it makes walking
-the AST easier. In future versions, this will probaly be changed to handle
-heterogeneous nodes, saving space.
 
 ==== Evaluator
 
 In the next step, the AST is "walked" by the evaluator. 
-
-The main routine for the evaluator is named `apply`. Its function is to take the
-first element of the AST level as a procedure and run the children of the level
-through it.
 
 ==== Printer
 
@@ -164,21 +151,20 @@ A four-bit tag gives us 16 possible object types
 * Fixnum (immediate, bit code $2)
 * Bignum (pointer, bit code TODO)
 * Character (immediate, bit code TODO)
-* List (pointer, bit code TODO)
-* Procedure (pointer, bit code 000) The bit code 000 was chosen to make
-  detecting a procedure as fast as possible
+* Pair (pointer, bit code TODO)
+* Procedure (pointer, bit code TODO) 
 * String (pointer, bit code TODO).
 * Symbol (pointer, bit code TODO)
 
 There are quite a number of object types missing here compared to normal list --
-see for example the [GNU Guile data
-types](https://www.gnu.org/software/guile/manual/html_node/Data-Types.html), but
-some sacrifices had to be made.
+compare for example the
+link:https://www.gnu.org/software/guile/manual/html_node/Data-Types.html[GNU
+Guile data types], but some sacrifices had to be made.
 
 ===== Booleans
 
 The `#t` (true) and `#f` (false) booleans are self-evaluating and therefore were
-the first object that was implemented. Though formally, `#t` comes with the
+the first object to be implemented. Though formally, `#t` comes with the
 object `$1111`, in practice we only check the LSB, that is, `$ff`. This might
 change in future versions. The `#f` object is `$1000`. Neither have children in
 the Abstract Syntax Tree (AST) created by the parser. 
@@ -220,21 +206,25 @@ for a further discussion.
 
 Stings are **interned**, that is, the actual ASCII characters are stored on the
 heap, zero-terminated. The link to beginning of the string is stored in two
-places: The heap and the **string table**. This is used to compare a new string
-to the already stored strings so we don't share the same entry twice. 
+places: The string RAM segment and the **string table**. This is used to compare
+a new string to the already stored strings so we don't share the same entry
+twice. 
+
+NOTE: The string table doesn't use the class cons cell structure but a far more
+simple linked list where the zero-terminated string starts in the byte right
+after the 16-bit pointer. 
+
+// TODO add graphic of string table
+
 
 
 ==== Procedures
 
-There are two types of procedures in Cthulhu Scheme: _native procedures_ that
-are coded in assembler and _non-native procedures_ (also _high-level
+There are two types of procedures in Cthulhu Scheme: _primitive procedures_ that
+are coded in native assembler and _compound procedures_ (also _high-level
 procedures_) that are provided in Scheme code and loaded during boot.
 
+===== Primitive procedures
 
-===== Built-in procedures
-
-NOTE: Scheme and Lisp both insist in holding on to `car` and `cdr` as terms and
-commands, which makes as much sense as the famously silly `umount` command in
-the Unix bash shell. Though these are included as commands, Cthulhu Scheme and
-especially this documentation uses `first` and `rest`. 
+===== Compond procedures 
 

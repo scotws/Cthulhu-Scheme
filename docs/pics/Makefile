@@ -1,6 +1,6 @@
-# Makefile for Tali Forth 2's diagrams (uses ditaa to compile)
+# Makefile for Cthulhu Scheme's diagrams (uses ditaa to compile)
 # Original version: 16. Dec 2018 (Tali Forth 2)
-# This version: 10. April 2020
+# This version: 21. April 2020
 
 # This makefile is called from the main project Makefile.
 

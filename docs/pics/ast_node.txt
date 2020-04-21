@@ -1,7 +1,6 @@
-                        +----------------+
-         prev node -->  |  Node Link     |  ---> next node
-                        +----------------+
-                        |  Scheme Object |  tag + object payload
-                        +----------------+
-                        |  Child Link    |  ---> child nodes  
-                        +----------------+
+                          LSB    MSB
+                        +------+-----+
+         prev pair -->  |  cdr cell  |  --> next pair
+                        +------+-----+
+                        |  car cell  |  tag + object payload
+                        +------+-----+

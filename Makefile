@@ -1,6 +1,6 @@
 # Makefile for Cthulhu Scheme
 # First version: 30. Mar 2020
-# This version: 06. Apr 2020
+# This version: 21. Apr 2020
 
 # This is based on the Makefile for Tali Forth 2, which was originally written
 # by Sam Colwell

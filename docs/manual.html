@@ -468,6 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_design_descisions">Design descisions</a></li>
 <li><a href="#_memory_map">Memory Map</a></li>
+<li><a href="#_compiler_stuff">Compiler stuff</a></li>
 <li><a href="#_the_repl">The REPL</a></li>
 <li><a href="#_scheme_objects">Scheme objects</a></li>
 </ul>
@@ -792,9 +793,9 @@ depending on the object in question.</p>
 <p>We immediately see the challenges of running Scheme on an 8-bit machine with
 small register, address, and word sizes. Even earliest version of Lisp was
 envisioned for a machine with a 36-bit word size and 15-bit pointers, the IBM
-701.<a href="#JM1">[JM1]</a> It was first [actually
-implemented](<a href="https://en.wikipedia.org/wiki/IBM_704" class="bare">https://en.wikipedia.org/wiki/IBM_704</a>) on an IBM 704 with the same
-word size.<a href="#JM2">[JM2]</a> We have less to work with then the first Lispers back in 1960.</p>
+701.<a href="#JM1">[JM1]</a> It was first <a href="https://en.wikipedia.org/wiki/IBM_704">actually
+implemented</a> on an IBM 704 with the same word size.<a href="#JM2">[JM2]</a> We have less to work
+with then the first Lispers back in 1960.</p>
 </div>
 <div class="paragraph">
 <p>For Cthulhu Scheme, we use a 16-bit object size, reserving the hightest nibble
@@ -818,9 +819,9 @@ the (IBM) 704.
 </div>
 </div>
 <div class="paragraph">
-<p>The big, simple split in Cthulhu Scheme is between things that go in RAM and things that
-go in ROM. The code attempts to use the section functions of the 64tass
-assembler to make the best possible use of both.</p>
+<p>The basic big, simple split in Cthulhu Scheme is between things that go in RAM
+and things that go in ROM. The code attempts to use the section functions of the
+64tass assembler to make the best possible use of both.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -844,11 +845,66 @@ more Zero Page memory.
 <div class="sect3">
 <h4 id="_ram_segments">RAM Segments</h4>
 <div class="paragraph">
-<p>A Cthulhu Scheme object consists of a four bit tag from bits 15 to 12 and a
-12 bit pointer to the object in the heap. With twelve bits, we can only address
-4 Kbit of RAM. Because of this, the available RAM will be divided into segments
-at some point. Currenlty, during development, it is all in one block.</p>
+<p>A Cthulhu Scheme object consists of a four bit tag (bits 15 to 12) and a 12 bit
+pointer to the object in the heap (bits 11 to 0). With twelve bits, we can
+address 4 Kbit of RAM. Because of this, the available RAM is divided into
+segments. Each is numbered by the leading nibble from 0 to $F. These do not
+eactly correspond to the tag nibbles. Currently, we have</p>
 </div>
+<div class="ulist">
+<ul>
+<li>
+<p>0 ($0000 to $0FFF): Reserved for Zero Page, Stack, and buffers</p>
+</li>
+<li>
+<p>1 ($1000 to $1FFF): Default AST segment (<code>rsn_ast</code>)</p>
+</li>
+<li>
+<p>2 ($2000 to $2FFF): Default string segment (<code>rsn_str</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As Cthulhu progresses, other segments will be assigned for symbols, bignums and
+procedures.</p>
+</div>
+<div class="paragraph">
+<p>Everything above segment 8 ($8000) is ROM. Segment 7 ($7000 to $7FFF) is
+reserved for garbage collection in the future.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Though it is way too early in the development process to think about
+garbage collection, one possible way would be to reserve one 4 KiB segment for
+reorganizing once one of the other segments fills up.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>It is tempting to assign the same tag and segment numbers, so that the tag
+nibble for strings corresponds to the RAM segment nibble. Though that would make
+the code easier, it would mean that the RAM segments are fixed, and it is
+possible that the garbage collection and other actions will move them around.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_compiler_stuff">Compiler stuff</h3>
+<div class="paragraph">
+<p>The classic structure of a Lisp or Scheme program are linked pairs. Our Abstract
+Syntax Tree (AST) uses this structure internally with two 16-bit values that
+follow each other: The first one is the <code>cdr</code>, the second one the <code>car</code>.</p>
+</div>
+<div class="paragraph">
+<p>In theory, we could construct other parts such as the string table from linked
+lists as well. However, for reasons of efficiency, we currently use other
+structures.</p>
 </div>
 </div>
 <div class="sect2">
@@ -890,29 +946,8 @@ here, but not much.</p>
 <div class="sect3">
 <h4 id="_parser">Parser</h4>
 <div class="paragraph">
-<p>The parser creates an Abstract Syntax Tree (AST) with homogeneous nodes based on
-the description in <em>Language Implementation Patters</em> by Terence Parr.<a href="#TP">[TP]</a> Each
-node consists of three 16-bit fields:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>A pointer to the <strong>next node</strong>. If there is no next node, this is <code>0000</code>.</p>
-</li>
-<li>
-<p>The <strong>Scheme object</strong> of the node. This is constructed out of the token stream.
-See below for a more thorough discussion of objects.</p>
-</li>
-<li>
-<p>A pointer to the <strong>children nodes</strong>. If there are no children nodes, this is
-<code>0000</code>.</p>
-</li>
-</ol>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="pics/ast_node.png" alt="ast node">
-</div>
+<p>The parser takes the linear token stream and converts it to an Abstract Syntax
+Tree (AST) consisting of <strong>cons cells</strong> - pairs of 16-bit Scheme objects.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -921,25 +956,32 @@ See below for a more thorough discussion of objects.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-This design currently uses more memory that it has to by including a
-pointer to a child node even for objects like booleans that are immediate and
-never have children. At the moment, this design is kept because it makes walking
-the AST easier. In future versions, this will probaly be changed to handle
-heterogeneous nodes, saving space.
+During very early development, Cthulhu Scheme used a different system for
+the AST as scaffolding, based on homogeneous nodes from the the description in
+<em>Language Implementation Patters</em> by Terence Parr.<a href="#TP">[TP]</a> This has since been
+replaced by the classic Lisp cons cell design. We keep the term "AST" because it
+is by now more familiar.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>The terms used for the pairs are traditional in Lisp and Scheme and rather
+stupid: <code>cdr</code> is the first 16-bit cell, which usually holds a Scheme pointer (designated by
+the object tag as a <strong>pair object</strong>) or the <strong>empty list object</strong> to signal the
+end of a list. The second cell is the <code>car</code>, which is the "payload" of the pair.
+If it too contains a pair object, this is a branch in the AST.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/ast_node.png" alt="ast node">
+</div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_evaluator">Evaluator</h4>
 <div class="paragraph">
 <p>In the next step, the AST is "walked" by the evaluator.</p>
-</div>
-<div class="paragraph">
-<p>The main routine for the evaluator is named <code>apply</code>. Its function is to take the
-first element of the AST level as a procedure and run the children of the level
-through it.</p>
 </div>
 </div>
 <div class="sect3">
@@ -974,11 +1016,10 @@ through it.</p>
 <p>Character (immediate, bit code TODO)</p>
 </li>
 <li>
-<p>List (pointer, bit code TODO)</p>
+<p>Pair (pointer, bit code TODO)</p>
 </li>
 <li>
-<p>Procedure (pointer, bit code 000) The bit code 000 was chosen to make
-detecting a procedure as fast as possible</p>
+<p>Procedure (pointer, bit code TODO)</p>
 </li>
 <li>
 <p>String (pointer, bit code TODO).</p>
@@ -989,15 +1030,15 @@ detecting a procedure as fast as possible</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>There are quite a number of object types missing here compared to normal list&#8201;&#8212;&#8201;see for example the [GNU Guile data
-types](<a href="https://www.gnu.org/software/guile/manual/html_node/Data-Types.html" class="bare">https://www.gnu.org/software/guile/manual/html_node/Data-Types.html</a>), but
-some sacrifices had to be made.</p>
+<p>There are quite a number of object types missing here compared to normal list&#8201;&#8212;&#8201;compare for example the
+<a href="https://www.gnu.org/software/guile/manual/html_node/Data-Types.html">GNU
+Guile data types</a>, but some sacrifices had to be made.</p>
 </div>
 <div class="sect4">
 <h5 id="_booleans">Booleans</h5>
 <div class="paragraph">
 <p>The <code>#t</code> (true) and <code>#f</code> (false) booleans are self-evaluating and therefore were
-the first object that was implemented. Though formally, <code>#t</code> comes with the
+the first object to be implemented. Though formally, <code>#t</code> comes with the
 object <code>$1111</code>, in practice we only check the LSB, that is, <code>$ff</code>. This might
 change in future versions. The <code>#f</code> object is <code>$1000</code>. Neither have children in
 the Abstract Syntax Tree (AST) created by the parser.</p>
@@ -1053,20 +1094,10 @@ for a further discussion.</p>
 <div class="paragraph">
 <p>Stings are <strong>interned</strong>, that is, the actual ASCII characters are stored on the
 heap, zero-terminated. The link to beginning of the string is stored in two
-places: The heap and the <strong>string table</strong>. This is used to compare a new string
-to the already stored strings so we don&#8217;t share the same entry twice.</p>
+places: The string RAM segment and the <strong>string table</strong>. This is used to compare
+a new string to the already stored strings so we don&#8217;t share the same entry
+twice.</p>
 </div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_procedures">Procedures</h4>
-<div class="paragraph">
-<p>There are two types of procedures in Cthulhu Scheme: <em>native procedures</em> that
-are coded in assembler and <em>non-native procedures</em> (also <em>high-level
-procedures</em>) that are provided in Scheme code and loaded during boot.</p>
-</div>
-<div class="sect4">
-<h5 id="_built_in_procedures">Built-in procedures</h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1074,14 +1105,29 @@ procedures</em>) that are provided in Scheme code and loaded during boot.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Scheme and Lisp both insist in holding on to <code>car</code> and <code>cdr</code> as terms and
-commands, which makes as much sense as the famously silly <code>umount</code> command in
-the Unix bash shell. Though these are included as commands, Cthulhu Scheme and
-especially this documentation uses <code>first</code> and <code>rest</code>.
+The string table doesn&#8217;t use the class cons cell structure but a far more
+simple linked list where the zero-terminated string starts in the byte right
+after the 16-bit pointer.
 </td>
 </tr>
 </table>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_procedures">Procedures</h4>
+<div class="paragraph">
+<p>There are two types of procedures in Cthulhu Scheme: <em>primitive procedures</em> that
+are coded in native assembler and <em>compound procedures</em> (also <em>high-level
+procedures</em>) that are provided in Scheme code and loaded during boot.</p>
+</div>
+<div class="sect4">
+<h5 id="_primitive_procedures">Primitive procedures</h5>
+
+</div>
+<div class="sect4">
+<h5 id="_compond_procedures">Compond procedures</h5>
+
 </div>
 </div>
 </div>
