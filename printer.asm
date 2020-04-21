@@ -25,6 +25,9 @@ printer:
                 jsr help_walk_init
                 
 printer_loop:
+        ; If carry is sent we are at the last entry, but we don't want to know
+        ; that until the end. Save the status flags for now
+                php
 
         ; A contains the MSB of the car ... you know the drill from the
         ; evaluator.
@@ -48,14 +51,13 @@ printer_loop:
                 jmp (printer_table,X)
                 
 printer_next:
+        ; If we had reached the end of the AST, the walker had set the carry flag
+                plp                     ; from PHP
+                bcs printer_done        ; probably a JMP later
+
         ; Get next entry out of AST
                 jsr help_walk_next
-                
-        ; If we have reached the end of the AST, the walker sets the carry flag
-        ; TODO we need to take care of the car of the last entry as well, this
-        ; ends too soon!
-                bcc printer_loop
-                bra printer_done        ; this will have to be jmp later
+                bra printer_loop        
 
 
 ; ==== PRINTER SUBROUTINES ====
@@ -190,5 +192,6 @@ printer_table:
 
 ; ==== RETURN TO REPL ====
 printer_done:
+                jsr help_emit_lf
                 ; fall through to repl_done
 

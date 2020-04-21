@@ -21,6 +21,11 @@ eval:
                 jsr help_walk_init      ; returns car in A and Y
 
 eval_loop:
+        ; If carry is sent we are at the last entry, but we don't want to know
+        ; that until the end. Save the status flags for now
+                php
+
+
         ; A contains the MSB of the car, the "payload" of the cons cell (pair).
         ; We need to mask everything but the object's tag nibble
                 and #$f0
@@ -39,12 +44,14 @@ eval_loop:
                 jmp (eval_table,X)
 
 eval_next:
-                jsr help_walk_next
-
-        ; If we have reached the end of the AST, the walker sets the carry
+        ; If we had reached the end of the AST, the walker had set the carry
         ; flag. 
-                bcc eval_loop
-                bra eval_done           ; this will have to be jmp later
+                plp
+                bcs eval_done           ; probably later a JMP
+
+        ; Get next entry out of AST
+                jsr help_walk_next
+                bra eval_loop
 
 
 ; ===== EVALUATION SUBROUTINES ====

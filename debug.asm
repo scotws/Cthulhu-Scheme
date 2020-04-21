@@ -1,12 +1,11 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
-; platform file for this. All routines start with debug_ . These are not
-; documented at the moment, because they are currently changing all the the
-; time. 
+; platform to "false" for this. All routines start with debug_ . These are not
+; documented at the moment, because they are still changing all the the time. 
 
 debug_dump_input:
         ; Hexdump contents of the character input buffer (cib)
@@ -78,7 +77,6 @@ debug_dump_hp:
                 jmp help_byte_to_ascii          ; JSR/RTS
 
 
-
 debug_dump_ast: 
         ; Dump the raw data of the AST. Uses the generic AST walker from
         ; helpers
@@ -107,7 +105,8 @@ debug_dump_ast:
 
 _debug_dump_ast_loop:
 
-                ; If carry is set we are at the last entry
+                ; If carry is set we are at the last entry. Save the status
+                ; flags for now
                 php
                 
                 ; Make it pretty
