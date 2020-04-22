@@ -1,7 +1,7 @@
 ; Primitive Procedures for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 19. Apr 2020
+; This version: 21. Apr 2020
 
 ; This file contains the procedures of Cthulhu Scheme that are "primitive",
 ; that is, hard-coded in assembler. All such procedures start with the proc_
@@ -14,13 +14,21 @@
 ; ===== PROCEDURE ROUTINES ====
 
 ; These are ordered alphabetically. For each procedure, we must add an entry to
-; the 
+; the headers.asm file, which is a linked list. 
 
 proc_apply:
         ; """Calls a procedure with a list of arguments. Example:
         ; '(apply + (list 3 4))'. We jump to this procedure with the pointer to
         ; the rest of the AST.
         ; """
+
+proc_car:
+
+proc_cdr:
+
+proc_cons:
+
+proc_define:
 
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from MIT
@@ -38,6 +46,10 @@ proc_exit:
         
 _done:
         jmp repl_quit
+
+proc_if:
+
+proc_not:
 
 proc_quote:
         ; """Supresses execution of procedure in parens (roughly speaking). Can

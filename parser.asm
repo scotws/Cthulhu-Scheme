@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 20. Apr 2020
+; This version: 21. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -380,7 +380,7 @@ _illegal_radix:
                 pha                             ; save the evil radix
                 lda #str_bad_radix
                 jsr help_print_string_no_lf
-                bra parser_common_panic         ; prints offending byte and LF
+                jmp parser_common_panic 
 
 
 parser_common_fixnum:    
@@ -507,17 +507,201 @@ _string_end:
 +
                 jmp parser_loop
  
-                
-                ; ---- TODO NEXT CHECK ----
 parser_not_string:                
-                ; TODO ADD NEXT CHECK HERE TODO 
+        ; ---- Check for identifier ----
+                cmp #T_ID_START
+                beq parser_have_id
+                jmp parser_not_id               ; too far for BNE
 
+parser_have_id:
+        ; It's not a string, so we'll assume it's an identifier. At the moment,
+        ; this could be a variable, a symbol or a procedure. It might make
+        ; sense later to split up the proceedures into commonly used, to test
+        ; first, then the symbol and variable tables, and then the less
+        ; commonly used procedures. Or we bite the bullet and just build some
+        ; sort of tree structure once the procedures are complete.
 
-                ; ---- No match found ----
+        ; TODO check variable table
+        ; TODO check symbol table
+
+_find_proc:
+        ; ---- Check for procedure ----
+
+        ; It's not a symbol and it is not a variable, so let's assume it's
+        ; a procedure. We keep the procedure "headers" in headers.asm (see
+        ; there for details) as a linked list that starts at proc_headers. We
+        ; need to actually compare the strings to see if they are identical.
+        ; We assume that the input has been changed to lowercase. 
+
+        ; Since we are here because of T_ID_START, the next character in the
+        ; token stream must be an ASCII character, because we trust the lexer
+                inx             ; point to first character
+
+        ; Go through the linked list of procedure headers. A "0000" as the next
+        ; entry address terminates.
+
+        ; TODO This is not optimized for speed, which would be useless until we
+        ; decide if we want to even do it his way. 
+
+        ; TODO We're going to need the same exact procedure for variables and
+        ; symbols so this should be moved to a subroutine in helpers.asm
+
+                ; Get start of list of process headers. We'll need this later
+                ; for the next entry
+                lda #<proc_headers
+                sta tmp0
+                lda #>proc_headers
+                sta tmp0+1
+
+                ; The start of our string is at tbk,x. Life is easier if we can
+                ; store it to a temporary variable 
+                txa
+                clc
+                adc #<tkb
+                sta tmp1                ; address of mystery string in tmp1
+                lda #>tkb
+                bcc +
+                inc a
++
+                sta tmp1+1
+
+_find_proc_loop:
+        ; We now compare character by character. The lexer stored the mystery
+        ; string of the identifier with the T_ID_END token as the last entry
+
+                ; The known string in the header list starts four bytes down from 
+                ; the beginning of the entry. If we had a addressing mode like
+                ; CMP (tmp0),X and ORA (tmp0),X we could save this step but
+                ; we don't, only CMP (tmp0),Y.
+                lda #4
+                clc
+                adc tmp0
+                sta tmp2                ; LSB address of the known string in tmp2
+
+                lda tmp0+1              ; MSB
+                sta tmp2+1
+                bcc +
+                inc tmp2+1
++
+                ldy #0
+_compare_loop:
+                lda (tmp1),y            ; char of the mystery string
+
+                ; See if mystery string done 
+                cmp #T_ID_END
+                beq _mystery_string_done
+
+                ; See if character is the same
+                cmp (tmp2),y            ; known character string 
+                bne _next_entry         ; chars don't match, next entry
+
+                ; See if our known string is done. If yes, this is not a match
+                ; because we already checked for the end of the mystery string
+                lda (tmp2),y
+                beq _next_entry
+
+                ; If we land here, the characters match and we're not at the
+                ; end of either string. Keep checking.
+                iny
+                bra _compare_loop
+
+_mystery_string_done:
+        ; The mystery string is over, but we don't know if the known string
+        ; is complete as well, so we need one more test. Otherwise, "cat" and
+        ; "cats" would be considered equal
+                lda (tmp2),y
+                beq _found_id           ; strings are both over, it's a match!
+
+                ; fall through to _next_entry
+_next_entry:
+        ; The characters didn't match so we need to try the next entry. We kept
+        ; the pointer to the entry around in tmp0
+                lda (tmp0)
+                pha
+                ldy #1
+                lda (tmp0),y
+                sta tmp0+1
+                pla
+                sta tmp0
+
+                ; If we have arrived at the end of the header list, we have no
+                ; match and need to try something completely different
+                ora tmp0+1
+                bne _find_proc_loop   ; concentrate and try again, Mrs. Dunham
+
+                ; fall through to _bad_word
+
+_bad_word:
+        ; If we arrive here, we haven't found the word the user gave us in the
+        ; variable list, the symbol list or amongst the processes. Complain and
+        ; return to the REPL
+                lda #str_unbound                ; ";Unbound variable: "
+                jsr help_print_string_no_lf
+
+                ; Print the offending name. We can just used the token buffer
+                ; because this is all screwed up anyway and we have to go back
+                ; to the REPL
+_bad_word_loop:
+                lda tkb,x
+                cmp #T_ID_END
+                beq _bad_word_done
+
+                jsr help_emit_a
+                inx
+        
+                bra _bad_word_loop
+
+_bad_word_done:
+                jsr help_emit_lf
+                jmp repl
+
+_found_id:
+        ; We have found a match, so this is a process. We create a process
+        ; object and store it. tmp0 contains the address (not: the Scheme
+        ; process object) to the code starting two bytes down from the current
+        ; address
+
+        ; TODO consider storing the Scheme object for the process in the header
+        ; instead of the address for speed reasons. This would also enable us
+        ; to store different types of objects in the header list, which might
+        ; be useful
+                lda #2
+                clc
+                adc tmp0
+                sta tmp0        ; LSB of process object
+                bcc +
+                inc tmp0+1      ; We are pointing to next address
++
+                ; Convert address to process Scheme object
+                lda tmp0+1
+                and #$0F        ; Mask useless high nibble of MSB
+                ora #OT_PROC
+                tay             ; TODO MSB currently still in Y
+                lda tmp0        ; TODO LSB currently still in A
+
+                jsr parser_add_object_to_ast
+
+        ; Since the identifier was stored with a T_ID_END token, we should now
+        ; be pointing to that token.  Skip ahead one.
+                inx 
+
+        ; TODO consider explicitly testing for the token and throwing a panic
+        ; if it is not found
+
+                jmp parser_loop
+
+parser_not_id: 
+        ; Whatever this is, it is not an id
+
+        ; ----- TODO CONTINUE HERE TODO ----
+
 paser_bad_token:
+        ; ---- No match found ----
+
         ; Oh dear, this really shouldn't happen. Panic and return
         ; to main loop. The bad token should still be in A
                 pha                             ; save the evil token
+                jsr help_emit_lf
                 lda #str_bad_token
                 jsr help_print_string_no_lf
 

@@ -1,7 +1,7 @@
 ; Lexer (Tokenizer) for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 21. Apr 2020
+; This version: 22. Apr 2020
 
 ; The lexer (tokenizer) is kept in a separate file to make changes easier. It
 ; goes through the characters read into the input buffer (cib) and turns them
@@ -456,7 +456,7 @@ _not_dot:
         ; --- Check for identifiers ----
 
         ; If the next word doesn't start with a number, but a letter or an
-        ; "extended alphabetic character, it is some sort of identifier. These
+        ; "extended alphabetic character", it is some sort of identifier. These
         ; can by keywords, variables, or symbols. See
         ; https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_4.html for details.
 
@@ -485,7 +485,7 @@ _id_found:
 _id_loop:
                 jsr lexer_add_token
 
-                iny
+                iny                     ; next character
 
                 cpy ciblen
                 beq _id_end_of_line     ; Line can just be over
