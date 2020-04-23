@@ -75,9 +75,11 @@ parser_loop:
                 cmp #T_TICK
                 bne _not_tick
 
-        ; It's a tick. This is pretty common. 
-                lda #<OC_PROC_QUOTE
-                ldy #>OC_PROC_QUOTE
+        ; It's a tick. This is pretty common. To add stuff to the AST, we put
+        ; the LSB in Y and the MSB in A, and of course we're little endian.
+        ; Remember this with "Little Young Americans" - little endian, Y, A.
+                ldy #<OC_PROC_QUOTE
+                lda #>OC_PROC_QUOTE
                 jsr parser_add_object_to_ast
                 jmp parser_loop
 
@@ -116,8 +118,8 @@ _not_end_token:
 
         ; We have a true token, which makes our life easy, because we
         ; have the object as a constant
-                lda <#OC_TRUE
-                ldy >#OC_TRUE
+                ldy <#OC_TRUE
+                lda >#OC_TRUE
 
         ; It is tempting to collapse the next two lines by adding the jump to
         ; parser_done to the end of parser_add_object_to_ast and then just
@@ -136,8 +138,8 @@ _not_true_token:
 
         ; We have a false token, which makes our life easy, because we
         ; have the object as a constant
-                lda <#OC_FALSE
-                ldy >#OC_FALSE
+                ldy <#OC_FALSE
+                lda >#OC_FALSE
                 jsr parser_add_object_to_ast
                 jmp parser_loop
 
@@ -411,8 +413,8 @@ _negative_number:
                 ; drop through to _add_fixnum_to_ast
 
 _add_fixnum_to_ast:
-                lda tmp1+1
-                ldy tmp1
+                ldy tmp1+1
+                lda tmp1
                 jsr parser_add_object_to_ast
 
 _num_done:
@@ -454,8 +456,7 @@ parser_not_num:
 
                 and #$0F        ; mask high nibble (paranoid)
                 ora #OT_STRING  ; object tag nibble for strings
-                tay             ; MSB goes in Y
-                lda hp_str      ; LSB goes in A
+                ldy hp_str      ; LSB goes in Y, MSB is in A
         
                 jsr parser_add_object_to_ast   ; Updates AST heap pointer
 
@@ -686,8 +687,7 @@ _found_id:
                 lda tmp0+1
                 and #$0F        ; Mask useless high nibble of MSB
                 ora #OT_PROC
-                tay             ; TODO MSB currently still in Y
-                lda tmp0        ; TODO LSB currently still in A
+                ldy tmp0        ; LSB, MSB still in A
 
                 jsr parser_add_object_to_ast
 
@@ -738,12 +738,11 @@ function_not_available:
 
 parser_add_object_to_ast: 
         ; Add a Scheme object to the AST, which in practice means adding a new
-        ; pair. Assumes that the LSB of the object is in A and the MSB (the
-        ; part with the tag that designates the type of object) is in Y. When
-        ; we arrive here, astp points to the last object in the tree we want to
-        ; link to. We always add to the end of the list at which makes life
-        ; easier. The AST lives in the RAM segment for AST. Uses tmp0.  
-        ; TODO change this to MSB in A and LSB in Y
+        ; pair. Assumes that the LSB of the object is in Y and the MSB (the
+        ; part with the tag that designates the type of object) is in A. You
+        ; can remember this with "Little Young Americans" - little endian, Y,
+        ; A. We always add to the end of the list at which makes life easier.
+        ; The AST lives in the RAM segment for AST. Uses tmp0.  
         
         ; We could use (cons) and other built-in Scheme procedures for this but
         ; we can make it faster with low-level routines. 
@@ -751,8 +750,8 @@ parser_add_object_to_ast:
         ; TODO make sure we don't advance past the end of the heap 
         
                 phx             ; save index to token buffer
-                phy             ; save MSB of the object (with tag)
-                pha             ; save LSB of the object
+                pha             ; save MSB of the object (with tag)
+                phy             ; save LSB of the object to top of stack
                 
         ; Remember the first free byte of memory as the start of the
         ; new pair. This is a pure address, not a Scheme pointer; the first
@@ -777,10 +776,10 @@ parser_add_object_to_ast:
                 iny
                 
         ; Store the object in the new car. We are little endian
-                pla             ; retrieve LSB of object, was in A
+                pla             ; retrieve LSB of object, was in Y
                 sta (hp_ast),y
                 iny
-                pla             ; retrieve MSB (with tag), was in Y
+                pla             ; retrieve MSB (with tag), was in A
                 sta (hp_ast),y
                 iny
 
