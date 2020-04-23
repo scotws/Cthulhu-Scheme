@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 21. Apr 2020
+; This version: 22. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
@@ -66,14 +66,16 @@ printer_next:
 ; respectively and the LSB of the car still in Y. The MSB was in A but was
 ; destroyed, so we need to reclaim it.
 
-; ---- Meta ----
 printer_0_meta:
+        ; ---- Meta ----
+
         ; This marks the end of the tree (which at the moment is just a list
         ; anyway) 
                 bra printer_done
 
-; ---- Booleans ----
 printer_1_bool:
+        ; ---- Booleans ----
+
         ; Booleans are terribly simple with two different versions. 
                 lda walk_car+1          ; MSB of car
                 and #$0F                ; Get rid of tag
@@ -89,8 +91,9 @@ _bool_printer:
                 bra printer_next
 
 
-        ; ---- Fixnums ----
 printer_2_fixnum:
+        ; ---- Fixnums ----
+
         ; Print fixnums as decimal with a sign
         ; TODO Yeah, that is going to happen at some point. For the moment,
         ; however, we will just print it out in hex until we have everything
@@ -108,13 +111,18 @@ printer_2_fixnum:
 
 
 printer_3_bignum:
+        ; ---- Bignums ----
+
         ; TODO define tag and add code
 
 printer_4_char:
+        ; ---- Characters ----
+
         ; TODO define tag and add code
 
-        ; ---- Strings ----
 printer_5_string:
+        ; ---- Strings ----
+
         ; Strings are interned, so we just get a pointer to where they are in
         ; the heap's RAM segment for strings. This uses tmp2
 
@@ -137,37 +145,63 @@ _string_loop:
                 bra _string_loop
 
 
-printer_6_UNDEFINED:
-        ; TODO define tag and add code
+printer_6_var:
+        ; ---- Variables ----
+        
+        ; TODO define variables and add code
 
 printer_7_UNDEFINED:
         ; TODO define tag and add code
 
-printer_8_UNDEFINED:
+printer_8_pair:
+        ; ---- Pair ----
+
         ; TODO define tag and add code
 
 printer_9_UNDEFINED:
         ; TODO define tag and add code
 
-printer_A_UNDEFINED:
+printer_a_UNDEFINED:
         ; TODO define tag and add code
 
-printer_B_UNDEFINED:
+printer_b_UNDEFINED:
         ; TODO define tag and add code
 
-printer_C_UNDEFINED:
+printer_c_UNDEFINED:
         ; TODO define tag and add code
 
-printer_D_UNDEFINED:
+printer_d_UNDEFINED:
         ; TODO define tag and add code
 
-printer_E_UNDEFINED:
-        ; TODO define tag and add code
+printer_e_special:
+        ; ---- Special forms----
 
-printer_F_UNDEFINED:
-        ; TODO define tag and add code
+        ; If we ended up here directly, the user typed something like "define"
+        ; instead of "(define)". MIT-Scheme produces a rather unhelpful generic
+        ; error message. Instead, we follow Racket and other Schemes by
+        ; printing a string and the address where the actual code is located.
+                lda #str_special_prt            ; "#<special:$"
+                jsr help_print_string_no_lf
+                bra print_common_exec
 
-        ; TODO paranoid catch during testing
+printer_f_proc:
+        ; ---- Processes ----
+
+        ; If we ended up here directly, the user typed something like "exit"
+        ; instead of "(exit)". MIT-Scheme produces a rather unhelpful generic
+        ; error message. Instead, we follow Racket and other Schemes by
+        ; printing a string and the address where the actual code is located.
+                lda #str_proc_prt               ; "#<procedure:$"
+                jsr help_print_string_no_lf
+
+print_common_exec:
+                lda walk_car+1
+                jsr help_byte_to_ascii
+                lda walk_car
+                jsr help_byte_to_ascii
+                lda #'>'
+                jsr help_emit_a
+
                 bra printer_next
 
 
@@ -178,16 +212,16 @@ printer_table:
         ; to jump to the individual routines. 
 
         ;      0 meta        1 bool          2 fixnum          3 bignum
-        .word printer_done, printer_1_bool, printer_2_fixnum, printer_next
+        .word printer_done, printer_1_bool, printer_2_fixnum, printer_3_bignum
 
-        ;      4 char     5 string   6 UNDEF    7 UNDEF
-        .word printer_next, printer_5_string, printer_next, printer_next
+        ;      4 char          5 string          6 var          7 UNDEF
+        .word printer_4_char, printer_5_string, printer_6_var, printer_next
 
-        ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF
-        .word printer_next, printer_next, printer_next, printer_next
+        ;      8 pair          9 UNDEF       A UNDEF       B UNDEF
+        .word printer_8_pair, printer_next, printer_next, printer_next
 
-        ;      C UNDEF    D UNDEF    E  UNDEF   F UNDEF
-        .word printer_next, printer_next, printer_next, printer_next
+        ;      C UNDEF       D UNDEF       E speical          F proc
+        .word printer_next, printer_next, printer_e_special, printer_f_proc
 
 
 ; ==== RETURN TO REPL ====

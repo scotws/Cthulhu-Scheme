@@ -99,22 +99,7 @@ eval_E_UNDEFINED:
         ; TODO define tag and add code
 
 eval_f_proc:
-        ; Primitive (built-in, natively coded) procedures is called directly.
-        ; This usually doesn't happen: We have (apply) handle the procedures.
-        ; If we ended up here directly, the user typed something like "exit"
-        ; instead of "(exit)". MIT-Scheme produces a rather unhelpful generic
-        ; error message. Instead, we follow Racket and other Schemes by
-        ; printing a string and the address where the actual code is located.
-                lda #str_proc_eval              ; "#<procedure:$"
-                jsr help_print_string_no_lf
-                lda walk_car+1
-                jsr help_byte_to_ascii
-                lda walk_car
-                jsr help_byte_to_ascii
-                lda #'>'
-                jsr help_emit_a
-                
-                bra eval_next
+                bra eval_next   ; paranoid, never reached
 
 
 ; ===== EVALUATION JUMP TABLE ====

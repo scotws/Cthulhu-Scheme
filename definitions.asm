@@ -95,7 +95,7 @@ OT_FIXNUM       = $20   ; used for fixed numbers; immediate
 OT_BIGNUM       = $30   ; reserved for bignum
 OT_CHAR         = $40   ; reserved for chars; immediate
 OT_STRING       = $50   ; used for strings; interned
-ot_undefined_06 = $60
+OT_VAR          = $60   ; used for variables
 ot_undefined_07 = $70
 OT_PAIR         = $80   ; used for pairs
 ot_undefined_09 = $90
@@ -103,7 +103,7 @@ ot_undefined_0a = $a0
 ot_undefined_0b = $b0
 ot_undefined_0c = $c0
 ot_undefined_0d = $d0
-ot_undefined_0e = $e0
-OT_PROC         = $f0   ; used for built-in procedures
+OT_SPECIAL      = $e0   ; special forms such as (lambda) or (if)
+OT_PROC         = $f0   ; built-in procedures
 
 ; end

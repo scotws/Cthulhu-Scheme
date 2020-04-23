@@ -676,7 +676,6 @@ _found_id:
         ; instead of the address for speed reasons. This would also enable us
         ; to store different types of objects in the header list, which might
         ; be useful. 
-
                 lda #02
                 clc
                 adc tmp0
