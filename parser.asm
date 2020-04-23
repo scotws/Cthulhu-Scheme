@@ -105,6 +105,7 @@ _not_paren_end:
         ; check for an end of the buffer.
                 cmp #T_END      
                 bne _not_end_token
+
                 jmp parser_done
 
 _not_end_token:
@@ -661,6 +662,15 @@ _found_id:
         ; process object) to the code starting two bytes down from the current
         ; address
 
+        ; We need to get a correct X back. We basically need to add Y to X,
+        ; which is not that easy with the 65c02. We don't need tmp1 anymore, so
+        ; we can clobber it
+                tya
+                stx tmp1
+                clc
+                adc tmp1
+                tax
+
         ; TODO consider storing the Scheme object for the process in the header
         ; instead of the address for speed reasons. This would also enable us
         ; to store different types of objects in the header list, which might
@@ -680,10 +690,6 @@ _found_id:
                 lda tmp0        ; TODO LSB currently still in A
 
                 jsr parser_add_object_to_ast
-
-        ; Since the identifier was stored with a T_ID_END token, we should now
-        ; be pointing to that token.  Skip ahead one.
-                inx 
 
         ; TODO consider explicitly testing for the token and throwing a panic
         ; if it is not found
@@ -713,11 +719,10 @@ parser_common_panic:
 
 parser_bad_digit:
         ; Error routine if we found a digit that doesn't belong there
-                pha
+                pha                             ; save the bad digit
                 lda #str_bad_number
                 jsr help_print_string_no_lf
                 bra parser_common_panic
-
 
 function_not_available:
         ; TODO This is during development only
@@ -744,6 +749,7 @@ parser_add_object_to_ast:
         ; we can make it faster with low-level routines. 
 
         ; TODO make sure we don't advance past the end of the heap 
+        
                 phx             ; save index to token buffer
                 phy             ; save MSB of the object (with tag)
                 pha             ; save LSB of the object
@@ -826,4 +832,3 @@ OC_PROC_QUOTE = $F002   ; primitive procedure (quote)
                 
 parser_done:
                 ; fall through to evaluator
-

@@ -24,7 +24,6 @@ eval_loop:
         ; that until the end. Save the status flags for now
                 php
 
-
         ; A contains the MSB of the car, the "payload" of the cons cell (pair).
         ; We need to mask everything but the object's tag nibble
                 and #$f0
