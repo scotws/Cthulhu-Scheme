@@ -11,7 +11,7 @@ eval:
         .if DEBUG == true
                 ; TODO TEST dump contents of AST 
                 jsr debug_dump_ast
-                jsr debug_dump_hp
+                ; jsr debug_dump_hp
         .fi 
                         
         ; Initialize the AST with the address of its RAM segment 
@@ -99,20 +99,23 @@ eval_E_UNDEFINED:
         ; TODO define tag and add code
 
 eval_f_proc:
-        ; Primitive (built-in, natively coded) procedures. We currently only
-        ; use the LSB for these as the index to the jump table in
-        ; primitive-procedures.asm. Note that jump table is split into MSB and
-        ; LSB pairs, so we have 256 possible native procedures. These could
-        ; later be expanded by using the lower nibble of the MSB
+        ; Primitive (built-in, natively coded) procedures is called directly.
+        ; This usually doesn't happen: We have (apply) handle the procedures.
+        ; If we ended up here directly, the user typed something like "exit"
+        ; instead of "(exit)". MIT-Scheme produces a rather unhelpful generic
+        ; error message. Instead, we follow Racket and other Schemes by
+        ; printing a string and the address where the actual code is located.
+                lda #str_proc_eval              ; "#<procedure:$"
+                jsr help_print_string_no_lf
+                lda walk_car+1
+                jsr help_byte_to_ascii
+                lda walk_car
+                jsr help_byte_to_ascii
+                lda #'>'
+                jsr help_emit_a
                 
-        ; The LSB we use as an index is still in Y
-        tya
-        lda proc_table_lsb,y    ; LSB of jump target
-        sta jump
-        lda proc_table_msb,y    ; MSB of jump target
-        
-        jmp (jump)
-        
+                bra eval_next
+
 
 ; ===== EVALUATION JUMP TABLE ====
 

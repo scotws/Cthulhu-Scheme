@@ -675,19 +675,23 @@ _found_id:
         ; TODO consider storing the Scheme object for the process in the header
         ; instead of the address for speed reasons. This would also enable us
         ; to store different types of objects in the header list, which might
-        ; be useful
-                lda #2
+        ; be useful. 
+
+                lda #02
                 clc
                 adc tmp0
                 sta tmp0        ; LSB of process object
                 bcc +
                 inc tmp0+1      ; We are pointing to next address
 +
-                ; Convert address to process Scheme object
-                lda tmp0+1
+                ; Convert address to process Scheme object and store in AST
+                lda (tmp0)      ; LSB of object, there is no "LDY (tmp0)"
+                pha
+                ldy #1
+                lda (tmp0),y    ; MSB of Scheme object
                 and #$0F        ; Mask useless high nibble of MSB
                 ora #OT_PROC
-                ldy tmp0        ; LSB, MSB still in A
+                ply             ; LSB in Y, MSB still in A
 
                 jsr parser_add_object_to_ast
 

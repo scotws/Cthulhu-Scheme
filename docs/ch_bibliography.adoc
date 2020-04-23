@@ -7,6 +7,10 @@
 https://store.steampowered.com/app/718670/Cultist_Simulator/, wiki at
 https://cultistsimulator.gamepedia.com/Cultist_Simulator_Wiki, 2018
 
+[[[BH]]] _Simply Scheme: Introducing Computer Science_, Brian Harvey and Matthew
+Wright, MIT Press 1999 
+https://people.eecs.berkeley.edu/~bh/ss-toc2.html
+
 [[[DG]]] _The Cabin in the Woods_, Drew Goddard and Joss Whedon, Lionsgate,
 https://www.imdb.com/title/tt1259521/, 2011 
 
