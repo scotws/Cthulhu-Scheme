@@ -1,7 +1,7 @@
 Cthulhu Scheme for the 65c02   
 Scot W. Stevenson <scot.stevenson@gmail.com>   
 First version: 28. Mar 2020  
-This version: 13. Apr 2020  
+This version: 24. Apr 2020  
 
 ## Dude, I am a Scheme god, all parens tremble before me. Just tell me how to start!
 
@@ -20,15 +20,18 @@ with absolutely _no warranty_ of any kind.  Use at your own risk! (See
 ## More detail please
 
 At the moment this is pre-alpha software, which means that it will assemble and
-probably even run on a good day, but won't do anything useful yet. Part of this
-is because I am using this project to get familiar with the 64tass assembler
-(see http://tass64.sourceforge.net/#conditional-assembly) so there are a lot of
-moving parts at the moment. Honestly, you might want to come back in a few
-months. 
+probably even run on a good day, but won't do anything useful yet. Actually,
+pretty much the only thing it will do at this point is echo bools, strings, some
+number types, oh and you can actually quit with `(exit)`. Part of this is
+because I am using this project to get familiar with the 64tass assembler (see
+http://tass64.sourceforge.net/#conditional-assembly) so there are a lot of
+moving parts at the moment. 
 
-Note that the testing suite is still very primitive - all it does is run a bunch
-of commands, and if it doesn't crash, all is well. This will be updated once we
-get more commands going.
+Honestly, you might want to come back in a few months. 
+
+Note that the testing suite is also still very primitive - all it does is run a
+bunch of commands, and if it doesn't crash, all is well. This will be updated
+once we get more commands going.
 
 
 ## Even more detail pretty please 
