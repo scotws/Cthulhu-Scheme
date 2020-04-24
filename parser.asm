@@ -91,7 +91,24 @@ _not_tick:
                 bne _not_paren_start
 
         ; We have a parens '(', which will cause the evaluator to trigger
-        ; actual work. 
+        ; actual work. Before we do that, we need to see if we have a ')' as
+        ; the next character, which would mean we have '()', which is the empty
+        ; list.
+                inx
+                lda tkb,x
+                cmp #T_PAREN_END
+                bne _not_empty_list
+
+                ; This is an empty list.
+                ldy #<OC_EMPTY_LIST
+                lda #>OC_EMPTY_LIST
+                jsr parser_add_object_to_ast
+                jmp parser_loop
+
+_not_empty_list:
+        ; We don't have the empty list, but a normal start. Move back to the
+        ; original token and save
+                dex     
                 ldy #<OC_PARENS_START
                 lda #>OC_PARENS_START
                 jsr parser_add_object_to_ast

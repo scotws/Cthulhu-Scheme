@@ -48,13 +48,14 @@ printer_loop:
 
         ; This instruction is 65c02 specific, see
         ; http://6502.org/tutorials/65c02opcodes.html#2 
-                jmp (printer_table,X)
+                jmp (printer_table,x)
                 
 printer_next:
         ; If we had reached the end of the AST, the walker had set the carry flag
                 plp                     ; from PHP
-                bcs printer_done        ; probably a JMP later
-
+                bcc +
+                jmp printer_done        ; Too far for BCS
++
         ; Get next entry out of AST
                 jsr help_walk_next
                 bra printer_loop        
@@ -69,9 +70,31 @@ printer_next:
 printer_0_meta:
         ; ---- Meta ----
 
+        ; We need to distinguish to cases here, () in the car or in the cdr. 
+        ; If the empty list is in the car, we just print it, if it is the cdr,
+        ; we're done
+        ;
+                ; We cheat because we know that OC_EMPTY_LIST is 0000
+                lda walk_car
+                ora walk_car+1
+                bne _not_empty_list_car
+
+                lda #'('
+                jsr help_emit_a
+                lda #')'
+                jsr help_emit_a
+                lda #AscSP
+                jsr help_emit_a
+                bra printer_next
+
+
+_not_empty_list_car:
+        ; TODO see if this is really the case, I think this is still left over
+        ; from the original AST
+
         ; This marks the end of the tree (which at the moment is just a list
         ; anyway) 
-                bra printer_done
+                bra printer_next
 
 printer_1_bool:
         ; ---- Booleans ----
@@ -211,8 +234,8 @@ printer_table:
         ; Based on the offset provided by the object tag nibbles, we use this
         ; to jump to the individual routines. 
 
-        ;      0 meta        1 bool          2 fixnum          3 bignum
-        .word printer_done, printer_1_bool, printer_2_fixnum, printer_3_bignum
+        ;      0 meta          1 bool          2 fixnum          3 bignum
+        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_bignum
 
         ;      4 char          5 string          6 var          7 UNDEF
         .word printer_4_char, printer_5_string, printer_6_var, printer_next

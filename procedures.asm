@@ -44,6 +44,7 @@ proc_car:
 proc_cdr:
 
 proc_cons:
+                jmp eval_next                   ; TODO or eval_done?
 
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from MIT
@@ -68,6 +69,11 @@ proc_newline:
                 jmp eval_next                   ; TODO check this
 
 proc_not:
+        ; """Return #t if the single operand is #f, else return #f for
+        ; absolutely everything. In contrast to (and) and (or), this is not
+        ; a special form. This was the first word with operands to be coded.
+        ; """
+                ; TODO HIER HIER 
 
 
 ; ==== SPECIAL FORMS ====

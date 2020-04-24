@@ -8,7 +8,6 @@ project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Get first process working, such as (newline) or (exit)
 - Process empty list "()" (deal with input of parens with whitespace processing)
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
@@ -29,6 +28,7 @@ TO DO LONG TERM
 
 DONE
 
+2020-04-24 - Get first process working, such as (newline) or (exit)
 2020-04-21 - Add pair objects, switch to linked pairs (cons cells) for AST
 2020-04-19 - Switch to segmented memory
 2020-04-19 - Handle strings (adds internment; string table)
