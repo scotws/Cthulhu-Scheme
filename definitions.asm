@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 21. Apr 2020
+; This version: 24. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -103,7 +103,7 @@ ot_undefined_0a = $a0
 ot_undefined_0b = $b0
 ot_undefined_0c = $c0
 ot_undefined_0d = $d0
-OT_SPECIAL      = $e0   ; special forms such as (lambda) or (if)
+OT_SPEC         = $e0   ; special forms such as (lambda) or (if)
 OT_PROC         = $f0   ; built-in procedures
 
 ; end

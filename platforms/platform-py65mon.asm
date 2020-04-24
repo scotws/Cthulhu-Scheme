@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 21. Apr 2020
+; This version: 22. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -176,8 +176,8 @@ max_address   = $ffff
 .section rom
 .include "../cthulhu.asm"           ; main code, contains REPL
 .include "../helpers.asm"           ; various general subroutines
-.include "../primitive-procs.asm"   ; assembler-coded procedures
-.include "../compound-procs.asm"    ; interpreted procedures
+.include "../procedures.asm"        ; native-code procedures and specials
+.include "../compounds.asm"         ; interpreted procedures
 .send
 
 ; ---- Optional debugging routines ----

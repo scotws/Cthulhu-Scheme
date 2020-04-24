@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 21. Apr 2020
+; This version: 24. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -434,10 +434,7 @@ parser_not_num:
         ; strings" that are two characters long, but for the moment, that is
         ; more effort that would seem to be worth it. 
         
-        ; TODO see if we already have this string stored so we don't have to go
-        ; through this all again
-
-        ; We store the string in the string table ("interning"), which is
+        ; The string table is not a Scheme linked list of cons cells, but
         ; a simple linked list where the string starts in the byte after the
         ; pointer to the next entry in the list. The list is terminated by
         ; 0000, the string by 00. Then we add an object to the AST that points
@@ -450,6 +447,9 @@ parser_not_num:
         ; string). rsn_str is the MSB of the root of the string table, its $00
         ; the LSB which is not saved explicitly anywhere. 
          
+        ; TODO see if we already have this string stored so we don't have to go
+        ; through this all again
+
         ; We can add the string object to the AST because we have the address
         ; where the string starts in hp_str - the next free byte
                 lda hp_str+1    ; MSB of next free byte in string RAM segment
@@ -545,8 +545,8 @@ _find_proc:
         ; TODO This is not optimized for speed, which would be useless until we
         ; decide if we want to even do it his way. 
 
-        ; TODO We're going to need the same exact procedure for variables and
-        ; symbols so this should be moved to a subroutine in helpers.asm
+        ; TODO We're going to need a very close procedure for variables and
+        ; symbols so this might be moved to a subroutine in helpers.asm
 
                 ; Get start of list of process headers. We'll need this later
                 ; for the next entry
@@ -607,6 +607,7 @@ _compare_loop:
                 iny
                 bra _compare_loop
 
+
 _mystery_string_done:
         ; The mystery string is over, but we don't know if the known string
         ; is complete as well, so we need one more test. Otherwise, "cat" and
@@ -615,9 +616,10 @@ _mystery_string_done:
                 beq _found_id           ; strings are both over, it's a match!
 
                 ; fall through to _next_entry
+
 _next_entry:
         ; The characters didn't match so we need to try the next entry. We kept
-        ; the pointer to the entry around in tmp0
+        ; the pointer to the entry around in tmp0 and now feel very clever
                 lda (tmp0)
                 pha
                 ldy #1
@@ -637,66 +639,48 @@ _bad_word:
         ; If we arrive here, we haven't found the word the user gave us in the
         ; variable list, the symbol list or amongst the processes. Complain and
         ; return to the REPL
-                lda #str_unbound                ; ";Unbound variable: "
+                lda #str_unbound                ; "Unbound variable: "
                 jsr help_print_string_no_lf
 
-                ; Print the offending name. We can just used the token buffer
-                ; because this is all screwed up anyway and we have to go back
-                ; to the REPL
+        ; Print the offending name. We can just used the token buffer because
+        ; this is all screwed up anyway and we have to go back to the REPL
 _bad_word_loop:
                 lda tkb,x
                 cmp #T_ID_END
                 beq _bad_word_done
-
                 jsr help_emit_a
                 inx
-        
                 bra _bad_word_loop
-
 _bad_word_done:
                 jsr help_emit_lf
                 jmp repl
 
 _found_id:
-        ; We have found a match, so this is a process. We create a process
-        ; object and store it. tmp0 contains the address (not: the Scheme
-        ; process object) to the code starting two bytes down from the current
-        ; address
+        ; We have found a match, so this is a process or a special form or
+        ; something else that is stored in the header list. We create an object
+        ; and store it. The Scheme object is stored in the header entries two
+        ; bytes down from the current address which we left in tmp0
 
-        ; We need to get a correct X back. We basically need to add Y to X,
-        ; which is not that easy with the 65c02. We don't need tmp1 anymore, so
-        ; we can clobber it
+        ; Before we forget it, we need to get the correct X back as the pointer
+        ; to the current character in the token buffer. We basically need to
+        ; add Y to X, which is not that easy with the 65c02. We don't need tmp1
+        ; anymore, so we can clobber it
                 tya
                 stx tmp1
                 clc
                 adc tmp1
                 tax
-
-        ; TODO consider storing the Scheme object for the process in the header
-        ; instead of the address for speed reasons. This would also enable us
-        ; to store different types of objects in the header list, which might
-        ; be useful. 
-                lda #02
-                clc
-                adc tmp0
-                sta tmp0        ; LSB of process object
-                bcc +
-                inc tmp0+1      ; We are pointing to next address
-+
-                ; Convert address to process Scheme object and store in AST
-                lda (tmp0)      ; LSB of object, there is no "LDY (tmp0)"
+        
+        ; Get the Scheme object, which is stored little endian in the header.
+        ; See headers.asm for details on the structure
+                ldy #2
+                lda (tmp0),y    ; LSB of process object
                 pha
-                ldy #1
-                lda (tmp0),y    ; MSB of Scheme object
-                and #$0F        ; Mask useless high nibble of MSB
-                ora #OT_PROC
-                ply             ; LSB in Y, MSB still in A
+                iny
+                lda (tmp0),y    ; MSB with tag, goes in A
+                ply             ; LSB goes in Y
 
                 jsr parser_add_object_to_ast
-
-        ; TODO consider explicitly testing for the token and throwing a panic
-        ; if it is not found
-
                 jmp parser_loop
 
 parser_not_id: 

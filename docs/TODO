@@ -1,22 +1,31 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 21. Apr 2020
+This version: 24. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
+- Get first process working, such as (newline) or (exit)
 - Process empty list "()" (deal with input of parens with whitespace processing)
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
+- Get (not #t) working as first process with operands
+- Get (not (not #t)) working for depth tree processing
+- Get (quote (#x1 #x2)) working for quoting
+- Write a debug procedure to dump the string table
 
 TO DO LONG TERM
 
+- Output as decimal numbers by default
+- Accept decimal numbers as input
 - REPL: See about adding history buffers once we know how much space we will be
   using
-
+- Write a Python tool that walks through headers.asm and makes sure that the
+  jump offset to the exec_table in procedures has the same offset
+- Write a debug procedure to dump the symbol table
 
 DONE
 

@@ -1,22 +1,32 @@
 ; List of Headers for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 03. Apr 2020
-; This version: 23. Apr 2020
+; This version: 24. Apr 2020
 
-; This file contains a linked-list of the primitive (built-in, assembler coded)
-; procedures for Cthulhu Scheme.  
+; This file contains a linked-list of the primitive procedures and special
+; forms in for Cthulhu Scheme that are coded in native assembler. The first 16
+; bits are the link to the next entry in the list. This is followed by the
+; Scheme object, which for primitive procedures and special forms consists out
+; of an 8-bit offset to the jump table (see procedures.asm) as the LSB and the
+; Tag of the object as MSB. It is followed by the zero terminated string. 
+
+; TODO The fact that we zero-terminate the string wastes one byte for each
+; entry in the table, up to 256 bytes. Since the information is already
+; contained in the table - the end of the string is defined by the start of the
+; next entry in the list - we can recode this at some point to reclaim that
+; space. For now, this is good enough.
 
 ;                          LSB       MSB
 ;                      +---------+---------+
 ;  h_proc_<PREV> -> +0 | Next list entry   | -> h_proc_<NEXT>
 ;                      +-------------------+
-;                   +2 | Address of code   | -> proc_<PROC>
+;                   +2 | Offset  |  Tag    | -> jump table access
 ;                      +-------------------+
 ;                   +4 | String  |   ...   | 
 ;                      +---------+---------+
 ;                      |   ...   |   ...   |
 ;                      +---------+---------+
-;                      |    0    |    0    |  (zero terminated)
+;                      |   ...   |   00    |  (zero terminated)
 ;                   +n +---------+---------+
 
 ; The split between "most common", "less common" and "rare" for how the words
@@ -24,57 +34,71 @@
 ; ourselves) to find out which words are used most and put these at the
 ; beginning of the list. (exit) is always the last entry
 
-; TODO consider storing the Scheme object in the header instead of the address
-; of the code. This would not only speed up the process but also allow us to
-; store other objects here that are not just processes. See the parser for
-; details
+; TODO For the actual procedures and special forms, we currently only store an offset
+; to the jump table in the LSB of the Scheme object. Put differently, the lower
+; nibble of the MSB is currently not used. This makes access to the jump table
+; slightly faster, but limits us to 256 built-in objects. We'll cross that
+; bridge when we get there. 
 
 ; ---- Most common ----
 
-        ; These contain the special forms
 
 proc_headers:
 h_proc_apply:       
-        .word h_proc_quote ; link to next entry in list (16-bit address)
-        .word proc_apply   ; link to actual code (16-bit address)
-        .null "apply"       ; lower-case string, zero terminated
+        .word h_spec_quote      ; link to next entry in list (as 16-bit addr)
+        .byte 00                ; offset in jump table  (LSB)
+        .byte OT_PROC           ; object tag
+        .null "apply"           ; lower-case string, zero terminated
 
-h_proc_quote:                   ; TODO figure out where to handle '
+h_spec_quote:                   ; TODO figure out where to handle '
         .word h_proc_car
-        .word proc_quote
+        .byte 01
+        .byte OT_SPEC
         .null "quote"
 
 h_proc_car:
         .word h_proc_cdr
-        .word proc_car
+        .byte 04
+        .byte OT_PROC
         .null "car"    
 
 h_proc_cdr:
         .word h_proc_cons
-        .word proc_cdr
+        .byte 05
+        .byte OT_PROC
         .null "cdr"
 
 h_proc_cons:
-        .word h_proc_define
-        .word proc_cons
+        .word h_spec_define
+        .byte 06
+        .byte OT_PROC
         .null "cons"
 
-h_proc_define:
-        .word h_proc_if
-        .word proc_define
+h_spec_define:
+        .word h_spec_if
+        .byte 07
+        .byte OT_SPEC
         .null "define"
 
-h_proc_if:
-        .word h_proc_not
-        .word proc_if
+h_spec_if:
+        .word h_proc_newline
+        .byte 08
+        .byte OT_SPEC
         .null "if"
 
 
 ; ---- Less common ----
 
+h_proc_newline:
+        .word h_proc_not
+        .byte 03
+        .byte OT_PROC
+        .null "newline"
+
 h_proc_not:
         .word h_proc_exit
-        .word proc_not
+        .byte 09
+        .byte OT_PROC
         .null "not"
 
 
@@ -83,6 +107,9 @@ h_proc_not:
 h_proc_exit:
         ; proc_exit is always the last entry - if the user wants to quit, it
         ; can't be that urgent
-        .word  0000
-        .word  proc_exit
+        .word 0000              ; end lf list
+        .byte 02
+        .byte OT_PROC
         .null "exit"
+
+; ENDS 
