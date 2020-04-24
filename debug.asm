@@ -1,7 +1,7 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 21. Apr 2020
+; This version: 24. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
 ; platform to "false" for this. All routines start with debug_ . These are not
@@ -139,6 +139,7 @@ _debug_dump_ast_loop:
                 bra _debug_dump_ast_loop
 
 _debug_dump_ast_done:
+                jsr help_emit_lf
                 rts
 .bend
 

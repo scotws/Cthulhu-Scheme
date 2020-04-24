@@ -23,10 +23,21 @@
 ; the headers.asm file, which is a linked list. 
 
 proc_apply:
-        ; """Calls a procedure with a list of arguments. Example:
-        ; '(apply + (list 3 4))'. We jump to this procedure with the pointer to
-        ; the rest of the AST.
-        ; """
+        ; """Applies a primitive procedure object to a list of operands, for
+        ; instance '(apply + (list 3 4))'. We usually arrive here when the
+        ; evaluator finds a '(' as OC_PARENS_START and has confirmed that the
+        ; next object is either a primitive procedure - then we end up here
+        ; - or a special form.
+        
+        ; We arrive here with the offset to the execution table in Y and the
+        ; car and cdr of the next entry in the AST in walk_car and walk_cdr.
+        
+                ; TODO for now, we just jump!
+                lda exec_table_lsb,y
+                sta jump
+                lda exec_table_msb,y
+                sta jump+1
+                jmp (jump)
 
 proc_car:
 
@@ -83,7 +94,7 @@ spec_quote:
 spec_set_e:
 
 
-; ===== JUMP TABLE ===== 
+; ===== EXECUTION JUMP TABLE ===== 
 
         ; Jump table for primitive procedures and special forms
         ; ("executables"). We are limited to 256 routines at the moment because

@@ -1,7 +1,7 @@
 ; String Data for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 22. Apr 2020
+; This version: 24. Apr 2020
 
 ; ---- General strings ----
 
@@ -23,6 +23,7 @@ str_prompt       = 11
 str_exit_kill    = 12
 str_proc_prt     = 13
 str_special_prt  = 14
+str_cant_apply   = 15
 
 ; Since we can't fit a 16-bit address in a register, we use indexes as offsets
 ; to tables as error and string numbers.
@@ -43,12 +44,13 @@ s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
 s_bad_number:   .null   "Ill-formed number: $"          ; from lexer
 s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
 s_cant_yet:     .null   "ALPHA: Can't do that yet"      ; from parser
-s_end_input:    .null   "End of input stream reached."  ; from reader
+s_end_input:    .null   "End of input stream reached"   ; from reader
 s_chant:        .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn." 
 s_prompt:       .null   "> "
 s_exit_kill:    .null   "Kill Scheme (y or n)? "        ; from proc_exit
-s_proc_prt:     .null   "#<procedure:$"                 ; from printer 
-s_special_prt:  .null   "#<special:$"                   ; from printer
+s_proc_prt:     .null   "#<procedure:"                  ; from printer 
+s_special_prt:  .null   "#<special:"                    ; from printer
+s_cant_apply:   .null   "Object not applicable"         ; from apply
 
 ; ---- Other Strings ----
 

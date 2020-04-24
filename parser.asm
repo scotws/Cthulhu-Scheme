@@ -70,8 +70,8 @@ parser_loop:
 
         ; ---- Check for tick ("quote")
 
-        ; We check for the "'" and handle the combination "'(" here because it
-        ; turns up a lot
+        ; We check for the "'" here because it turns up a lot
+        ; TODO see if we should convert this to (quote) here or later
                 cmp #T_TICK
                 bne _not_tick
 
@@ -90,15 +90,22 @@ _not_tick:
                 cmp #T_PAREN_START
                 bne _not_paren_start
 
-                ; TODO HERE HIER ADD PARENS
+        ; We have a parens '(', which will cause the evaluator to trigger
+        ; actual work. 
+                ldy #<OC_PARENS_START
+                lda #>OC_PARENS_START
+                jsr parser_add_object_to_ast
+                jmp parser_loop
 
 _not_paren_start:
                 cmp #T_PAREN_END
                 bne _not_paren_end
 
         ; Here is a closing parens
-
-
+                ldy #<OC_PARENS_END
+                lda #>OC_PARENS_END
+                jsr parser_add_object_to_ast
+                jmp parser_loop
 
 _not_paren_end:
         ; ---- Check for end of input
@@ -807,11 +814,13 @@ _store_address:
 ; constants for speed reasons. These are in capital letters and start with
 ; with OC_
 
-OC_EMPTY_LIST = $0000   ; end of list terminating object "()"
-OC_TRUE       = $1fff   ; true bool #t, immediate
-OC_FALSE      = $1000   ; false bool #f, immediate
-OC_PROC_APPLY = $F000   ; primitive procedure (apply)
-OC_PROC_QUOTE = $F002   ; primitive procedure (quote)
+OC_EMPTY_LIST     = $0000   ; end of list terminating object "()"
+OC_PARENS_START   = $00AA   ; parens open '('
+OC_PARENS_END     = $00FF   ; parens close ')' 
+OC_TRUE           = $1FFF   ; true bool #t, immediate
+OC_FALSE          = $1000   ; false bool #f, immediate
+OC_PROC_APPLY     = $F000   ; primitive procedure (apply)
+OC_PROC_QUOTE     = $F002   ; primitive procedure (quote)
 
 
 ; ==== CONTINUE TO EVALUATOR ====
