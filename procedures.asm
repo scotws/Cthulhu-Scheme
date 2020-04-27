@@ -70,10 +70,21 @@ proc_newline:
 
 proc_not:
         ; """Return #t if the single operand is #f, else return #f for
-        ; absolutely everything. In contrast to (and) and (or), this is not
+        ; absolutely everything, because everything in Scheme that is not #f is
+        ; a boolean true, in contrast to C. In contrast to (and) and (or), this is not
         ; a special form. This was the first word with operands to be coded.
         ; """
-                ; TODO HIER HIER 
+                ; We should have already gotten the next entry in walk_car and
+                ; walk_cdr
+                ; TODO handle case of no operands
+                lda walk_car+1          ; get MSB for object tag
+                and #$F0                ; we only want the tag for now
+                bne _not_a_bool
+
+_not_a_bool:
+        ; If it is not a bool, it is always true, because this is Scheme. Yes,
+        ; even "(not 0)" is #t. 
+                ; TODO
 
 
 ; ==== SPECIAL FORMS ====
@@ -98,6 +109,7 @@ spec_quote:
         ; """
 
 spec_set_e:
+                jmp eval_next                   ; TODO for testing, protect table
 
 
 ; ===== EXECUTION JUMP TABLE ===== 

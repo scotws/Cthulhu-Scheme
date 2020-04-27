@@ -1,3 +1,9 @@
+[quote, Simply Scheme, Brian Harvey and Matthew Wright]
+You may not have realized it, but inside your computer there are
+thousands of little people. Each of them is a specialist in one particular
+Scheme procedure. The head little person, Alonzo, is in charge of the
+read-eval-print loop.<<HW>>
+
 === Horror out the box: py65mon
 
 Cthulhu Scheme is set up so it will run with py65mon from the get-go. 

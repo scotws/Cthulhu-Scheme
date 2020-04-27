@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 24. Apr 2020
+; This version: 25. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; everything is self-evaluating, so this is just going through the motions.
