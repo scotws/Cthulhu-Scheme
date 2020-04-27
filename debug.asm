@@ -201,8 +201,8 @@ _clean_up:
                 jsr help_byte_to_ascii
                 lda #00
                 jsr help_byte_to_ascii
-                jmp help_emit_lf                ; JSR/RTS
-                
+                jsr help_emit_lf                ; JSR/RTS
+                bra _done
 
 
 

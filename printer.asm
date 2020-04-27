@@ -13,21 +13,16 @@
                 ; TODO test dump contents of the Data Stack
                 jsr debug_dump_ds
         .fi
-               
+
         ; Start at the beginning of the data stack minus two - by default, we
         ; start at $00FD. 
                 ldx #ds_start-2
-
-                ; TODO testing
-                ; txa
-                ; jsr help_byte_to_ascii
-                ; jsr help_emit_lf
-                
                 stx dsp         ; Sadly, we use X for two different things
 
 printer_loop:
         ; Get the MSB. We need to check if this is the end of the stack, which
         ; will happen a lot - this would be OC_EMPTY_LIST
+                ldx dsp
                 lda 1,x         ; by default $00FE, the MSB 
                 tay
 
@@ -77,8 +72,8 @@ printer_next:
         ; We arrive here after printing. Get the next entry from the Data
         ; Stack. The printer routines use X as the Data Stack pointer, so we
         ; don't have to reload it.
-                dex             ; Move downwards (towards 0000)
-                dex
+                dec dsp
+                dec dsp
 
                 bra printer_loop        
 
