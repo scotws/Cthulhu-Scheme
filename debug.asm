@@ -1,7 +1,7 @@
 ; Debugging helper routines 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 04. Apr 2020
-; This version: 24. Apr 2020
+; This version: 27. Apr 2020
 
 ; Do not include these routines in finished code - set the DEBUG flag in the
 ; platform to "false" for this. All routines start with debug_ . These are not
@@ -142,6 +142,68 @@ _debug_dump_ast_done:
                 jsr help_emit_lf
                 rts
 .bend
+
+
+debug_dump_ds:
+        ; Dump the contents of the Data Stack in Zero Page. This assumes that
+        ; the Data Stack begins at 00FE, but we print everything starting 00FF
+        ; to be sure.
+                phx
+                phy
+                ldx #ds_start
+
+                ; Print the address first
+                lda #00                         ; MSB always 00
+                jsr help_byte_to_ascii
+                lda #$FF
+                jsr help_byte_to_ascii
+                lda #':'
+                jsr help_emit_a                 ; "00FF:"
+
+                ; Print 00FF
+                lda 0,x     
+                jsr help_byte_to_ascii          
+                jsr help_emit_lf
+
+_loop:
+                ; With that out of the way we can loop through the next entries
+                lda #00                         ; MSB by definition
+                jsr help_byte_to_ascii
+
+                dex                             ; LSB
+                dex
+                txa
+                jsr help_byte_to_ascii
+                lda #':'
+                jsr help_emit_a                 ; "00FD:"
+
+                lda 1,x                         ; MSB
+                beq _check_end
+_not_done:
+                jsr help_byte_to_ascii
+
+                lda 0,x                         ; LSB
+                jsr help_byte_to_ascii
+                jsr help_emit_lf
+                bra _loop
+_done:
+                ply
+                plx
+                rts
+
+_check_end:
+                lda 0,x                         ; LSB
+                beq _clean_up
+                lda 1,x
+                bra _not_done
+_clean_up:
+                ; By definition, 00 in A
+                jsr help_byte_to_ascii
+                lda #00
+                jsr help_byte_to_ascii
+                jmp help_emit_lf                ; JSR/RTS
+                
+
 
 
 ; ==== DEBUG PRINT ROUTINES ====

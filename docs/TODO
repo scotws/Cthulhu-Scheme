@@ -9,6 +9,7 @@ project is uploaded and slightly more mature.
 TO DO SHORT TERM
 
 - Create Data Stack in Zero Page for Results
+- Create debug_dump_ds
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands

@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 24. Apr 2020
+; This version: 27. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -25,18 +25,19 @@
 
 ; ---- Zero page definitions ----
 
-; The beginning of the useable zero page is defined in the platform file so
-; the user can set it up depending on their hardware. We use the section
-; definitions from 64Tass here to make it easier to adapt to different
-; hardware, see http://tass64.sourceforge.net/#sections for details. The memory
-; map is part of the individual platform file. Note we do not initialize the
-; zero page entries here so it must be done in code. 
+; The beginning of the useable zero page and its size are defined in the
+; platform file so the user can set it up depending on their hardware. We use
+; the section definitions from 64Tass here to make it easier to adapt to
+; different hardware, see http://tass64.sourceforge.net/#sections for details.
+; The memory map is part of the individual platform file. Note we do not
+; initialize the zero page entries here so it must be done in code. 
 
 .section zp
-; Temporary variables
-tmp0:    .word ?     ; temporary storage, eg printing
-tmp1:    .word ?     ; temporary storage
-tmp2:    .word ?     ; temporary storage
+
+; Data Stack
+; Leave this as the first entry so if the Data Stack overflows it takes itself
+; out, 
+dsp     .byte ?      ;  Offset for Data Stack pointer
 
 ; Hardware vectors
 output:  .word ?     ; output port, addr of routine
@@ -64,7 +65,24 @@ walk_curr   .word ?  ; Pointer (addr) to current pair in AST
 walk_car    .word ?  ; Contents of current pair's car field
 walk_cdr    .word ?  ; Contents of current pair's cdr field
 
+; Temporary variables
+; Leave these as the last entries so if the Data Stack overflows there is at
+; least some chance of surviving
+tmp0:    .word ?     ; temporary storage, eg printing
+tmp1:    .word ?     ; temporary storage
+tmp2:    .word ?     ; temporary storage
+
 .send zp
+
+; The space between here and (zp_start + zp_size) is used as the "Data Stack",
+; where the results are stored by the evaluator. It grows from high to low
+; (from ds_start, which is (zp_start + zp_size), towards 0000). At the moment
+; there is no bounds checking because we have so much space it is not required.
+; This might change in the future. 
+
+; ---- Data Stack ----
+
+ds_start = <(zp_start + zp_size - 1) ; By default $00FF
 
 
 ; ---- Buffers ----

@@ -1,108 +1,110 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 22. Apr 2020
+; This version: 27. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
 
-; We walk the AST, which should be quite a bit shorter by now, and print
-; a representantion of what is left. This uses the AST walker from helpers.asm
+; The evaluator pushes the results to the Data Stack, which we go through until
+; we find the empty list as the terminator
 
-; TODO In future, the evaluator might not directly change the original AST but
-; create a second one with the results, so we leave this code separate from the
-; evaluator for the moment, even though it does exactly the just same thing
-; except for the part with the actual jump table. 
-printer: 
         .if DEBUG == true
-                ; TODO test dump contents of the AST
-                jsr debug_dump_ast
+                ; TODO test dump contents of the Data Stack
+                jsr debug_dump_ds
         .fi
                
-        ; Initialize the AST with the address of its RAM segment. 
-                lda rsn_ast     ; RAM segment nibble
-                ldy #02         ; by definition
-                jsr help_walk_init
-                
-printer_loop:
-        ; If carry is sent we are at the last entry, but we don't want to know
-        ; that until the end. Save the status flags for now
-                php
+        ; Start at the beginning of the data stack minus two - by default, we
+        ; start at $00FD. 
+                ldx #ds_start-2
 
-        ; A contains the MSB of the car ... you know the drill from the
-        ; evaluator.
+                ; TODO testing
+                ; txa
+                ; jsr help_byte_to_ascii
+                ; jsr help_emit_lf
+                
+                stx dsp         ; Sadly, we use X for two different things
+
+printer_loop:
+        ; Get the MSB. We need to check if this is the end of the stack, which
+        ; will happen a lot - this would be OC_EMPTY_LIST
+                lda 1,x         ; by default $00FE, the MSB 
+                tay
+
+                ; We cheat because we know that OC_EMPTY_LIST is 0000
+                beq _check_for_end
+_not_end:
+                ; This is something else than the end. Processing might have
+                ; destroyed the original MSB so we get it back
+                tya
+
+                ; Check the object's tag
                 and #$f0        ; mask all but tag nibble
 
-        ; Use the tag to get the entry in the jump table.
-        ; First, we have to move the nibble over four bits,
-        ; then multiply it by two, which is a left shift, so we
-        ; end up wit three right shifts
+                ; Use the tag to get the entry in the jump table.
+                ; First, we have to move the nibble over four bits,
+                ; then multiply it by two, which is a left shift, so we
+                ; end up wit three right shifts
                 lsr
                 lsr
                 lsr     ; Fourth LSR and ASL cancle each other
-                tax
-
-        ; Move down one line
-        ; TODO This is different from the evaluator as well
+                tax     ; This is why we save X as dsp
+       
+                ; Move down one line
                 jsr help_emit_lf
 
-        ; This instruction is 65c02 specific, see
-        ; http://6502.org/tutorials/65c02opcodes.html#2 
+                ; This instruction is 65c02 specific, see
+                ; http://6502.org/tutorials/65c02opcodes.html#2 
                 jmp (printer_table,x)
-                
+ 
+
+_check_for_end:
+        ; We arrive here if the MSB is 00. If the LSB is also zero, we know
+        ; that we have OC_EMPTY_LIST and the printing is done. 
+                lda 0,x         ; LSB
+
+                ; If it is not a zero, it is something else. At the moment, it
+                ; isn't clear what that could even be, but we'll leave it here
+                ; for the moment. Probably this will end up being an error
+                ; routine because the parser should have taken care of
+                ; everything that wasn't the empty list 
+                bne printer_0_meta
+
+                ; We're done. 
+                jmp printer_done
+
 printer_next:
-        ; If we had reached the end of the AST, the walker had set the carry flag
-                plp                     ; from PHP
-                bcc +
-                jmp printer_done        ; Too far for BCS
-+
-        ; Get next entry out of AST
-                jsr help_walk_next
+        ; We arrive here after printing. Get the next entry from the Data
+        ; Stack. The printer routines use X as the Data Stack pointer, so we
+        ; don't have to reload it.
+                dex             ; Move downwards (towards 0000)
+                dex
+
                 bra printer_loop        
+
 
 
 ; ==== PRINTER SUBROUTINES ====
 
-; We land here with the car and cdr stored in walk_car and walk_cdr
-; respectively and the LSB of the car still in Y. The MSB was in A but was
-; destroyed, so we need to reclaim it.
+; We land here with the MSB of the car in 1,x and the LSB in 0,x
 
 printer_0_meta:
         ; ---- Meta ----
+        ; Reserved for future use. Currently, the only meta is the empty list,
+        ; and we took care of that in the main loop. This will probably end up
+        ; being an error routine
 
-        ; We need to distinguish to cases here, () in the car or in the cdr. 
-        ; If the empty list is in the car, we just print it, if it is the cdr,
-        ; we're done
-        ;
-                ; We cheat because we know that OC_EMPTY_LIST is 0000
-                lda walk_car
-                ora walk_car+1
-                bne _not_empty_list_car
-
-                lda #'('
-                jsr help_emit_a
-                lda #')'
-                jsr help_emit_a
-                lda #AscSP
-                jsr help_emit_a
-                bra printer_next
-
-
-_not_empty_list_car:
-        ; TODO see if this is really the case, I think this is still left over
-        ; from the original AST
-
-        ; This marks the end of the tree (which at the moment is just a list
-        ; anyway) 
                 bra printer_next
 
 printer_1_bool:
         ; ---- Booleans ----
+                
+                ldx dsp
 
         ; Booleans are terribly simple with two different versions. 
-                lda walk_car+1          ; MSB of car
-                and #$0F                ; Get rid of tag
-                ora walk_car 
+                lda 1,x         ; reload MSB to be safe
+                and #$0F        ; get rid of tag nibble
+                ora 0,x         ; OR with LSB
 
                 bne _bool_true          ; not a zero means true
                 lda #str_false
@@ -117,17 +119,19 @@ _bool_printer:
 printer_2_fixnum:
         ; ---- Fixnums ----
 
+                ldx dsp
+
         ; Print fixnums as decimal with a sign
         ; TODO Yeah, that is going to happen at some point. For the moment,
         ; however, we will just print it out in hex until we have everything
         ; else working
         ; TODO handle negative numbers
         ; TODO print as decimal number
-                lda walk_car+1          ; MSB
+                lda 1,x                 ; MSB
                 and #$0F                ; Mask tag
                 jsr help_byte_to_ascii
 
-                tya                     ; still Y
+                lda 0,x                 ; LSB
                 jsr help_byte_to_ascii
 
                 bra printer_next
@@ -146,14 +150,17 @@ printer_4_char:
 printer_5_string:
         ; ---- Strings ----
 
+                ldx dsp
+
         ; Strings are interned, so we just get a pointer to where they are in
         ; the heap's RAM segment for strings. This uses tmp2
 
-                lda walk_car+1          ; MSB
+                lda 1,x                 ; MSB
                 and #$0F                ; mask tag
                 ora rsn_str             ; merge with section nibble instead
                 sta tmp2+1      
-                sty tmp2                ; LSB
+                lda 0,x                 ; LSB 
+                sta tmp2
 
                 ldy #0
 _string_loop:
@@ -218,9 +225,11 @@ printer_f_proc:
                 jsr help_print_string_no_lf
 
 print_common_exec:
-                lda walk_car+1
+                ldx dsp
+
+                lda 1,x                 ; MSB
                 jsr help_byte_to_ascii
-                lda walk_car
+                lda 0,x                 ; LSB
                 jsr help_byte_to_ascii
                 lda #'>'
                 jsr help_emit_a

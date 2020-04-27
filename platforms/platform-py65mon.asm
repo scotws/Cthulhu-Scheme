@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 22. Apr 2020
+; This version: 27. Apr 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -49,7 +49,7 @@ ram_start = $0000       ; Start of RAM. Must contain the Zero Page
 ram_size  = $8000       ; assumes 32 KiB of RAM
 
 zp_start  = $0000       ; start of zero page, 
-zp_size   = $80         ; max bytes allowed in Zero Page
+zp_size   = $100        ; max bytes allowed in Zero Page, $0000 to $00FF
 
 ; If you are porting this to another MPU, remember the 65c02 reserves 
 ; $0100 to $01ff for the stack
@@ -129,9 +129,12 @@ max_address   = $ffff
 ; unless you are doing something really sneaky. 
 
 ; ---- Zero Page
+; This looks strange at the moment but in some cases people will want to
+; reserve space on the Zero Page for their own use. In that cae, they will need
+; to change the value of zp_size or zp_start. 
 * = zp_start
 .dsection zp
-.cerror * > (zp_start+zp_size), "Too many Zero Page entries, hit buffers (soft limit)"
+.cerror * > (zp_start+zp_size), "Too many Zero Page entries, hit buffers"
 .cerror * > $100, "Too many Zero page entries, hit buffers (hard limit)"
 
 ; ---- Buffer RAM section

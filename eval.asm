@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 25. Apr 2020
+; This version: 27. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; everything is self-evaluating, so this is just going through the motions.
@@ -18,6 +18,10 @@ eval:
                 lda rsn_ast             ; RAM segment nibble, default $10
                 ldy #2                  ; by definition
                 jsr help_walk_init      ; returns car in A and Y
+
+        ; Initialize the Data Stack where we will be storing the results. 
+                ldx #ds_start           ; $FF by default 
+                stx dsp
 
 eval_loop:
         ; If carry is sent we are at the last entry, but we don't want to know
@@ -38,7 +42,9 @@ eval_loop:
 
         ; This instruction is 65c02 specific, see
         ; http://6502.org/tutorials/65c02opcodes.html#2 It is unfortunately not
-        ; available as a subroutine jump, that would be the 65816.
+        ; available as a subroutine jump, that would be the 65816. It is
+        ; annoying that we have to use the X register for both this and the
+        ; Data Stack
                 jmp (eval_table,x)
 
 eval_next:
@@ -54,6 +60,8 @@ eval_next_no_check:
 
 
 ; ===== EVALUATION SUBROUTINES ====
+
+; TODO Change this to a completely different different model
 
 eval_0_meta:
         ; We currently land here with three possible objects: '(' as
@@ -114,20 +122,34 @@ _not_parens_start:
 _not_parens_end:
 
         ; ---- Null list ----
-        ; TODO handle the null list 
+        
 
                 bra eval_next           ; TODO temporary
 
 eval_1_bool:
 eval_2_fixnum:
-eval_3_bignum:
-eval_4_char:
-eval_5_string:
-        ; All of these are self-evaluating and just print themselves. To
-        ; save speed, we don't even come here, but directly jump to eval_next.
-        ; We leave these labels here in case we need to do something clever at
-        ; some point.
+eval_3_char:
+eval_4_string:
+        ; All of these are self-evaluating and just print themselves. We push
+        ; them to the Data Stack. The LSB is pushed first, then the MSB. We
+        ; grow from ds_start downwards (towards 0000). 
+        ; TODO move this to a subroutine
+                ldx dsp                 ; points to MSB of last entry
+
+        ; The Data Stack points to the last MSB entry by default. We move the
+        ; pointer before we store
+                dex                     ; initially $FE
+                dex                     ; initially $FD
+                lda walk_car            ; LSB is pushed first, initially $FD
+                sta 0,x
+                lda walk_car+1          ; MSB is pushed second, initially $FE
+                sta 1,x
+
+                stx dsp                 ; We need X for jumps
+
                 bra eval_next           ; paranoid, never reached
+
+eval_5_bignum:
 
 eval_6_UNDEFINED:
         ; TODO define tag and add code
@@ -170,11 +192,10 @@ eval_table:
         ; self-evaluating, and so they just print out their results when they
         ; hit the printer. To increase speed, these just to the next entry
 
-        ;      0 meta      1 bool     2 fixnum   3 bignum
-        .word eval_0_meta, eval_next, eval_next, eval_next
+        .word eval_0_meta, eval_1_bool, eval_2_fixnum, eval_3_char
 
-        ;      4 char     5 string   6 UNDEF    7 UNDEF
-        .word eval_next, eval_next, eval_next, eval_next
+        ;      4 string       5 bignum       6 UNDEF    7 UNDEF
+        .word eval_4_string, eval_next, eval_next, eval_next
 
         ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF
         .word eval_8_pair, eval_next, eval_next, eval_next
