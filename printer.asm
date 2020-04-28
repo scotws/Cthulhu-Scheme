@@ -8,6 +8,7 @@
 
 ; The evaluator pushes the results to the Data Stack, which we go through until
 ; we find the empty list as the terminator
+printer:
 
         .if DEBUG == true
                 ; TODO test dump contents of the Data Stack
@@ -76,6 +77,12 @@ printer_next:
                 dec dsp
 
                 bra printer_loop        
+
+
+printer_done:
+        ; Return to eval 
+                jsr help_emit_lf
+                rts             
 
 
 
@@ -244,10 +251,4 @@ printer_table:
 
         ;      C UNDEF       D UNDEF       E speical          F proc
         .word printer_next, printer_next, printer_e_special, printer_f_proc
-
-
-; ==== RETURN TO REPL ====
-printer_done:
-                jsr help_emit_lf
-                ; fall through to repl_done
 

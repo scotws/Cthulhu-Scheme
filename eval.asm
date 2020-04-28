@@ -4,8 +4,7 @@
 ; This version: 28. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
-; everything is self-evaluating, so this is just going through the motions.
-; This uses the AST walker from helpers.asm 
+; most stuff is self-evaluating. This uses the AST walker from helpers.asm 
 eval: 
 
         .if DEBUG == true
@@ -19,11 +18,11 @@ eval:
                 ldy #2                  ; by definition
                 jsr help_walk_init      ; returns car in A and Y
 
+eval_loop:
         ; Initialize the Data Stack where we will be storing the results. 
                 ldx #ds_start           ; $FF by default 
                 stx dsp
 
-eval_loop:
         ; If carry is sent we are at the last entry, but we don't want to know
         ; that until the end. Save the status flags for now
                 php
@@ -48,16 +47,33 @@ eval_loop:
                 jmp (eval_table,x)
 
 eval_next:
+        ; We print the result of every evaluation, not all at once after the
+        ; whole line has been evaluated. Place the Empty List on the top of the
+        ; Data Stack to make sure we quit
+                dex
+                dex
+                stz 0,x
+                stz 1,x
+
+                jsr printer
+
         ; If we had reached the end of the AST, the walker had set the carry
         ; flag. 
                 plp
                 bcs eval_done           ; probably later a JMP
 
-eval_next_no_check:
         ; Get next entry out of AST
                 jsr help_walk_next
                 bra eval_loop
 
+
+; ---- Print stuff ----
+
+eval_done:
+        ; We're all done, so we go back to the REPL
+        jmp repl
+
+                
 
 ; ===== EVALUATION SUBROUTINES ====
 
@@ -204,13 +220,3 @@ eval_table:
         ;                             forms       procedures
         .word eval_next, eval_next, eval_e_spec, eval_f_proc
 
-
-; ==== CONTINUE TO PRINTER ====
-eval_done:
-        ; To terminate the printer, we need to save zeros
-                dex
-                dex
-                stz 0,x
-                stz 1,x
-
-                ; fall through to printer
