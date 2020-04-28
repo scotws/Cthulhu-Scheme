@@ -1,15 +1,13 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 27. Apr 2020
+This version: 28. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Create Data Stack in Zero Page for Results
-- Create debug_dump_ds
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands
@@ -30,6 +28,9 @@ TO DO LONG TERM
 
 DONE
 
+2020-04-28 - Move printer.asm to data stack format
+2020-04-28 - Create debug_dump_ds to dump data stack
+2020-04-28 - Create Data Stack in Zero Page for Results
 2020-04-24 - Process empty list "()" 
 2020-04-24 - Get first process working, such as (newline) or (exit)
 2020-04-21 - Add pair objects, switch to linked pairs (cons cells) for AST
