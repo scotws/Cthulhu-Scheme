@@ -1,7 +1,7 @@
 ; Procedures and Special Forms for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 24. Apr 2020
+; This version: 28. Apr 2020
 
 ; This file contains the procedures and special forms of Cthulhu Scheme that
 ; are coded natively in assembler. For now, we keep special forms such as
@@ -16,35 +16,20 @@
 
 ; See https://schemers.org/Documents/Standards/R5RS/HTML/ for details.
 
+; Note (apply) is so central to the main REPL it lives in eval.asm. 
 
-; ===== PRIMITVE PROCEDURES ====
+
+; ===== PROCEDURE CODE =====
 
 ; These are ordered alphabetically. For each procedure, we must add an entry to
 ; the headers.asm file, which is a linked list. 
-
-proc_apply:
-        ; """Applies a primitive procedure object to a list of operands, for
-        ; instance '(apply + (list 3 4))'. We usually arrive here when the
-        ; evaluator finds a '(' as OC_PARENS_START and has confirmed that the
-        ; next object is either a primitive procedure - then we end up here
-        ; - or a special form.
-        
-        ; We arrive here with the offset to the execution table in Y and the
-        ; car and cdr of the next entry in the AST in walk_car and walk_cdr.
-        
-                ; TODO for now, we just jump!
-                lda exec_table_lsb,y
-                sta jump
-                lda exec_table_msb,y
-                sta jump+1
-                jmp (jump)
 
 proc_car:
 
 proc_cdr:
 
 proc_cons:
-                jmp eval_next                   ; TODO or eval_done?
+                jmp eval_next 
 
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from
@@ -57,7 +42,7 @@ proc_newline:
         ; """Write an end of line to a port. Returns an unspecified value.
         ; """
                 jsr help_emit_lf
-                jmp eval_next                   ; TODO check this
+                jmp eval_next
 
 proc_not:
         ; """Return #t if the single operand is #f, else return #f for

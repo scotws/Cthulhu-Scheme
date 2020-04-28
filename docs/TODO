@@ -6,9 +6,9 @@ This version: 28. Apr 2020
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
+
 TO DO SHORT TERM
 
-- Process each term individually, not by line (compare Racket)
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands
@@ -16,6 +16,7 @@ TO DO SHORT TERM
 - Get (quote (#x1 #x2)) working for quoting
 - Write a debug procedure to dump the string table
 - Write a debug procedure to dump the Data Stack 
+
 
 TO DO LONG TERM
 
@@ -27,8 +28,10 @@ TO DO LONG TERM
   jump offset to the exec_table in procedures has the same offset
 - Write a debug procedure to dump the symbol table
 
+
 DONE
 
+2020-04-28 - Process each term individually, not by line (compare Racket)
 2020-04-28 - Move printer.asm to data stack format
 2020-04-28 - Create debug_dump_ds to dump data stack
 2020-04-28 - Create Data Stack in Zero Page for Results

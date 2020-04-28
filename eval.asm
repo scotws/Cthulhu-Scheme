@@ -73,11 +73,56 @@ eval_done:
         ; We're all done, so we go back to the REPL
         jmp repl
 
+
+; ===== APPLY =====
+
+; Apply is so central to the loop it lives here instead of with the other
+; primitive procedures in procedures.asm.
+
+apply: 
+proc_apply:
+        ; """Applies a primitive procedure object to a list of operands, for
+        ; instance '(apply + (list 3 4))'. We usually arrive here when the
+        ; evaluator finds a '(' as OC_PARENS_START and has confirmed that the
+        ; next object is either a primitive procedure - then we end up here
+        ; - or a special form.
+
+        ; We arrive here with the offset to the execution table in Y and the
+        ; car and cdr of the next entry in the AST in walk_car and walk_cdr.
+
+                ; TODO for now, we just jump!
+                lda exec_table_lsb,y
+                sta jump
+                lda exec_table_msb,y
+                sta jump+1
+                jmp (jump)
                 
 
-; ===== EVALUATION SUBROUTINES ====
+; ==== EVALUATION HELPER ROUTINES ====
 
-; TODO Change this to a completely different different model
+eval_push_car_to_stack:         
+        ; """Take the car of an object that was placed by the AST walk into
+        ; walk_car and push it to the Data Stack so the printer can print it.
+        ; Changes X.""" 
+                ldx dsp                 ; points to MSB of last entry
+
+        ; The Data Stack points to the last MSB entry by default. We move the
+        ; pointer before we store
+                dex                     ; initially $FE
+                dex                     ; initially $FD
+                lda walk_car            ; LSB is pushed first, initially $FD
+                sta 0,x
+                lda walk_car+1          ; MSB is pushed second, initially $FE
+                sta 1,x
+
+                stx dsp                 ; We'll need X for jumps later
+
+                rts
+
+
+
+
+; ==== EVALUATION SUBROUTINES ====
 
 eval_0_meta:
         ; We currently land here with three possible objects: '(' as
@@ -138,31 +183,20 @@ _not_parens_start:
 _not_parens_end:
 
         ; ---- Null list ----
-        
 
-                bra eval_next           ; TODO temporary
+                bra eval_next
 
+
+; ---- Self-evaluating objects ---- 
+
+; All of these are self-evaluating and just print themselves. We push
+; them to the Data Stack. 
 eval_1_bool:
 eval_2_fixnum:
 eval_3_char:
 eval_4_string:
-        ; All of these are self-evaluating and just print themselves. We push
-        ; them to the Data Stack. The LSB is pushed first, then the MSB. We
-        ; grow from ds_start downwards (towards 0000). 
-        ; TODO move this to a subroutine
-                ldx dsp                 ; points to MSB of last entry
-
-        ; The Data Stack points to the last MSB entry by default. We move the
-        ; pointer before we store
-                dex                     ; initially $FE
-                dex                     ; initially $FD
-                lda walk_car            ; LSB is pushed first, initially $FD
-                sta 0,x
-                lda walk_car+1          ; MSB is pushed second, initially $FE
-                sta 1,x
-
-                stx dsp                 ; We need X for jumps
-
+eval_f_proc:
+                jsr eval_push_car_to_stack
                 bra eval_next           ; paranoid, never reached
 
 eval_5_bignum:
@@ -172,6 +206,9 @@ eval_6_UNDEFINED:
 
 eval_7_UNDEFINED:
         ; TODO define tag and add code
+
+
+; ---- Pairs ---- 
 
 eval_8_pair:
         ; TODO write code for pair
@@ -192,11 +229,15 @@ eval_C_UNDEFINED:
 eval_D_UNDEFINED:
         ; TODO define tag and add code
 
+
+; eval_f_proc: Naked procedures are currently self-evaluating, so we keep them
+; up at the beginning with booleans and strings
+
+; ---- Special forms ----
 eval_e_spec:
         ; TODO define tag and add code
 
-eval_f_proc:
-                bra eval_next   ; paranoid, never reached
+                bra eval_next 
 
 
 ; ===== EVALUATION JUMP TABLE ====

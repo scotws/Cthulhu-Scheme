@@ -78,12 +78,10 @@ printer_next:
 
                 bra printer_loop        
 
-
 printer_done:
         ; Return to eval 
                 jsr help_emit_lf
                 rts             
-
 
 
 ; ==== PRINTER SUBROUTINES ====
@@ -221,6 +219,8 @@ printer_f_proc:
         ; printing a string and the address where the actual code is located.
                 lda #str_proc_prt               ; "#<procedure:$"
                 jsr help_print_string_no_lf
+
+                ; drop through to print_common_exec
 
 print_common_exec:
                 ldx dsp
