@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 24. Apr 2020
+; This version: 28. Apr 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -291,7 +291,6 @@ _hex_fixnum_loop:
 _legal_hex_digit:
         ; We have a legal digit. We shift it as a nibble "through the right"
         ; into the temporary variables
-        ; TODO convert this to correct little-endian format, also the printer
 
         ; First, shift the nibble to the left side of the A
                 asl

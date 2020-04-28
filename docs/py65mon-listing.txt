@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Mon Apr 27 12:22:50 2020
+; Tue Apr 28 09:07:24 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -39,7 +39,7 @@
 .800b	85 10		sta $10		                sta rsn_ast
 .800d	a9 20		lda #$20	                lda #RAM_SEGMENT_STR    ; Strings, default nibble $20
 .800f	85 15		sta $15		                sta rsn_str
-.8011	a0 02		ldy #$02	                ldy #$02          ; First free byte is one word down
+.8011	a0 02		ldy #$02	                ldy #$02        ; First free byte is one word down
 .8013	84 18		sty $18		                sty hp_str
 .8015	a5 15		lda $15		                lda rsn_str     ; MSB of RAM segment for strings
 .8017	85 19		sta $19		                sta hp_str+1
@@ -574,7 +574,7 @@
 .836b	d0 46		bne $83b3	                bne parser_not_string
 .836d	a5 19		lda $19		                lda hp_str+1    ; MSB of next free byte in string RAM segment
 .836f	29 0f		and #$0f	                and #$0F        ; mask high nibble (paranoid)
-.8371	09 50		ora #$50	                ora #OT_STRING  ; object tag nibble for strings
+.8371	09 40		ora #$40	                ora #OT_STRING  ; object tag nibble for strings
 .8373	a4 18		ldy $18		                ldy hp_str      ; LSB goes in Y, MSB is in A
 .8375	20 57 84	jsr $8457	                jsr parser_add_object_to_ast   ; Updates AST heap pointer
 .8378	e8		inx		                inx             ; move to first character of string
@@ -896,9 +896,8 @@
 .8554	b5 00		lda $00,x	                lda 0,x                 ; LSB
 .8556	20 ca 85	jsr $85ca	                jsr help_byte_to_ascii
 .8559	80 d3		bra $852e	                bra printer_next
-.855b					printer_3_bignum:
-.855b					printer_4_char:
-.855b					printer_5_string:
+.855b					printer_3_char:
+.855b					printer_4_string:
 .855b	a6 00		ldx $00		                ldx dsp
 .855d	b5 01		lda $01,x	                lda 1,x                 ; MSB
 .855f	29 0f		and #$0f	                and #$0F                ; mask tag
@@ -913,6 +912,7 @@
 .856f	20 e3 85	jsr $85e3	                jsr help_emit_a
 .8572	c8		iny		                iny
 .8573	80 f6		bra $856b	                bra _string_loop
+.8575					printer_5_bignum:
 .8575					printer_6_var:
 .8575					printer_7_UNDEFINED:
 .8575					printer_8_pair:
@@ -938,8 +938,8 @@
 .858f	20 e3 85	jsr $85e3	                jsr help_emit_a
 .8592	80 9a		bra $852e	                bra printer_next
 .8594					printer_table:
->8594	34 85 36 85 4b 85 5b 85		        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_bignum
->859c	5b 85 5b 85 75 85 2e 85		        .word printer_4_char, printer_5_string, printer_6_var, printer_next
+>8594	34 85 36 85 4b 85 5b 85		        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_char
+>859c	5b 85 75 85 75 85 2e 85		        .word printer_4_string, printer_5_bignum, printer_6_var, printer_next
 >85a4	75 85 2e 85 2e 85 2e 85		        .word printer_8_pair, printer_next, printer_next, printer_next
 >85ac	2e 85 2e 85 75 85 7c 85		        .word printer_next, printer_next, printer_e_special, printer_f_proc
 .85b4					printer_done:
@@ -1443,12 +1443,12 @@
 =$00					OT_META         = $00   ; used for the empty list and terminators
 =$10					OT_BOOL         = $10   ; used for #t and #f; immediate
 =$20					OT_FIXNUM       = $20   ; used for fixed numbers; immediate
-=$30					OT_BIGNUM       = $30   ; reserved for bignum
-=$40					OT_CHAR         = $40   ; reserved for chars; immediate
-=$50					OT_STRING       = $50   ; used for strings; interned
+=$30					OT_CHAR         = $30   ; reserved for chars; immediate
+=$40					OT_STRING       = $40   ; used for strings; interned
+=$50					OT_BIGNUM       = $50   ; reserved for bignum
 =$60					OT_VAR          = $60   ; used for variables
 =$70					ot_undefined_07 = $70
-=$80					OT_PAIR         = $80   ; used for pairs
+=$80					OT_PAIR         = $80   ; used for pairs, so in cons cell cdr field
 =$90					ot_undefined_09 = $90
 =$a0					ot_undefined_0a = $a0
 =$b0					ot_undefined_0b = $b0

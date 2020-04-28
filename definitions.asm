@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 27. Apr 2020
+; This version: 28. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -110,12 +110,12 @@ heap:   .fill heap_size         ; RAM available for heap
 OT_META         = $00   ; used for the empty list and terminators
 OT_BOOL         = $10   ; used for #t and #f; immediate
 OT_FIXNUM       = $20   ; used for fixed numbers; immediate
-OT_BIGNUM       = $30   ; reserved for bignum
-OT_CHAR         = $40   ; reserved for chars; immediate
-OT_STRING       = $50   ; used for strings; interned
+OT_CHAR         = $30   ; reserved for chars; immediate
+OT_STRING       = $40   ; used for strings; interned
+OT_BIGNUM       = $50   ; reserved for bignum
 OT_VAR          = $60   ; used for variables
 ot_undefined_07 = $70
-OT_PAIR         = $80   ; used for pairs
+OT_PAIR         = $80   ; used for pairs, so in cons cell cdr field
 ot_undefined_09 = $90
 ot_undefined_0a = $a0
 ot_undefined_0b = $b0

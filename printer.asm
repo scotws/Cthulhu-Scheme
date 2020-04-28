@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 27. Apr 2020
+; This version: 28. Apr 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
@@ -44,7 +44,7 @@ _not_end:
                 lsr
                 lsr     ; Fourth LSR and ASL cancle each other
                 tax     ; This is why we save X as dsp
-       
+
                 ; Move down one line
                 jsr help_emit_lf
 
@@ -132,17 +132,11 @@ printer_2_fixnum:
                 bra printer_next
 
 
-printer_3_bignum:
-        ; ---- Bignums ----
-
-        ; TODO define tag and add code
-
-printer_4_char:
+printer_3_char:
         ; ---- Characters ----
-
         ; TODO define tag and add code
 
-printer_5_string:
+printer_4_string:
         ; ---- Strings ----
 
                 ldx dsp
@@ -170,9 +164,12 @@ _string_loop:
                 bra _string_loop
 
 
+printer_5_bignum:
+        ; ---- Bignums ----
+        ; TODO define tag and add code
+
 printer_6_var:
         ; ---- Variables ----
-        
         ; TODO define variables and add code
 
 printer_7_UNDEFINED:
@@ -180,7 +177,6 @@ printer_7_UNDEFINED:
 
 printer_8_pair:
         ; ---- Pair ----
-
         ; TODO define tag and add code
 
 printer_9_UNDEFINED:
@@ -238,11 +234,10 @@ printer_table:
         ; Based on the offset provided by the object tag nibbles, we use this
         ; to jump to the individual routines. 
 
-        ;      0 meta          1 bool          2 fixnum          3 bignum
-        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_bignum
+        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_char
 
-        ;      4 char          5 string          6 var          7 UNDEF
-        .word printer_4_char, printer_5_string, printer_6_var, printer_next
+        ;      4 string        5 bignum            6 var          7 UNDEF
+        .word printer_4_string, printer_5_bignum, printer_6_var, printer_next
 
         ;      8 pair          9 UNDEF       A UNDEF       B UNDEF
         .word printer_8_pair, printer_next, printer_next, printer_next

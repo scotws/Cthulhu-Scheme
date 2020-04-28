@@ -194,7 +194,7 @@ eval_table:
 
         .word eval_0_meta, eval_1_bool, eval_2_fixnum, eval_3_char
 
-        ;      4 string       5 bignum       6 UNDEF    7 UNDEF
+        ;      4 string       5 bignum   6 UNDEF    7 UNDEF
         .word eval_4_string, eval_next, eval_next, eval_next
 
         ;      8 UNDEF    9 UNDEF    A UNDEF    B UNDEF

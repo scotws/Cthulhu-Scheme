@@ -35,7 +35,7 @@ cthulhu:
         ; Clear the string buffer. At the moment, there is no way to get rid of
         ; strings, but we'll figure that out later. The AST stuff is set by the
         ; parser. 
-                ldy #$02          ; First free byte is one word down
+                ldy #$02        ; First free byte is one word down
                 sty hp_str
                 lda rsn_str     ; MSB of RAM segment for strings
                 sta hp_str+1
