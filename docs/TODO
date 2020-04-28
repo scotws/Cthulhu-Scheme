@@ -8,6 +8,7 @@ project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
+- Process each term individually, not by line (compare Racket)
 - Process procedures, starting with (and), (display) and (+)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands

@@ -722,6 +722,18 @@ people can adapt Tali to their own hardware.</p>
 <div class="sect1">
 <h2 id="_invoking_the_old_ones_running_cthulhu_scheme">Invoking the Old Ones: Running Cthulhu Scheme</h2>
 <div class="sectionbody">
+<div class="quoteblock">
+<blockquote>
+You may not have realized it, but inside your computer there are
+thousands of little people. Each of them is a specialist in one particular
+Scheme procedure. The head little person, Alonzo, is in charge of the
+read-eval-print loop.<a href="#HW">[HW]</a>
+</blockquote>
+<div class="attribution">
+&#8212; Simply Scheme<br>
+<cite>Brian Harvey and Matthew Wright</cite>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_horror_out_the_box_py65mon">Horror out the box: py65mon</h3>
 <div class="paragraph">
@@ -917,8 +929,9 @@ evaluation, and printing.</p>
 <div class="sect3">
 <h4 id="_reader">Reader</h4>
 <div class="paragraph">
-<p>Cthulhu Scheme takes the input from the <strong>input port</strong> and saves it as a single line in
-the <strong>input buffer</strong>.</p>
+<p>Cthulhu Scheme takes the input from the <strong>input port</strong> and saves it as a single
+line in the <strong>input buffer</strong>. These are simple ASCII strings - 7 bits characters
+only at this point.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -940,7 +953,20 @@ RAM we have left over after the system is complete for that step.
 <div class="paragraph">
 <p>The Lexer (Tokenizer) passes through the characters and creates 8-bit tokens
 which are stored in the <strong>token buffer</strong>. There is some pre-processing going on
-here, but not much.</p>
+here, but not much. The token buffer is a simple sequence of characters.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Later, it is possible that the token format will be used to store
+"compiled" Scheme commands.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -959,18 +985,19 @@ Tree (AST) consisting of <strong>cons cells</strong> - pairs of 16-bit Scheme ob
 During very early development, Cthulhu Scheme used a different system for
 the AST as scaffolding, based on homogeneous nodes from the the description in
 <em>Language Implementation Patters</em> by Terence Parr.<a href="#TP">[TP]</a> This has since been
-replaced by the classic Lisp cons cell design. We keep the term "AST" because it
-is by now more familiar.
+replaced by the classic Scheme cons cell design. We keep the term "AST" because it
+is by now more familiar than the traditional Lisp terms.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
 <p>The terms used for the pairs are traditional in Lisp and Scheme and rather
-stupid: <code>cdr</code> is the first 16-bit cell, which usually holds a Scheme pointer (designated by
-the object tag as a <strong>pair object</strong>) or the <strong>empty list object</strong> to signal the
-end of a list. The second cell is the <code>car</code>, which is the "payload" of the pair.
-If it too contains a pair object, this is a branch in the AST.</p>
+stupid: <code>cdr</code> is the first 16-bit cell, which usually holds a Scheme pointer
+(designated by the object tag as a <strong>pair object</strong>) or the <strong>empty list object</strong>
+to signal the end of a list. The second cell is the <code>car</code>, which is the
+"payload" of the pair.  If it too contains a pair object, this is a branch in
+the AST.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -981,13 +1008,70 @@ If it too contains a pair object, this is a branch in the AST.</p>
 <div class="sect3">
 <h4 id="_evaluator">Evaluator</h4>
 <div class="paragraph">
-<p>In the next step, the AST is "walked" by the evaluator.</p>
+<p>In the next step, the AST is "walked" by the evaluator. It goes through the
+term stored in the cons cells and executes the car entries. In some cases, such
+as booleans or strings, these are self-evaluating and are stored on the <strong>Data
+Stack</strong> for later output. This is located at the top (by default, $00FF) of the
+Zero Page and grows downwards (towards $0000). Like everything else, it holds
+Scheme objects.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The idea of a Data Stack instead of another chain of cons cells was used
+for speed. The Data Stack can be placed in Zero Page, making it faster, and uses
+less memory. The drawback is that we have to use precious Zero Page space, and
+the X register is used for two things during printing, as a data stack pointer
+and as the index to the jump tables.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>One thing to watch out for is that the evaluator works term-by-term, not by
+whole lines. For instance, in MIT-Scheme, the input</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>        #f #b1111 "aaa" (exit) "bbb"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>will print each of the first three terms separately and then ask if we want to
+leave. Entering</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>        "aaa" (exit) "bbb"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>has a curious effect: The <code>"bbb"</code> is sent as input to the <code>(exit)</code> command. In
+Racket, however, where, <code>(exit)</code> ends without confirmation, we never reach
+<code>"bbb"</code> and just quit instead.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We follow Racket in this example, not MIT-Scheme.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_printer">Printer</h4>
 <div class="paragraph">
-<p>What is left over by the Evaluator is sent to the Printer.</p>
+<p>The output from the evaluator is printed by the printer. It walks through the
+Data Stack, starting with the first entry, and prints.</p>
 </div>
 </div>
 </div>

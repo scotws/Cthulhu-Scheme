@@ -1,12 +1,13 @@
 ; String Data for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 24. Apr 2020
+; This version: 28. Apr 2020
 
 ; ---- General strings ----
 
 ; All start with s_ and are terminated with a zero until we decide if we want
 ; Forth-style strings or these. String table aliases start with str_
+; TODO reorder once things have calmed down
 
 str_unbound      = 0
 str_unspec       = 1
@@ -16,11 +17,11 @@ str_bad_token    = 4
 str_bad_object   = 5
 str_bad_number   = 6
 str_bad_radix    = 7
-str_cant_yet     = 8      ; TODO temp during development
-str_end_input    = 9 
+str_cant_yet     = 8    ; TODO temp during development
+str_UNUSED_1     = 9    ; TODO currently unused
 str_chant        = 10
 str_prompt       = 11
-str_exit_kill    = 12
+str_UNUSED_2     = 12   ; TODO currently unused
 str_proc_prt     = 13
 str_special_prt  = 14
 str_cant_apply   = 15
@@ -30,8 +31,8 @@ str_cant_apply   = 15
 string_table:
         .word s_unbound, s_unspec, s_true, s_false      ; 0-3
         .word s_bad_token, s_bad_object, s_bad_number, s_bad_radix   ; 4-7
-        .word s_cant_yet, s_end_input, s_chant, s_prompt             ; 8-11
-        .word s_exit_kill, s_proc_prt, s_special_prt                 ; 12-15
+        .word s_cant_yet, s_UNUSED_1, s_chant, s_prompt             ; 8-11
+        .word s_UNUSED_2, s_proc_prt, s_special_prt                 ; 12-15
 
 ; If you change the error strings, you will have to change the test files
 ; because the test routines depend on them being exactly the same.
@@ -44,10 +45,10 @@ s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
 s_bad_number:   .null   "Ill-formed number: $"          ; from lexer
 s_bad_radix:    .null   "PANIC: Bad radix: $"           ; from parser
 s_cant_yet:     .null   "ALPHA: Can't do that yet"      ; from parser
-s_end_input:    .null   "End of input stream reached"   ; from reader
+s_UNUSED_1      .null   "STRING UNUSED 1" 
 s_chant:        .null   "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn." 
 s_prompt:       .null   "> "
-s_exit_kill:    .null   "Kill Scheme (y or n)? "        ; from proc_exit
+s_UNUSED_2      .null   "STRING UNUSED 2"
 s_proc_prt:     .null   "#<procedure:"                  ; from printer 
 s_special_prt:  .null   "#<special:"                    ; from printer
 s_cant_apply:   .null   "Object not applicable"         ; from apply

@@ -1,7 +1,7 @@
 ; Cthulhu Scheme for the 65c02 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 22. Apr 2020
+; This version: 28. Apr 2020
 
 ; This is the main file for Cthulhu Scheme. It mainly contains the REPL. 
 
@@ -115,9 +115,6 @@ repl_quit:
         ; question. MIT Scheme prints out "Moriturus te saluto." but we have
         ; better things in mind. Might need to be shortened if we really run
         ; out of space.
-                jsr help_emit_lf
-                lda #str_end_input
-                jsr help_print_string
                 lda #str_chant
                 jsr help_print_string
                 jmp platform_quit

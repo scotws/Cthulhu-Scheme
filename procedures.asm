@@ -47,19 +47,10 @@ proc_cons:
                 jmp eval_next                   ; TODO or eval_done?
 
 proc_exit:
-        ; """Terminate Cthulhu Scheme (exit). We follow the procedure from MIT
-        ; Scheme where we ask the user if (exit) is used and just quit if it is
-        ; CTRL-d
+        ; """Terminate Cthulhu Scheme (exit). We follow the procedure from
+        ; Racket where we just quit, not MIT-Scheme where we ask the user
+        ; first. 
         ; """
-                lda #str_exit_kill              ; "Kill Scheme (y or n)?"
-                jsr help_print_string_no_lf
-                jsr help_key_a
-                cmp #'y'                        ; only "y" ends
-                beq _done
-
-                jmp eval_next                   ; TODO or eval_done?
-                
-_done:
                 jmp repl_quit
 
 proc_newline:

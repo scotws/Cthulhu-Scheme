@@ -95,8 +95,9 @@ evaluation, and printing.
 
 ==== Reader
 
-Cthulhu Scheme takes the input from the *input port* and saves it as a single line in
-the *input buffer*. 
+Cthulhu Scheme takes the input from the *input port* and saves it as a single
+line in the *input buffer*. These are simple ASCII strings - 7 bits characters
+only at this point.
 
 NOTE: Currently, Cthulhu Scheme does not have a history function, though the
 code could easily be lifted from Tali Forth 2. We are waiting to see how much
@@ -106,7 +107,11 @@ RAM we have left over after the system is complete for that step.
 
 The Lexer (Tokenizer) passes through the characters and creates 8-bit tokens
 which are stored in the *token buffer*. There is some pre-processing going on
-here, but not much.
+here, but not much. The token buffer is a simple sequence of characters. 
+
+NOTE: Later, it is possible that the token format will be used to store
+"compiled" Scheme commands. 
+
 
 ==== Parser
 
@@ -116,24 +121,58 @@ Tree (AST) consisting of **cons cells** - pairs of 16-bit Scheme objects.
 NOTE: During very early development, Cthulhu Scheme used a different system for
 the AST as scaffolding, based on homogeneous nodes from the the description in
 _Language Implementation Patters_ by Terence Parr.<<TP>> This has since been
-replaced by the classic Lisp cons cell design. We keep the term "AST" because it
-is by now more familiar.
+replaced by the classic Scheme cons cell design. We keep the term "AST" because it
+is by now more familiar than the traditional Lisp terms.
 
 The terms used for the pairs are traditional in Lisp and Scheme and rather
-stupid: `cdr` is the first 16-bit cell, which usually holds a Scheme pointer (designated by 
-the object tag as a **pair object**) or the **empty list object** to signal the
-end of a list. The second cell is the `car`, which is the "payload" of the pair.
-If it too contains a pair object, this is a branch in the AST. 
+stupid: `cdr` is the first 16-bit cell, which usually holds a Scheme pointer
+(designated by the object tag as a **pair object**) or the **empty list object**
+to signal the end of a list. The second cell is the `car`, which is the
+"payload" of the pair.  If it too contains a pair object, this is a branch in
+the AST. 
 
 image::pics/ast_node.png[]
 
 ==== Evaluator
 
-In the next step, the AST is "walked" by the evaluator. 
+In the next step, the AST is "walked" by the evaluator. It goes through the
+term stored in the cons cells and executes the car entries. In some cases, such
+as booleans or strings, these are self-evaluating and are stored on the **Data
+Stack** for later output. This is located at the top (by default, $00FF) of the
+Zero Page and grows downwards (towards $0000). Like everything else, it holds
+Scheme objects. 
+
+NOTE: The idea of a Data Stack instead of another chain of cons cells was used
+for speed. The Data Stack can be placed in Zero Page, making it faster, and uses
+less memory. The drawback is that we have to use precious Zero Page space, and
+the X register is used for two things during printing, as a data stack pointer
+and as the index to the jump tables. 
+
+One thing to watch out for is that the evaluator works term-by-term, not by
+whole lines. For instance, in MIT-Scheme, the input
+
+----
+        #f #b1111 "aaa" (exit) "bbb"
+----
+
+will print each of the first three terms separately and then ask if we want to
+leave. Entering 
+
+----
+        "aaa" (exit) "bbb"
+----
+
+has a curious effect: The `"bbb"` is sent as input to the `(exit)` command. In
+Racket, however, where, `(exit)` ends without confirmation, we never reach
+`"bbb"` and just quit instead. 
+
+NOTE: We follow Racket in this example, not MIT-Scheme.
+
 
 ==== Printer
 
-What is left over by the Evaluator is sent to the Printer. 
+The output from the evaluator is printed by the printer. It walks through the
+Data Stack, starting with the first entry, and prints. 
 
 
 // -------------------------------------------------------
