@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 27. Apr 2020
+; This version: 28. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; everything is self-evaluating, so this is just going through the motions.
@@ -207,4 +207,10 @@ eval_table:
 
 ; ==== CONTINUE TO PRINTER ====
 eval_done:
-                
+        ; To terminate the printer, we need to save zeros
+                dex
+                dex
+                stz 0,x
+                stz 1,x
+
+                ; fall through to printer

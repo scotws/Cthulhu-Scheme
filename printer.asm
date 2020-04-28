@@ -23,7 +23,7 @@ printer_loop:
         ; Get the MSB. We need to check if this is the end of the stack, which
         ; will happen a lot - this would be OC_EMPTY_LIST
                 ldx dsp
-                lda 1,x         ; by default $00FE, the MSB 
+                lda 1,x         ; by default the MSB at $00FE
                 tay
 
                 ; We cheat because we know that OC_EMPTY_LIST is 0000
