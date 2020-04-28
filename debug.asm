@@ -61,11 +61,14 @@ debug_dump_token:
                 bne - 
 _done:
                 ; we land here with a T_END token
-                jmp help_byte_to_ascii          ; JSR/RTS
+                jsr help_byte_to_ascii  
+                jmp help_emit_lf                ; JSR/RTS
 .bend
+
 
 debug_dump_hp:
         ; Print the value of the RAM heap pointer for pairs/AST
+.block
                 jsr help_emit_lf
 
                 lda #strd_dump_hp               ; "Heap pointer: "
@@ -74,15 +77,15 @@ debug_dump_hp:
                 lda hp_ast+1
                 jsr help_byte_to_ascii
                 lda hp_ast
-                jmp help_byte_to_ascii          ; JSR/RTS
+                jsr help_byte_to_ascii  
+                jmp help_emit_lf                ; JSR/RTS
+.bend
 
 
 debug_dump_ast: 
         ; Dump the raw data of the AST. Uses the generic AST walker from
         ; helpers
 .block
-                jsr help_emit_lf
-
                 lda #strd_dump_ast              ; "AST root: "
                 jsr debug_print_string_no_lf
 
@@ -186,24 +189,25 @@ _not_done:
                 jsr help_byte_to_ascii
                 jsr help_emit_lf
                 bra _loop
-_done:
-                ply
-                plx
-                rts
 
 _check_end:
                 lda 0,x                         ; LSB
                 beq _clean_up
                 lda 1,x
                 bra _not_done
+
 _clean_up:
                 ; By definition, 00 in A
                 jsr help_byte_to_ascii
                 lda #00
                 jsr help_byte_to_ascii
-                jsr help_emit_lf                ; JSR/RTS
-                bra _done
 
+                ; drop through to done
+
+_done:
+                ply
+                plx
+                rts
 
 
 ; ==== DEBUG PRINT ROUTINES ====
