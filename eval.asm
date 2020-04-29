@@ -199,7 +199,6 @@ _not_parens_start:
         
 
 _empty_list:
-
         ; ---- Empty list ----
 
         ; The empty list marks the end of the input. We push the empty string
