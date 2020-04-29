@@ -19,15 +19,49 @@ eval:
                 jsr help_walk_init      ; returns car in A and Y
 
 eval_loop:
-        ; Initialize the Data Stack where we will be storing the results. 
-                ldx #ds_start           ; $FF by default 
-                stx dsp
-
         ; If carry is sent we are at the last entry, but we don't want to know
         ; that until the end. Save the status flags for now
                 php
 
-        ; A contains the MSB of the car, the "payload" of the cons cell (pair).
+        ; Initialize the Data Stack where we will be storing the results. 
+                ldx #ds_start           ; $FF by default 
+                stx dsp
+
+        ; The normal eval procedure does the actual work. 
+                jsr eval_push_car_to_stack
+                jsr proc_eval
+
+                ; We return here with the results on the Data Stack 
+
+eval_next:
+        ; We print the result of every evaluation, not all at once after the
+        ; whole line has been evaluated. 
+                jsr printer
+
+        ; If we had reached the end of the AST, the walker had set the carry
+        ; flag. 
+                plp
+                bcs eval_done           ; probably later a JMP
+
+        ; Get next entry out of AST
+                jsr help_walk_next
+                bra eval_loop
+
+
+; ---- Print stuff ----
+
+eval_done:
+        ; We're all done, so we go back to the REPL
+                jmp repl
+
+
+; ==== EVAL PROC ====
+
+; So this is going to be a bit confusing: There is part of the REPL we call
+; eval and the actual primitive procedure (eval), which is this part. The main
+; loop pushes the car to the Data Stack and then performes a subroutine jump
+; here. We assume that the LSB of the car is in Y and the MSB is in MSR.
+proc_eval:
         ; We need to mask everything but the object's tag nibble
                 and #$f0
         
@@ -46,39 +80,18 @@ eval_loop:
         ; Data Stack
                 jmp (eval_table,x)
 
-eval_next:
-        ; We print the result of every evaluation, not all at once after the
-        ; whole line has been evaluated. Place the Empty List on the top of the
-        ; Data Stack to make sure we quit
-                dex
-                dex
-                stz 0,x
-                stz 1,x
-
-                jsr printer
-
-        ; If we had reached the end of the AST, the walker had set the carry
-        ; flag. 
-                plp
-                bcs eval_done           ; probably later a JMP
-
-        ; Get next entry out of AST
-                jsr help_walk_next
-                bra eval_loop
+proc_eval_next:
+        ; We return here after taking care of the actual car. We push the
+        ; result to the Data Stack and return to the calling routine. 
+        
+                rts
 
 
-; ---- Print stuff ----
 
-eval_done:
-        ; We're all done, so we go back to the REPL
-        jmp repl
-
-
-; ===== APPLY =====
+; ==== APPLY PROC ====
 
 ; Apply is so central to the loop it lives here instead of with the other
 ; primitive procedures in procedures.asm.
-
 apply: 
 proc_apply:
         ; """Applies a primitive procedure object to a list of operands, for
@@ -175,7 +188,7 @@ _not_legal_meta:
 
 _not_parens_start:
                 cpy #<OC_PARENS_END             ; from parser.asm     
-                bne _not_parens_end
+                bne _empty_list                 ; move this up 
 
         ; ---- Parens close ')' ----
 
@@ -185,7 +198,7 @@ _not_parens_start:
         ; TODO handle naked closed parents
         
 
-_not_parens_end:
+_empty_list:
 
         ; ---- Empty list ----
 
@@ -200,15 +213,14 @@ _not_parens_end:
 
 ; ---- Self-evaluating objects ---- 
 
-; All of these are self-evaluating and just print themselves. We push
-; them to the Data Stack. 
+; All of these are self-evaluating and just print themselves. Since we already
+; have the object on the Data Stack, we don't even have to push it anymore.
 eval_1_bool:
 eval_2_fixnum:
 eval_3_char:
 eval_4_string:
 eval_f_proc:
-                jsr eval_push_car_to_stack
-                bra eval_next
+                bra proc_eval_next
 
 eval_5_bignum:
 
@@ -223,7 +235,6 @@ eval_7_UNDEFINED:
 
 eval_8_pair:
         ; TODO write code for pair
-                bra eval_next   ; paranoid, currently not reached
 
 eval_9_UNDEFINED:
         ; TODO define tag and add code

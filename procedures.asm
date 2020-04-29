@@ -29,7 +29,7 @@ proc_car:
 proc_cdr:
 
 proc_cons:
-                jmp eval_next 
+                rts
 
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from
@@ -42,7 +42,7 @@ proc_newline:
         ; """Write an end of line to a port. Returns an unspecified value.
         ; """
                 jsr help_emit_lf
-                jmp eval_next
+                rts
 
 proc_not:
         ; """Return #t if the single operand is #f, else return #f for
@@ -85,7 +85,7 @@ spec_quote:
         ; """
 
 spec_set_e:
-                jmp eval_next                   ; TODO for testing, protect table
+                rts
 
 
 ; ===== EXECUTION JUMP TABLE ===== 
