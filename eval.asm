@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 28. Apr 2020
+; This version: 29. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; most stuff is self-evaluating. This uses the AST walker from helpers.asm 
@@ -120,8 +120,6 @@ eval_push_car_to_stack:
                 rts
 
 
-
-
 ; ==== EVALUATION SUBROUTINES ====
 
 eval_0_meta:
@@ -133,7 +131,7 @@ eval_0_meta:
 
         ; If this is an open parens, we assume that the next object is
         ; executable and needs to be sent to (apply). 
-                cpy #$AA        ; hard-coded in parser.asm
+                cpy #<OC_PARENS_START           ; defined in parser.asm
                 bne _not_parens_start
 
         ; ---- Parens open '(' ----
@@ -165,8 +163,9 @@ _not_a_proc:
 
         ; TODO add special forms
 
-        
+
 _not_a_spec:
+_not_legal_meta:
         ; If this is not a native procedure and not a special form, we're in
         ; trouble. Complain and return to REPL
                 lda #str_cant_apply
@@ -175,17 +174,29 @@ _not_a_spec:
 
 
 _not_parens_start:
-                cpy #$FF        ; hard-coded in parser.asm
+                cpy #<OC_PARENS_END             ; from parser.asm     
                 bne _not_parens_end
 
         ; ---- Parens close ')' ----
+
+        ; This is strange because actually the individual processes are
+        ; responsible for reaching the closing parents and getting over it.
+        ; If we are here, this could be because of inballanced parens.
+        ; TODO handle naked closed parents
         
+
 _not_parens_end:
 
-        ; ---- Null list ----
+        ; ---- Empty list ----
 
-                bra eval_next
+        ; The empty list marks the end of the input. We push the empty string
+        ; symbol to the Data Stack
+                cpy #<OC_EMPTY_LIST  
+                bne _not_legal_meta     ; temporary, TODO real error message
 
+                ; The Empty List is basically self-evaluating, so we fall
+                ; through to self-evaluating objects  
+                
 
 ; ---- Self-evaluating objects ---- 
 
@@ -197,7 +208,7 @@ eval_3_char:
 eval_4_string:
 eval_f_proc:
                 jsr eval_push_car_to_stack
-                bra eval_next           ; paranoid, never reached
+                bra eval_next
 
 eval_5_bignum:
 
