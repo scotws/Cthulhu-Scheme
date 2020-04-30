@@ -1,7 +1,7 @@
 ; Definitions for Cthulhu Scheme
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 28. Apr 2020
+; This version: 30. Apr 2020
 
 ; The lexer tokens are kept in the lexer.asm file so that they can be changed
 ; more easily
@@ -64,6 +64,7 @@ hp_str   .word ?     ; next free byte in string RAM segment
 walk_curr   .word ?  ; Pointer (addr) to current pair in AST
 walk_car    .word ?  ; Contents of current pair's car field
 walk_cdr    .word ?  ; Contents of current pair's cdr field
+walk_done   .byte ?  ; End of term? $FF is true, $00 is false
 
 ; Temporary variables
 ; Leave these as the last entries so if the Data Stack overflows there is at

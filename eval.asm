@@ -1,11 +1,16 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 29. Apr 2020
+; This version: 30. Apr 2020
 
 ; We walk the AST and actually execute what needs to be executed. Currently,
 ; most stuff is self-evaluating. This uses the AST walker from helpers.asm 
+
+; ==== EVAL MAIN LOOP ====
 eval: 
+        ; This loop walks the upper level of the AST entries, its "spine" if
+        ; you will, and prints the results. If there is more than one
+        ; expression in the line, it prints them one by one
 
         .if DEBUG == true
                 ; TODO TEST dump contents of AST 
@@ -16,20 +21,19 @@ eval:
         ; Initialize the AST with the address of its RAM segment 
                 lda rsn_ast             ; RAM segment nibble, default $10
                 ldy #2                  ; by definition
-                jsr help_walk_init      ; returns car in A and Y
+                jsr help_walk_init 
 
 eval_loop:
-        ; If carry is sent we are at the last entry, but we don't want to know
-        ; that until the end. Save the status flags for now
-                php
-
         ; Initialize the Data Stack where we will be storing the results. 
                 ldx #ds_start           ; $FF by default 
                 stx dsp
 
-        ; The normal eval procedure does the actual work. 
+        ; We push the car to the Data Stack, which is the main way eval and
+        ; apply communicate. Using the normal 6502 stack would be a nightmare
                 jsr eval_push_car_to_stack
-                jsr proc_eval
+
+        ; The eval primitive procedure does the actual work. And calls 
+                jsr proc_eval 
 
                 ; We return here with the results on the Data Stack 
 
@@ -38,17 +42,15 @@ eval_next:
         ; whole line has been evaluated. 
                 jsr printer
 
-        ; If we had reached the end of the AST, the walker had set the carry
-        ; flag. 
-                plp
-                bcs eval_done           ; probably later a JMP
+        ; If we had reached the end of the AST, the walk has set walk_done to
+        ; $FF
+                lda walk_done           ; $FF true, term over; $00 false
+                bne eval_done 
 
         ; Get next entry out of AST
                 jsr help_walk_next
+
                 bra eval_loop
-
-
-; ---- Print stuff ----
 
 eval_done:
         ; We're all done, so we go back to the REPL
@@ -57,11 +59,20 @@ eval_done:
 
 ; ==== EVAL PROC ====
 
-; So this is going to be a bit confusing: There is part of the REPL we call
-; eval and the actual primitive procedure (eval), which is this part. The main
-; loop pushes the car to the Data Stack and then performes a subroutine jump
-; here. We assume that the LSB of the car is in Y and the MSB is in MSR.
+; So this is a bit confusing: There is part of the REPL we call eval and the
+; actual primitive procedure (eval), which is this part. The main loop pushes
+; the car to the Data Stack and then performes a subroutine jump here. 
+; This should formally live with the other primitive procedures in
+; procedures.asm, but it is so important for the REPL it lives here with its
+; friend (apply).
 proc_eval:
+
+        ; Pull the car from the Data Stack. It is pointing to the MSB when we
+        ; arrive, and this is all we need
+                lda 1,x         ; MSB is stored in A
+                inx             ; Pop and discard top entry
+                inx
+       
         ; We need to mask everything but the object's tag nibble
                 and #$f0
         
@@ -87,7 +98,6 @@ proc_eval_next:
                 rts
 
 
-
 ; ==== APPLY PROC ====
 
 ; Apply is so central to the loop it lives here instead of with the other
@@ -100,15 +110,47 @@ proc_apply:
         ; next object is either a primitive procedure - then we end up here
         ; - or a special form.
 
-        ; We arrive here with the offset to the execution table in Y and the
-        ; car and cdr of the next entry in the AST in walk_car and walk_cdr.
+        ; We arrive here with the object right after the '(' on the top of the
+        ; Data Stack. With procedures, the LSB is the offset to the jump table
+        ; for procedures, and we don't need the MSB anymore. Still have to
+        ; taken them both off the stack
 
-                ; TODO for now, we just jump!
+                ldx dsp                 ; procs may assume that X is dsp
+                lda 0,x                 ; take LSB
+                tay
+
                 lda exec_table_lsb,y
                 sta jump
                 lda exec_table_msb,y
                 sta jump+1
+
                 jmp (jump)
+
+
+proc_apply_return:
+        ; The procedures we call are tasked with moving to the last closing
+        ; parens ')' in their term. We move on to the next entry for eval
+        ; before we jump back. We should pull the old value and push the new
+        ; one, but we can actually just overwrite the current value.
+
+        ; TODO note this is the same routine we use in the current testing
+        ; procedure (newline), so we can probably move this to the same
+        ; subroutine
+                
+                ; If we have already reached the end - say "(newline)", then we
+                ; don't want to get the next entry
+                lda walk_done
+                bne _done
+
+                jsr help_walk_next
+
+                lda walk_car            ; LSB
+                sta 0,x
+                lda walk_car+1          ; MSB
+                sta 1,x
+
+_done:
+                jmp eval_0_meta_return
                 
 
 ; ==== EVALUATION HELPER ROUTINES ====
@@ -145,40 +187,57 @@ eval_0_meta:
         ; If this is an open parens, we assume that the next object is
         ; executable and needs to be sent to (apply). 
                 cpy #<OC_PARENS_START           ; defined in parser.asm
-                bne _not_parens_start
+                bne eval_not_parens_start
 
-        ; ---- Parens open '(' ----
+        ; ---- Parens start '(' ----
 
                 ; Get the next object from the AST
                 ; TODO complain if there is no next object
                 jsr help_walk_next
 
-        ; The MSB is in A and the LSB in Y. We need to make sure this is
-        ; executable - a primitive procedure or a special form - and complain
-        ; if not.
+                ; We now have the car and cdr of the next object in walk_car.
+                ; We first have to see if this is really a procedure or at
+                ; least a special form 
+                lda walk_car+1          ; MSB of the object
+
                 ; mask everything but the object's tag
                 and #$F0
                 cmp #OT_PROC
-                bne _not_a_proc
+                bne eval_not_a_proc
                
         ; ---- Primitive procedure ----
 
-        ; This is a procedure, which means the LSB in Y is (currently) the
-        ; offset to the routine stored in procedures.asm. Jump to apply with Y
-        ; TODO figure out how to do this when we are recursive
+        ; This is a procedure, which means the LSB is the offset to the 
+        ; routine stored in procedures.asm. We push the car on the Data Stack
+        ; and let (apply) do its thing
+
+                ldx dsp
+                lda walk_car+1
+                sta 1,x                 ; MSB
+                lda walk_car            ; LSB
+                sta 0,x
+                stx dsp
+                
                 jmp proc_apply
 
-_not_a_proc:
+eval_0_meta_return:        
+        ; We return here from (apply) and first need to see if we are done.
+
+                jmp proc_eval_next      ; TODO replace with RTS directly
+        
+        
+
+eval_not_a_proc:
                 cmp #OT_SPEC
-                bne _not_a_spec
+                bne eval_not_a_spec
 
         ; ---- Special form ---- 
 
         ; TODO add special forms
 
 
-_not_a_spec:
-_not_legal_meta:
+eval_not_a_spec:
+eval_not_legal_meta:
         ; If this is not a native procedure and not a special form, we're in
         ; trouble. Complain and return to REPL
                 lda #str_cant_apply
@@ -186,7 +245,7 @@ _not_legal_meta:
                 jmp repl
 
 
-_not_parens_start:
+eval_not_parens_start:
                 cpy #<OC_PARENS_END             ; from parser.asm     
                 bne _empty_list                 ; move this up 
 
@@ -204,7 +263,7 @@ _empty_list:
         ; The empty list marks the end of the input. We push the empty string
         ; symbol to the Data Stack
                 cpy #<OC_EMPTY_LIST  
-                bne _not_legal_meta     ; temporary, TODO real error message
+                bne eval_not_legal_meta     ; temporary, TODO real error message
 
                 ; The Empty List is basically self-evaluating, so we fall
                 ; through to self-evaluating objects  
@@ -219,7 +278,7 @@ eval_2_fixnum:
 eval_3_char:
 eval_4_string:
 eval_f_proc:
-                bra proc_eval_next
+                jmp proc_eval_next      ; TODO replace with RTS directly
 
 eval_5_bignum:
 
@@ -258,7 +317,7 @@ eval_D_UNDEFINED:
 eval_e_spec:
         ; TODO define tag and add code
 
-                bra eval_next 
+                jmp eval_next 
 
 
 ; ===== EVALUATION JUMP TABLE ====

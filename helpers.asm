@@ -1,7 +1,7 @@
 ; Low-Level Helper Functions for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 21. Apr 2020
+; This version: 30. Apr 2020
 
 ; Many of these were originally taken from Tali Forth 2, which is in the public
 ; domain. All routines start with help_. They are all responsible for saving
@@ -414,10 +414,12 @@ help_walk_common:
 
         ; Handle question if this is the last entry. We have the MSB of the cdr
         ; Note this is cheating because we assume that OT_EMPTY_LIST is $0000 
-                clc                     ; default is not last pair
-                ora walk_cdr            ; LSB
+                stz walk_done           ; Default is not done, $00
+                ora walk_cdr            ; MSB in A, logical or with LSB
                 bne _store_car
-                sec                     ; last pair, mark by setting carry flag
+                dec walk_done           ; Wrap $00 -> $FF, we're done
+
+                ; fall through to _store_car
 
         ; Place the car in Zero Page    
 _store_car:
@@ -430,6 +432,7 @@ _store_car:
 
         ; We return the MSB of the car in A and the LSB of car in Y in addition
         ; to storing them in the Zero Page. The MSB is still in A.
+        ; TODO we don't use this, see if we can get rid of it
                 ply
 
                 rts

@@ -107,11 +107,6 @@ debug_dump_ast:
                 jsr help_walk_init
 
 _debug_dump_ast_loop:
-
-                ; If carry is set we are at the last entry. Save the status
-                ; flags for now
-                php
-                
                 ; Make it pretty
                 lda #strd_dump_arrow            ; "--> "
                 jsr debug_print_string_no_lf
@@ -133,8 +128,8 @@ _debug_dump_ast_loop:
                 jsr help_byte_to_ascii          ; LSB
 
                 ; Check to see if this was the last entry
-                plp
-                bcs _debug_dump_ast_done
+                lda walk_done
+                bne _debug_dump_ast_done
 
                 ; Get the next AST pair. If we are at the end, the carry flag
                 ; is set

@@ -1,7 +1,7 @@
 ; Procedures and Special Forms for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 28. Apr 2020
+; This version: 30. Apr 2020
 
 ; This file contains the procedures and special forms of Cthulhu Scheme that
 ; are coded natively in assembler. For now, we keep special forms such as
@@ -22,7 +22,10 @@
 ; ===== PROCEDURE CODE =====
 
 ; These are ordered alphabetically. For each procedure, we must add an entry to
-; the headers.asm file, which is a linked list. 
+; the headers.asm file, which is a linked list. Procedures are responsible for
+; moving along on the AST to the ')' they come from.
+
+; proc_apply lives in eval.asm because it is so important for the REPL
 
 proc_car:
 
@@ -31,18 +34,50 @@ proc_cdr:
 proc_cons:
                 rts
 
+
+; proc_eval lives in eval.asm because it is so important for the REPL
+
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from
         ; Racket where we just quit, not MIT-Scheme where we ask the user
-        ; first. 
+        ; first. This is the simplest of the procedures because we don't have
+        ; to fool around with stacks and ASTs, we just drop everything.
         ; """
                 jmp repl_quit
 
+
 proc_newline:
-        ; """Write an end of line to a port. Returns an unspecified value.
+        ; """Write an end of line to a port. Doesn't return a value. In
+        ; contrast to MIT Scheme, which returns an "unspecified value", we
+        ; follow Racket and don't return a value at all.
         ; """
-                jsr help_emit_lf
-                rts
+        ; TODO This is the first procedure that was written for the eval/apply
+        ; loop. The first part of the code can probably be move to a subroutine
+        ; once we're sure this is the right way forward.
+        
+                ; We have the AST entry for the actual procedure in walk_car.
+                ; As part of our housekeeping, we move one entry further to the
+                ; ')' part.
+                jsr help_walk_next
+
+                ; In theory, we need to pull the last entry off the Data Stack
+                ; and then push the new car. We can just overwrite them,
+                ; however. Assumes that X is the dsp, which should be taken
+                ; care of by (apply)
+                lda walk_car            ; LSB
+                sta 0,x
+                lda walk_car+1          ; MSB
+                sta 1,x
+
+                ; This is the actual work of the procedure
+                ; jsr help_emit_lf              ; TODO enable
+
+                ; TODO test with 'q' for debugging
+                lda #'q'
+                jsr help_emit_a
+
+                jmp proc_apply_return
+
 
 proc_not:
         ; """Return #t if the single operand is #f, else return #f for
