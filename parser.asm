@@ -1,7 +1,7 @@
 ; Parser for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 29. Apr 2020
+; This version: 01. May 2020
 
 ; The parser goes through the tokens created by the lexer in the token buffer
 ; (tkb) and create a Abstract Syntax Tree (AST) that is saved as part of the
@@ -830,9 +830,11 @@ _store_address:
 ; constants for speed reasons. These are in capital letters and start with
 ; with OC_
 
-OC_EMPTY_LIST     = $0000   ; end of list terminating object "()"
+OC_EMPTY_LIST     = $0000   ; end of list, terminating object '()'
 OC_PARENS_START   = $00AA   ; parens open '('
 OC_PARENS_END     = $00FF   ; parens close ')' 
+OC_NOP            = $00EA   ; unspecified value, does nothing
+
 OC_TRUE           = $1FFF   ; true bool #t, immediate
 OC_FALSE          = $1000   ; false bool #f, immediate
 OC_PROC_APPLY     = $F000   ; primitive procedure (apply)

@@ -24,7 +24,10 @@
 
 ; These are ordered alphabetically. For each procedure, we must add an entry to
 ; the headers.asm file, which is a linked list. Procedures are responsible for
-; moving along on the AST to the ')' of the term where they come from.
+; moving along on the AST to the ')' of the term where they come from. We
+; arrive here from (apply) that has made sure the current AST object is the one
+; after the procedure call, so (add 1 2) will have the object for 1 in
+; walk_car.
 
 ; TODO add a set format for the comments so we can auto-generate documentation
 ; like we do with Tali Forth 2
@@ -64,17 +67,29 @@ proc_newline:
         ; loop. The first part of the code can probably be moved to
         ; a subroutine once we're sure this is the right way forward.
         
-                ; We arrive here with the AST object for this procedure in
-                ; walk_car. Move on to the next object.
-                jsr help_walk_next
+                ; We arrive here with the AST object after the actual procedure
+                ; in walk_car. In our case, this is either the optional port
+                ; value as in (newline #xF002) or the closing parens if this is
+                ; (newline). One way or the other we have a responsibility to
+                ; return with ')' as the current AST object.
 
-                ; In theory, we need to pull the last entry off the Data Stack
-                ; and then push the new car. We can just overwrite them,
-                ; however. (apply) made sure that X is the Data Stack pointer.
-                lda walk_car            ; LSB
-                sta 0,x
-                lda walk_car+1          ; MSB
-                sta 1,x
+                ; TODO handle port parameter if provided
+
+                ; We only use (newline) for the side effect so there isn't
+                ; really a return value. However, apply expects us to return
+                ; something. This is what MIT Scheme calls an "unspecified
+                ; value". We call it the "NOP object" and save it here. The
+                ; printer has to decide what to do with it later. 
+                
+                ; In theory, we pull the procedure object for 'newline' off the
+                ; Data Stack and then push the NOP object. However, we just
+                ; overwrite it in practice because that's faster. Apply was
+                ; nice enough to make sure we can assume that X is the Data
+                ; Stack pointer.
+                lda #<OC_NOP
+                sta 0,x         ; LSB
+                lda #>OC_NOP
+                sta 1,x         ; MSB
 
                 ; TODO testing
                 pha
@@ -89,10 +104,13 @@ proc_newline:
                 ; This is the actual work of the procedure
                 ; jsr help_emit_lf              ; TODO enable
 
-                ; TODO test with 'q' for debugging
-                lda #'q'
+                ; TODO test with '~' for debugging because empty lines are
+                ; a problem to see
+                lda #'~'
                 jsr help_emit_a
 
+                ; We return with the OC_NOP object on the top of the Data Stack
+                ; and the ')' as the current AST object
                 jmp proc_apply_return
 
 

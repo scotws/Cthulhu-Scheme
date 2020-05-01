@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 29. Apr 2020
+; This version: 01. May 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
@@ -59,14 +59,12 @@ _check_for_end:
         ; that we have OC_EMPTY_LIST and the printing is done. 
                 lda 0,x         ; LSB
 
-                ; If it is not a zero, it is something else. At the moment, it
-                ; isn't clear what that could even be, but we'll leave it here
-                ; for the moment. Probably this will end up being an error
-                ; routine because the parser should have taken care of
-                ; everything that wasn't the empty list 
+                ; If it is not a zero, it is something else like a NOP object
+                ; and we let the specialized routine handle it.
                 bne printer_0_meta
 
-                ; We're done. 
+                ; Whatever, we're done. This is going to be too far for
+                ; a branch.
                 jmp printer_done
 
 printer_next:
@@ -90,10 +88,23 @@ printer_done:
 
 printer_0_meta:
         ; ---- Meta ----
-        ; Reserved for future use. Currently, the only meta is the empty list,
-        ; and we took care of that in the main loop. This will probably end up
-        ; being an error routine
 
+        ; This is a bit strange because we don't arrive here through the jump
+        ; table but after the check for the end of the stack for printing, and
+        ; finding out that LSB is not $00 as it would be for the end.
+        ; Currently, this can only be OC_NOP, the No Operation Object, which is
+        ; passed back by procedures like (newline) we only call for their side
+        ; effects. 
+        
+        ; There are two ways to deal with this case: MIT Scheme prints
+        ; "Unspecified return value" and Racket doesn't print anything. We use
+        ; conditional assembly to let the user decide which one they want, but
+        ; the default is to not print anything. See the platform file to
+        ; change this
+        .if PRINT_NOP_MSG == true
+                lda #str_unspec
+                jsr help_print_string
+        .fi
                 bra printer_next
 
 printer_1_bool:

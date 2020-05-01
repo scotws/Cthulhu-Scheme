@@ -37,9 +37,9 @@ string_table:
 ; If you change the error strings, you will have to change the test files
 ; because the test routines depend on them being exactly the same.
 s_unbound:      .null   "Unbound variable: "            ; REPL input error
-s_unspec:       .null   "Unspecified return value"      ; used eg with (display)
-s_true:         .null   "#t"
-s_false:        .null   "#f"
+s_unspec:       .null   "Unspecified return value"      ; from printer
+s_true:         .null   "#t"                            ; from printer
+s_false:        .null   "#f"                            ; from printer
 s_bad_token:    .null   "PANIC: Bad token: $"           ; from parser
 s_bad_object:   .null   "PANIC: Bad object in AST: "    ; from printer
 s_bad_number:   .null   "Ill-formed number: $"          ; from lexer

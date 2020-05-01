@@ -135,8 +135,9 @@ eval_0_meta:
         ; ---- Primitive procedure ----
 
         ; This is a primitve procedure, which means the LSB is the offset to
-        ; the routine stored in procedures.asm. We push the car on the Data
-        ; Stack and let (apply) do its thing
+        ; the routine stored in procedures.asm. We push the car - the actual
+        ; call to the procedure - to the Data Stack and let (apply) do its
+        ; thing
                 ldx dsp                 ; X last was index to jump table 
                 lda walk_car+1
                 sta 1,x                 ; MSB
@@ -147,7 +148,9 @@ eval_0_meta:
                 jmp proc_apply          ; Not a subroutine jump!
 
 eval_0_meta_return:        
-        ; We return here from (apply)
+        ; We return here from (apply) with the next object in the AST on the
+        ; top of the Data Stack and below that whatever result the procedure
+        ; returned. 
                 jmp proc_eval_next      ; TODO replace with RTS directly
 
 eval_not_a_proc:
@@ -281,54 +284,72 @@ proc_apply:
         ; instance '(apply + (list 3 4))'. We arrive here when the evaluator
         ; finds a '(' as OC_PARENS_START and has confirmed that the next object
         ; is either a primitive procedure - then we end up here - or a special
-        ; form. We arrive here with the object right after the '(' on the top
-        ; of the Data Stack. 
-
+        ; form. The Data Stack has the procedure's object on top, the AST is
+        ; pointing to this object as well.
                 ; We make completely sure that X is the Data Stack pointer so
                 ; the procedures don't have to consider anything else
                 ldx dsp
 
-                ; With procedures, the LSB is the offset to the jump table for
-                ; code in procedures.asm. This means there is one unused
-                ; nibble, the lower nibble of the MSB
-                lda 0,x                 ; LSB
-                tay                     ; use Y so X can stay dsp
+                ; We move on to the next entry in the AST, which is the first
+                ; object after the procedure. The top value of the Data Stack
+                ; is still the procedure's object
+                jsr help_walk_next
+
+                ; With procedures, the LSB on the top of the Data Stack is the
+                ; offset to the jump table for code in procedures.asm. This
+                ; means there is one unused nibble, the lower nibble of the MSB
+                lda 0,x      ; LSB from off top of Data Stack from off top of Data Stack
+                tay          ; use Y so X can stay dsp
 
                 lda exec_table_lsb,y
                 sta jump
                 lda exec_table_msb,y
                 sta jump+1
 
+                ; We leave the procedure's object on the top of the Data Stack
+                ; because it is faster to overwrite it with whatever the result
+                ; is than to pop it off the stack and later push the result
+                ; back. See procedures.asm for details.
                 jmp (jump)
 
 proc_apply_return:
         ; This is where the procedures jump (JMP, not RTS) to when they are
         ; done. They are responsible for moving to the closing parens ')'
-        ; of their term. We move on to the next entry for eval before we jump
-        ; back. We should pull the old value and push the new one, but we can
-        ; actually just overwrite the current value.
+        ; of their term on the AST, and always return some sort of result on
+        ; the top of the Data Stack. In the case of procedures such as
+        ; (newline) that we only call for the side effects, this will be the
+        ; NOP object (OC_NOP) which we pass on to the printer. 
 
-        ; TODO note this is pretty much the same routine we use in the current
-        ; testing procedure (newline), so we can probably move this to the same
-        ; subroutine
-                
+
+                ; TODO make sure we actually have a ')' as the current AST or
+                ; something went horribly wrong
+
                 ; If we have already reached the end - say "(newline)", then we
                 ; don't want to get the next entry
                 lda walk_done
                 bne _done
 
-                ; Not the end of the line. Get next entry
+                ; Not the end of the line. Get next entry and push it to the
+                ; top of the Data Stack
                 jsr help_walk_next
+
+                ldx dsp                 ; possibly paranoid
+                dex
+                dex
 
                 lda walk_car            ; LSB
                 sta 0,x
                 lda walk_car+1          ; MSB
                 sta 1,x
 
+                sta dsp                 ; possibly paranoid
+
 _done:
         ; Remember we have come from the meta processing part of eval, so we
-        ; need to go back there. 
-                jmp eval_0_meta_return  ; TODO replace with direct RTS
+        ; need to go back there. The top of the Data Stack is now the next
+        ; entry in the AST, followed by the return value of the procedure we
+        ; just called.
+                jmp eval_0_meta_return  
                 
 
 ; ==== EVALUATION HELPER ROUTINES ====

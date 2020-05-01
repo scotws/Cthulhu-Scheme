@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 27. Apr 2020
+; This version: 01. May 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the
@@ -19,15 +19,24 @@
 ; debugging routines in debug.asm and various parts of the code
 DEBUG = true
 
-; annoying when saving strings, so we give the option of converting CR in the
-; input stream to a LF to be stored in strings. Default is true, which means
-; convert CR to LF when saving a string.
-STRING_CR_TO_LF = true
-
 ; Normal people don't use octal (#o) numbers anymore, but there are bound to be
 ; freaks out there who still use it. As a compromise, we include the code but
 ; don't actually use it unless this is set to true. You know who you are.
 OCTAL = false
+
+; Scheme expects every procedure to return some sort of a value, even those
+; like (newline) we only call for the side effects. Different Schemes handle
+; this is different ways: MIT Scheme prints a message "Unspecified return
+; value", while Racket just continues. Cthulhu Scheme returns the No Operation
+; Object (OC_NOP) and gives the user the choice with this flag. The default is
+; to follow Racket and not print anything (false). Used by printer.asm
+PRINT_NOP_MSG = false
+
+; Some machines use CR to end the input and some use LF, which is annoying when
+; saving strings, so we give the option of converting CR in the input stream to
+; a LF to be stored in strings. Default is true, which means convert CR to LF
+; when saving a string.
+STRING_CR_TO_LF = true
 
 
 ; ==== BASIC MACHINE DEFINITIONS ====
