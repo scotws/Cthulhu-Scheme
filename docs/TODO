@@ -1,7 +1,7 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 29. Apr 2020
+This version: 01. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
@@ -9,13 +9,15 @@ project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Process procedures, starting with (and), (display) and (+)
+- Make "(newline) (newline)" work
+- Reset Data and 6502 stack when starting REPL
+- Process special forms, starting with (quote)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands
 - Get (not (not #t)) working for depth tree processing
 - Get (quote (#x1 #x2)) working for quoting
+- Process procedures, starting with (display) and (+)
 - Write a debug procedure to dump the string table
-- Write a debug procedure to dump the Data Stack 
 
 
 TO DO LONG TERM
@@ -31,6 +33,8 @@ TO DO LONG TERM
 
 DONE
 
+2020-04-30 - Write a debug procedure to dump the Data Stack 
+2020-04-30 - Eval/apply can now handle simple proc like "(newline)"
 2020-04-28 - Process each term individually, not by line (compare Racket)
 2020-04-28 - Move printer.asm to data stack format
 2020-04-28 - Create debug_dump_ds to dump data stack
