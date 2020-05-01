@@ -4,7 +4,10 @@
 ; This version: 01. May 2020
 
 ; We walk the AST and actually execute what needs to be executed. This uses
-; the AST walker from helpers.asm  
+; the AST walker from helpers.asm. Note we use "eval_" for the evaluator (part
+; of the REPL) and "proc_eval_" for the primitive prodedure (eval). The split
+; is somewhat artificial and might be removed in later rewrites, but for the
+; moment that's how this works.
 
 ; ==== EVALULATOR MAIN LOOP ====
 eval: 

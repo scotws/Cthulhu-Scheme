@@ -1,73 +1,90 @@
 ; Procedures and Special Forms for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 30. Apr 2020
+; This version: 01. May 2020
 
 ; This file contains the procedures and special forms of Cthulhu Scheme that
 ; are coded natively in assembler. For now, we keep special forms such as
 ; (define) and primitive procedures such as (not) here. 
 
-; All procedure start with the proc_ label followed by their Scheme name with
-; underscores, eg "proc_read_char" for "(read-char)".  A question mark is is
-; seplaced by '_p', so "(char-whitespace?  #\a)" becomes
-; "proc_char_whitespace_p". Special forms start with the spec_ label followed
-; by their Scheme name with underscores, so "(define)" becomes "spec_define".
-; An exclamation mark becomes '_e', so "(set!)" "spec_set_e". 
+; All procedure start with the 'proc_' label followed by their Scheme name with
+; underscores, eg 'proc_read_char' for (read-char).  A question mark is is
+; seplaced by '_p', so (char-whitespace?) becomes 'proc_char_whitespace_p'.
+; Special forms start with the 'spec_' label followed by their Scheme name with
+; underscores, so (define) becomes 'spec_define'.  An exclamation mark becomes
+; '_e', so (set!) is 'spec_set_e'. 
 
 ; See https://schemers.org/Documents/Standards/R5RS/HTML/ for details.
 
-; Note (apply) is so central to the main REPL it lives in eval.asm. 
+; (apply) is so central to the REPL it lives in eval.asm. 
+; (eval) is so central to the REPL it lives in eval.asm. 
 
 
-; ===== PROCEDURE CODE =====
+; ===== PRIMITIVE PROCEDURE CODE =====
 
 ; These are ordered alphabetically. For each procedure, we must add an entry to
 ; the headers.asm file, which is a linked list. Procedures are responsible for
-; moving along on the AST to the ')' they come from.
+; moving along on the AST to the ')' of the term where they come from.
+
+; TODO add a set format for the comments so we can auto-generate documentation
+; like we do with Tali Forth 2
 
 ; proc_apply lives in eval.asm because it is so important for the REPL
 
 proc_car:
-
+        ; TODO add car
 proc_cdr:
-
+        ; TODO add cdr
 proc_cons:
-                rts
-
-
+        ; TODO add cons
+          
 ; proc_eval lives in eval.asm because it is so important for the REPL
 
 proc_exit:
         ; """Terminate Cthulhu Scheme (exit). We follow the procedure from
-        ; Racket where we just quit, not MIT-Scheme where we ask the user
+        ; Racket where we just quit, not MIT Scheme where we ask the user
         ; first. This is the simplest of the procedures because we don't have
-        ; to fool around with stacks and ASTs, we just drop everything.
+        ; to fool around with stacks and ASTs, we just drop everything and
+        ; leave.
         ; """
                 jmp repl_quit
-
 
 proc_newline:
         ; """Write an end of line to a port. Doesn't return a value. In
         ; contrast to MIT Scheme, which returns an "unspecified value", we
-        ; follow Racket and don't return a value at all.
+        ; follow Racket and don't return a value at all. The specification
+        ; allows an optional port value, see
+        ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Output-Procedures.html
+        ; for details.
         ; """
+
+        ; TODO add support for port value
+
         ; TODO This is the first procedure that was written for the eval/apply
-        ; loop. The first part of the code can probably be move to a subroutine
-        ; once we're sure this is the right way forward.
+        ; loop. The first part of the code can probably be moved to
+        ; a subroutine once we're sure this is the right way forward.
         
-                ; We have the AST entry for the actual procedure in walk_car.
-                ; As part of our housekeeping, we move one entry further to the
-                ; ')' part.
+                ; We arrive here with the AST object for this procedure in
+                ; walk_car. Move on to the next object.
                 jsr help_walk_next
 
                 ; In theory, we need to pull the last entry off the Data Stack
                 ; and then push the new car. We can just overwrite them,
-                ; however. Assumes that X is the dsp, which should be taken
-                ; care of by (apply)
+                ; however. (apply) made sure that X is the Data Stack pointer.
                 lda walk_car            ; LSB
                 sta 0,x
                 lda walk_car+1          ; MSB
                 sta 1,x
+
+                ; TODO testing
+                pha
+                jsr help_emit_lf
+                pla
+                jsr help_byte_to_ascii
+                lda 0,x
+                jsr help_byte_to_ascii
+                jsr help_emit_lf
+                
 
                 ; This is the actual work of the procedure
                 ; jsr help_emit_lf              ; TODO enable
