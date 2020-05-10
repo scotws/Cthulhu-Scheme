@@ -1,16 +1,23 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 01. Apr 2020
+This version: 10. Apr 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
+
+
+WHERE WE ARE 
+
+- Made procedures without parameters work. However, "(newline)(newline)" (two
+  procedures in sequence) does not work
 
 
 TO DO SHORT TERM
 
 - Make "(newline) (newline)" work
 - Reset Data and 6502 stack when starting REPL
+- Rework testing suite so we have SENT-WANT-GOT testing
 - Process special forms, starting with (quote)
 - Move tokenizer from "case" statements to jump table
 - Get (not #t) working as first process with operands

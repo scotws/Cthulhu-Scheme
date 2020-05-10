@@ -242,7 +242,7 @@ _uppercase:
                 adc #'a'-'A'    ; 32, if you're curious
                 ; drop through to _is_letter
 _is_letter:
-                sec             ; TODO testing
+                sec
                 rts
 
 

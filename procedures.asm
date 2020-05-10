@@ -91,23 +91,13 @@ proc_newline:
                 lda #>OC_NOP
                 sta 1,x         ; MSB
 
-                ; TODO testing
-                pha
-                jsr help_emit_lf
-                pla
-                jsr help_byte_to_ascii
-                lda 0,x
-                jsr help_byte_to_ascii
-                jsr help_emit_lf
-                
-
-                ; This is the actual work of the procedure
-                ; jsr help_emit_lf              ; TODO enable
-
-                ; TODO test with '~' for debugging because empty lines are
+                ; TODO testing with '~' for debugging because empty lines are
                 ; a problem to see
                 lda #'~'
                 jsr help_emit_a
+
+                ; This is the actual work of the procedure
+                jsr help_emit_lf
 
                 ; We return with the OC_NOP object on the top of the Data Stack
                 ; and the ')' as the current AST object

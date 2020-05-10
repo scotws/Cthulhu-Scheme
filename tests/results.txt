@@ -3,241 +3,96 @@ Cthulhu Scheme default kernel for py65mon (13. Apr 2020)
 ;;; First version: 13. April 2020
 ;;; This version: 13. April 2020
 
-Input Buffer: 3B 3B 3B 20 4D 61 69 6E 20 74 65 73 74 20 66 69 6C 65 20 66 6F 72 20 43 74 68 75 6C 68 75 20 53 63 68 65 6D 65 0A 3B 3B 3B 20 46 69 72 73 74 20 76 65 72 73 69 6F 6E 3A 20 31 33 2E 20 41 70 72 69 6C 20 32 30 32 30 0A 3B 3B 3B 20 54 68 69 73 20 76 65 72 73 69 6F 6E 3A 20 31 33 2E 20 41 70 72 69 6C 20 32 30 32 30 0A 00
-Token Buffer: 00
-AST: 1000 --> 0000:0E00:0000
-AST pointer: 1006
 > ; The test suite is horribly simple at the moment, we can only run stuff that
 ; should work and complain if there is an error. The abilities will be expanded
 ; as the language inproves
 
-Input Buffer: 3B 20 54 68 65 20 74 65 73 74 20 73 75 69 74 65 20 69 73 20 68 6F 72 72 69 62 6C 79 20 73 69 6D 70 6C 65 20 61 74 20 74 68 65 20 6D 6F 6D 65 6E 74 2C 20 77 65 20 63 61 6E 20 6F 6E 6C 79 20 72 75 6E 20 73 74 75 66 66 20 74 68 61 74 0A 3B 20 73 68 6F 75 6C 64 20 77 6F 72 6B 20 61 6E 64 20 63 6F 6D 70 6C 61 69 6E 20 69 66 20 74 68 65 72 65 20 69 73 20 61 6E 20 65 72 72 6F 72 2E 20 54 68 65 20 61 62 69 6C 69 74 69 65 73 20 77 69 6C 6C 20 62 65 20 65 78 70 61 6E 64 65 64 0A 3B 20 61 73 20 74 68 65 20 6C 61 6E 67 75 61 67 65 20 69 6E 70 72 6F 76 65 73 0A 00
-Token Buffer: 00
-AST: 1000 --> 0000:0E00:0000
-AST pointer: 1006
 > ; Booleans 
 #f
-Input Buffer: 3B 20 42 6F 6F 6C 65 61 6E 73 20 0A 23 66 00
-Token Buffer: 11 00
-AST: 1000 --> 1006:1000:0000 --> 0000:0100:0000
-AST pointer: 100C
 #f
 > #t
-Input Buffer: 23 74 00
-Token Buffer: 10 00
-AST: 1000 --> 1006:1FFF:0000 --> 0000:0100:0000
-AST pointer: 100C
 #t
 > #t #t
-Input Buffer: 23 74 20 23 74 00
-Token Buffer: 10 10 00
-AST: 1000 --> 1006:1FFF:0000 --> 100C:1FFF:0000 --> 0000:0100:0000
-AST pointer: 1012
 #t
+
 #t
 > #f #f
-Input Buffer: 23 66 20 23 66 00
-Token Buffer: 11 11 00
-AST: 1000 --> 1006:1000:0000 --> 100C:1000:0000 --> 0000:0100:0000
-AST pointer: 1012
 #f
+
 #f
 > #t #f
-Input Buffer: 23 74 20 23 66 00
-Token Buffer: 10 11 00
-AST: 1000 --> 1006:1FFF:0000 --> 100C:1000:0000 --> 0000:0100:0000
-AST pointer: 1012
 #t
+
 #f
 > #f #t
-Input Buffer: 23 66 20 23 74 00
-Token Buffer: 11 10 00
-AST: 1000 --> 1006:1000:0000 --> 100C:1FFF:0000 --> 0000:0100:0000
-AST pointer: 1012
 #f
+
 #t
-> 
-Input Buffer: 00> ; Fixnums, decimal
+> > ; Fixnums, decimal
 ; TODO
 
-Input Buffer: 3B 20 46 69 78 6E 75 6D 73 2C 20 64 65 63 69 6D 61 6C 0A 3B 20 54 4F 44 4F 0A 00
-Token Buffer: 00
-AST: 1000 --> 0000:0E00:0000
-AST pointer: 1006
+#f
+
+#t
 > ; Fixnums, hex
 #x0
-Input Buffer: 3B 20 46 69 78 6E 75 6D 73 2C 20 68 65 78 0A 23 78 30 00
-Token Buffer: 12 10 02 2E 30 82 00
-AST: 1000 --> 1006:2000:0000 --> 0000:0100:0000
-AST pointer: 100C
 0000
 > #x00
-Input Buffer: 23 78 30 30 00
-Token Buffer: 12 10 03 2E 30 30 82 00
-AST: 1000 --> 1006:2000:0000 --> 0000:0100:0000
-AST pointer: 100C
 0000
 > #x000
-Input Buffer: 23 78 30 30 30 00
-Token Buffer: 12 10 04 2E 30 30 30 82 00
-AST: 1000 --> 1006:2000:0000 --> 0000:0100:0000
-AST pointer: 100C
 0000
 > #x1
-Input Buffer: 23 78 31 00
-Token Buffer: 12 10 02 2E 31 82 00
-AST: 1000 --> 1006:2001:0000 --> 0000:0100:0000
-AST pointer: 100C
 0001
 > #x11
-Input Buffer: 23 78 31 31 00
-Token Buffer: 12 10 03 2E 31 31 82 00
-AST: 1000 --> 1006:2011:0000 --> 0000:0100:0000
-AST pointer: 100C
 0011
 > #x111
-Input Buffer: 23 78 31 31 31 00
-Token Buffer: 12 10 04 2E 31 31 31 82 00
-AST: 1000 --> 1006:2111:0000 --> 0000:0100:0000
-AST pointer: 100C
 0111
 > #x9
-Input Buffer: 23 78 39 00
-Token Buffer: 12 10 02 2E 39 82 00
-AST: 1000 --> 1006:2009:0000 --> 0000:0100:0000
-AST pointer: 100C
 0009
 > #x99
-Input Buffer: 23 78 39 39 00
-Token Buffer: 12 10 03 2E 39 39 82 00
-AST: 1000 --> 1006:2099:0000 --> 0000:0100:0000
-AST pointer: 100C
 0099
 > #x999
-Input Buffer: 23 78 39 39 39 00
-Token Buffer: 12 10 04 2E 39 39 39 82 00
-AST: 1000 --> 1006:2999:0000 --> 0000:0100:0000
-AST pointer: 100C
 0999
 > #xa
-Input Buffer: 23 78 61 00
-Token Buffer: 12 10 02 2E 61 82 00
-AST: 1000 --> 1006:200A:0000 --> 0000:0100:0000
-AST pointer: 100C
 000A
 > #xaa
-Input Buffer: 23 78 61 61 00
-Token Buffer: 12 10 03 2E 61 61 82 00
-AST: 1000 --> 1006:20AA:0000 --> 0000:0100:0000
-AST pointer: 100C
 00AA
 > #xaaa
-Input Buffer: 23 78 61 61 61 00
-Token Buffer: 12 10 04 2E 61 61 61 82 00
-AST: 1000 --> 1006:2AAA:0000 --> 0000:0100:0000
-AST pointer: 100C
 0AAA
 > #xA
-Input Buffer: 23 78 41 00
-Token Buffer: 12 10 02 2E 41 82 00
-AST: 1000 --> 1006:200A:0000 --> 0000:0100:0000
-AST pointer: 100C
 000A
 > #xAA
-Input Buffer: 23 78 41 41 00
-Token Buffer: 12 10 03 2E 41 41 82 00
-AST: 1000 --> 1006:20AA:0000 --> 0000:0100:0000
-AST pointer: 100C
 00AA
 > #xAAA
-Input Buffer: 23 78 41 41 41 00
-Token Buffer: 12 10 04 2E 41 41 41 82 00
-AST: 1000 --> 1006:2AAA:0000 --> 0000:0100:0000
-AST pointer: 100C
 0AAA
 > #xF
-Input Buffer: 23 78 46 00
-Token Buffer: 12 10 02 2E 46 82 00
-AST: 1000 --> 1006:200F:0000 --> 0000:0100:0000
-AST pointer: 100C
 000F
 > #xFF
-Input Buffer: 23 78 46 46 00
-Token Buffer: 12 10 03 2E 46 46 82 00
-AST: 1000 --> 1006:20FF:0000 --> 0000:0100:0000
-AST pointer: 100C
 00FF
 > #xFFF
-Input Buffer: 23 78 46 46 46 00
-Token Buffer: 12 10 04 2E 46 46 46 82 00
-AST: 1000 --> 1006:2FFF:0000 --> 0000:0100:0000
-AST pointer: 100C
 0FFF
 > #xf
-Input Buffer: 23 78 66 00
-Token Buffer: 12 10 02 2E 66 82 00
-AST: 1000 --> 1006:200F:0000 --> 0000:0100:0000
-AST pointer: 100C
 000F
 > #xff
-Input Buffer: 23 78 66 66 00
-Token Buffer: 12 10 03 2E 66 66 82 00
-AST: 1000 --> 1006:20FF:0000 --> 0000:0100:0000
-AST pointer: 100C
 00FF
 > #xfff
-Input Buffer: 23 78 66 66 66 00
-Token Buffer: 12 10 04 2E 66 66 66 82 00
-AST: 1000 --> 1006:2FFF:0000 --> 0000:0100:0000
-AST pointer: 100C
 0FFF
-> 
-Input Buffer: 00> ; Fixnums, binary
+> > ; Fixnums, binary
 #b0
-Input Buffer: 3B 20 46 69 78 6E 75 6D 73 2C 20 62 69 6E 61 72 79 0A 23 62 30 00
-Token Buffer: 12 02 02 2E 30 82 00
-AST: 1000 --> 1006:2000:0000 --> 0000:0100:0000
-AST pointer: 100C
 0000
 > #b1
-Input Buffer: 23 62 31 00
-Token Buffer: 12 02 02 2E 31 82 00
-AST: 1000 --> 1006:2001:0000 --> 0000:0100:0000
-AST pointer: 100C
 0001
 > #b0000
-Input Buffer: 23 62 30 30 30 30 00
-Token Buffer: 12 02 05 2E 30 30 30 30 82 00
-AST: 1000 --> 1006:2000:0000 --> 0000:0100:0000
-AST pointer: 100C
 0000
 > #b1111
-Input Buffer: 23 62 31 31 31 31 00
-Token Buffer: 12 02 05 2E 31 31 31 31 82 00
-AST: 1000 --> 1006:200F:0000 --> 0000:0100:0000
-AST pointer: 100C
 000F
 > #b00001111
-Input Buffer: 23 62 30 30 30 30 31 31 31 31 00
-Token Buffer: 12 02 09 2E 30 30 30 30 31 31 31 31 82 00
-AST: 1000 --> 1006:200F:0000 --> 0000:0100:0000
-AST pointer: 100C
 000F
 > #b111100001111
-Input Buffer: 23 62 31 31 31 31 30 30 30 30 31 31 31 31 00
-Token Buffer: 12 02 0D 2E 31 31 31 31 30 30 30 30 31 31 31 31 82 00
-AST: 1000 --> 1006:2F0F:0000 --> 0000:0100:0000
-AST pointer: 100C
 0F0F
-> 
-Input Buffer: 00> ; Fixnums, octal
+> > ; Fixnums, octal
 ; TODO
 
-Input Buffer: 3B 20 46 69 78 6E 75 6D 73 2C 20 6F 63 74 61 6C 0A 3B 20 54 4F 44 4F 0A 00
-Token Buffer: 00
-AST: 1000 --> 0000:0E00:0000
-AST pointer: 1006
+0F0F
 > ; All tests done!
-
-End of input stream reached.
 Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.
