@@ -89,11 +89,6 @@ proc_newline:
                 lda #>OC_NOP
                 sta 1,x         ; MSB
 
-                ; TODO testing with '~' for debugging because empty lines are
-                ; a problem to see
-                lda #'~'
-                jsr help_emit_a
-
                 ; This is the actual work of the procedure
                 jsr help_emit_lf
 

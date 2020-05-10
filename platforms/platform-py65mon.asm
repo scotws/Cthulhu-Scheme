@@ -16,8 +16,10 @@
 ; Seriously, when is the last time you used an octal number?
 
 ; Set this to 'false' for production code. As 'true', this will assemble the
-; debugging routines in debug.asm and various parts of the code
-DEBUG = true
+; debugging routines in debug.asm and various parts of the code. You will want
+; to turn this off (set to 'false') when running the testing suite at the
+; moment
+DEBUG = false
 
 ; Normal people don't use octal (#o) numbers anymore, but there are bound to be
 ; freaks out there who still use it. As a compromise, we include the code but

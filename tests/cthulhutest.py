@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-"""Cthulhu Test creates a py65 65C02 emulator running Cthulhu Scheme and
-feeds it tests, saving the results.  This script requires py65 version
+"""Cthulhu Test creates a py65 65c02 emulator running Cthulhu Scheme and
+feeds it tests, saving the results. This script requires py65 version
 1.1.0 or later already be installed (`pip install --upgrade py65`).
 
 RUNNING     : Run cthulhutest.py from the tests directory.
@@ -13,30 +13,43 @@ PROGRAMMERS : Sam Colwell and Scot W. Stevenson
 FILE        : cthulhutest.py
 
 First version: 16. May 2018 (talitest.py for Tali Forth 2)
-This version: 13. April 2020
+This version: 10. May 2020
 """
 
 import argparse
+import ast
 import sys
 import py65.monitor as monitor
 from py65.devices.mpu65c02 import MPU as CMOS65C02
 from py65.memory import ObservableMemory
 
 RESULTS = 'results.txt'
-EXTENSION = '.scm'
 CTHULHU_LOCATION = '../cthulhu-py65mon.bin'
 CTHULHU_PANIC = 'PANIC:'
-CTHULHU_QUIT = '\n'
+CTHULHU_QUIT = '\n'                     # can also be "(exit)"
 PY65MON_ERROR = '*** Unknown syntax:'
 CTHULHU_ERRORS = ['Unbound variable:', 'Ill-formed number:']
 
-# Usually we'll be running these tests with the debugger on so we want to strip
-# all the messages out that it sends
+# Commands in the test source files
+SEPARATOR = ' -> '
+INTRO = 'Cthulhu Scheme'
+COMMENT_CHAR = ';'
+SCHEME_COMMENT = '; '
+SECTION_MARKER = 'SECTION'
+
+# Usually we'll be running these tests with the debugger off. But just to be
+# sure, we want to strip all the messages out that it sends
 CTHULHU_DEBUG_MSG = ['Input Buffer:', 'Token Buffer:', 'AST: ', 'Heap pointer:']
 
-# Add name of file with test to the set of LEGAL_TESTS without the extension
-LEGAL_TESTS = ['main']
-TESTLIST = ' '.join(["'"+str(t)+"' " for t in LEGAL_TESTS])
+# Add name of file with test to the set of TEST_FILES without the extension to
+# add further tests
+TEST_FILES = ['booleans', 'fixnums', 'procedures', 'strings']
+EXTENSION = '.tst'
+TESTLIST = ' '.join(["'"+str(t)+"' " for t in TEST_FILES])
+
+# The dictionary of expected vs. received entries is created during the loading
+# of the tests
+sent_want = {}
 
 OUTPUT_HELP = 'Output File, default "'+RESULTS+'"'
 TESTS_HELP = "Available tests: 'all' or one or more of "+TESTLIST
@@ -56,12 +69,15 @@ args = parser.parse_args()
 
 # Make sure we were given a legal list of tests: Must be either 'all' or one or
 # more of the legal tests
-if (args.tests != ['all']) and (not set(args.tests).issubset(LEGAL_TESTS)):
+if (args.tests != ['all']) and (not set(args.tests).issubset(TEST_FILES)):
     print('ERROR: Illegal test. Aborting.')
     sys.exit(1)
 
 if args.tests == ['all']:
-    args.tests = list(LEGAL_TESTS)
+    args.tests = list(TEST_FILES)
+
+
+#### SETUP ####
 
 # Create a string with all of the tests we will be running in it.
 test_string = ""
@@ -74,10 +90,36 @@ for test in args.tests:
     testfile = test + EXTENSION
 
     with open(testfile, 'r') as infile:
-        test_string = test_string + infile.read()
 
+        for line in infile:
+
+            # Skip comments and whitespace
+            if line.startswith(COMMENT_CHAR):
+                continue
+            if line.strip() == '': 
+                continue
+
+            # For now, skip section markers
+            if line.startswith(SECTION_MARKER):
+                continue
+
+            # Add anything else as a normal test, including section markers
+            raw_sent, raw_want = line.strip().split(SEPARATOR, 1)
+            sent = str(ast.literal_eval(raw_sent))
+            want = str(ast.literal_eval(raw_want))
+
+            # We fill up the sent_want dictionary here
+            sent_want[sent] = want
+
+            # Add the actual test
+            test_string = test_string + sent + '\n'
+            
 # Have Cthulhu Scheme quit at the end of all the tests.
 test_string = test_string + CTHULHU_QUIT
+
+print(sent_want)
+
+#### TESTING ####
 
 # Log the results
 with open(args.output, 'wb') as fout:
@@ -85,10 +127,6 @@ with open(args.output, 'wb') as fout:
     # Create a py65 monitor object loaded with Cthulhu Scheme
     class CthulhuMachine(monitor.Monitor):
         """Emulator for running Cthulhu Scheme test suite"""
-
-        # Used for cycle counting tests.
-        cycle_start = 0
-        cycle_end   = 0
 
         def __init__(self):
             # Use the 65C02 as the CPU type.
@@ -139,58 +177,10 @@ with open(args.output, 'wb') as fout:
                         sys.stdout.write(chr(value))
                         sys.stdout.flush()
 
-            def update_cycle_start(_):
-                """Parameter (originally "address") required by py65mon
-                but unused here as "_"
-                """
-                # When this address is read from, note the cycle time.
-                self.cycle_start = self._mpu.processorCycles
-                return 0
-
-            def update_cycle_end(_):
-                """Parameter (originally "address") required by py65mon
-                but unused here as "_"
-                """
-                # When this address is read from, note the cycle time.
-                self.cycle_end = self._mpu.processorCycles
-#                # Compute the elapsed time (in CPU cycles).
-#                # With a 1MHz clock, this will also be in microseconds.
-#                fout.write((" CYCLES: "+str(self.cycle_end-self.cycle_start)+" ").encode())
-#
-#                # Print to the screen if we are not muted.
-#                if not args.mute:
-#                    sys.stdout.write((" CYCLES: "+str(self.cycle_end-self.cycle_start)+" "))
-#                    sys.stdout.flush()
-
-                return 0
-
-            def read_cycle_count(address):
-                """Break up the 32-bit result into bytes for Cthulhu to
-                read out of virtual memory. Note that the hex value
-                12345678 is stored in memory as bytes 34 12 78 56.
-                The value will be read (as a double) starting at
-                memory address 0xF008
-                """
-                if address == 0xF008:
-                    return ((self.cycle_end-self.cycle_start)&0x00FF0000)>>16
-                elif address == 0xF009:
-                    return ((self.cycle_end-self.cycle_start)&0xFF000000)>>24
-                elif address == 0xF00A:
-                    return ((self.cycle_end-self.cycle_start)&0x000000FF)
-                elif address == 0xF00B:
-                    return ((self.cycle_end-self.cycle_start)&0x0000FF00)>>8
-                else:
-                    return 0
-
             # Install the above handlers for I/O
             mem = ObservableMemory(subject=self.memory)
             mem.subscribe_to_write([0xF001], putc_results)
             mem.subscribe_to_read([0xF004], getc_from_test)
-
-            # Install the handlers for timing cycles.
-            mem.subscribe_to_read([0xF006], update_cycle_start)
-            mem.subscribe_to_read([0xF007], update_cycle_end)
-            mem.subscribe_to_read([0xF008, 0xF009, 0xF00A, 0xF00B], read_cycle_count)
             self._mpu.memory = mem
 
     # Invoke Cthulhu
@@ -199,6 +189,9 @@ with open(args.output, 'wb') as fout:
     cthulhu._mpu.pc = 0xf006
     # Run until break detected.
     cthulhu._run([0x00])
+
+
+#### DIAGNOSIS ####
 
 # Walk through results and find stuff that went wrong
 print()
@@ -210,6 +203,8 @@ if test_index < len(test_string) - 2:
     print("Cthulhu Scheme crashed before all tests completed\n")
 else:
     print("Cthulhu Scheme ran all tests requested")
+
+print()
 
 # First, panics because they are so severe 
 panics = []
@@ -242,8 +237,48 @@ if failed:
         print(line.strip())
 
 
+# Walk through the lines and see what we got for which input
+
+with open(args.output, 'r') as rfile:
+
+    got = ''
+    recording_result = False
+
+    for line in rfile:
+
+        # Skip the intro
+        if line.startswith(INTRO):
+            continue
+
+        if line.startswith('>'):
+
+            # Crude way of skipping the first iteration when there is no 'got'
+            # yet to be had
+            if recording_result:
+
+                print(raw_sent, ':', repr(raw_want), ':', repr(got))
+
+                if raw_want != got:
+                    print('ERROR: Sent', raw_sent, 'Want:', repr(raw_want),\
+                            'Got:', repr(got))
+
+            line = line[2:]
+            raw_sent = line.strip()
+            recording_result = True
+
+            if raw_sent == '':
+                continue
+
+            raw_want = sent_want[raw_sent]
+            got = ''
+
+        else:
+            got = got + line
+
+
 # Sum it all up.
 if (not panics) and (not failed):
+    print()
     print('All available tests passed')
 
 # If we got here, the program itself ran fine one way or another

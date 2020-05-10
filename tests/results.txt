@@ -1,14 +1,5 @@
 Cthulhu Scheme default kernel for py65mon (13. Apr 2020)
-> ;;; Main test file for Cthulhu Scheme
-;;; First version: 13. April 2020
-;;; This version: 13. April 2020
-
-> ; The test suite is horribly simple at the moment, we can only run stuff that
-; should work and complain if there is an error. The abilities will be expanded
-; as the language inproves
-
-> ; Booleans 
-#f
+> #f
 #f
 > #t
 #t
@@ -20,79 +11,37 @@ Cthulhu Scheme default kernel for py65mon (13. Apr 2020)
 #f
 
 #f
-> #t #f
+> #t #f #t
 #t
-
-#f
-> #f #t
-#f
-
-#t
-> > ; Fixnums, decimal
-; TODO
 
 #f
 
 #t
-> ; Fixnums, hex
-#x0
-0000
-> #x00
-0000
-> #x000
-0000
-> #x1
-0001
-> #x11
-0011
-> #x111
-0111
-> #x9
-0009
-> #x99
-0099
-> #x999
-0999
-> #xa
-000A
-> #xaa
-00AA
-> #xaaa
-0AAA
-> #xA
-000A
-> #xAA
-00AA
-> #xAAA
-0AAA
-> #xF
-000F
-> #xFF
-00FF
-> #xFFF
-0FFF
-> #xf
-000F
-> #xff
-00FF
-> #xfff
-0FFF
-> > ; Fixnums, binary
-#b0
-0000
-> #b1
-0001
-> #b0000
-0000
-> #b1111
-000F
-> #b00001111
-000F
-> #b111100001111
-0F0F
-> > ; Fixnums, octal
-; TODO
+> #f #t #f
+#f
 
-0F0F
-> ; All tests done!
+#t
+
+#f
+> #x123
+0123
+> (newline)
+
+> (newline)(newline)
+
+
+
+> (newline)(newline)(newline)
+
+
+
+
+
+> "aaa"
+aaa
+> "aaa" "bbb"
+aaa
+
+bbb
+> 
 Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.
