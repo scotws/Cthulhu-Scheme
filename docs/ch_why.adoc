@@ -74,9 +74,12 @@ Even if the 65c02 is great and Scheme is brilliant, why go to the effort of
 writing a new, bare-metal version of the languages? After almost 50 years,
 shouldn't there be a bunch of versions around already?
 
-Well, no. For some reason, there doesn't seem to be a version of Scheme for the
-65c02 available, though there are lots of Forths and BASICs. To be honest, this
-has become increasingly worrying, but at this point, we will march on. 
+Well, no. For some reason, there doesn't seem to be very many versions of Scheme
+for the 65c02 available, though there are lots of Forths and BASICs. Martin
+Heermance has a
+link:https://github.com/Martin-H1/6502/tree/master/Lisp65[similar project] to
+this one on GitHub named Lisp65 (but it's a Scheme as well). It uses the MIT
+License. 
 
 TODO
 
