@@ -106,7 +106,7 @@ heap:   .fill heap_size         ; RAM available for heap
 ; Each object in Cthulhu Scheme has a four-bit tag that denotes the type. We
 ; store them here with ot_ as a beginning. These are used by the parser as well
 ; as the evaluator so we keep them saved here. Note if we change these, we
-; migght have to change the Object Constants that live in parser.asm as well.
+; might have to change the Object Constants that live in parser.asm as well.
 
 OT_META         = $00   ; used for the empty list and terminators
 OT_BOOL         = $10   ; used for #t and #f; immediate
