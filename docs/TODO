@@ -1,26 +1,20 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 10. Apr 2020
+This version: 10. May 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
 
 
-WHERE WE ARE 
-
-- Made procedures without parameters work. However, "(newline)(newline)" (two
-  procedures in sequence) does not work
-
-
 TO DO SHORT TERM
 
-- Make "(newline) (newline)" work
-- Reset Data and 6502 stack when starting REPL
 - Rework testing suite so we have SENT-WANT-GOT testing
+- Reset Data and 6502 stack when starting REPL
+- Get (not #t) working as process with a single operands
+- Get (+ 1 2 3) working as process with multiple operands
 - Process special forms, starting with (quote)
 - Move tokenizer from "case" statements to jump table
-- Get (not #t) working as first process with operands
 - Get (not (not #t)) working for depth tree processing
 - Get (quote (#x1 #x2)) working for quoting
 - Process procedures, starting with (display) and (+)
@@ -36,10 +30,12 @@ TO DO LONG TERM
 - Write a Python tool that walks through headers.asm and makes sure that the
   jump offset to the exec_table in procedures has the same offset
 - Write a debug procedure to dump the symbol table
+- Make it so the label map in docs is automatically sorted alphabetically
 
 
 DONE
 
+2020-05-10 - Make two procedure lines like "(newline) (newline)" work 
 2020-04-30 - Write a debug procedure to dump the Data Stack 
 2020-04-30 - Eval/apply can now handle simple proc like "(newline)"
 2020-04-28 - Process each term individually, not by line (compare Racket)

@@ -2,7 +2,7 @@
 ; Platform: py65mon (default)
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 19. Jan 2014 (Tali Forth)
-; This version: 01. May 2020
+; This version: 10. May 2020
 
 ; This file is adapted from the platform system of Tali Forth 2 for the 64Tass
 ; assembler. To adapt it, you will need to relace the kernel routines at the

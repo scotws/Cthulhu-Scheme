@@ -1,7 +1,7 @@
 ; Procedures and Special Forms for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 30. Mar 2020
-; This version: 01. May 2020
+; This version: 10. May 2020
 
 ; This file contains the procedures and special forms of Cthulhu Scheme that
 ; are coded natively in assembler. For now, we keep special forms such as
@@ -53,9 +53,7 @@ proc_exit:
                 jmp repl_quit
 
 proc_newline:
-        ; """Write an end of line to a port. Doesn't return a value. In
-        ; contrast to MIT Scheme, which returns an "unspecified value", we
-        ; follow Racket and don't return a value at all. The specification
+        ; """Write an end of line to a port. The specification
         ; allows an optional port value, see
         ; https://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/Output-Procedures.html
         ; for details.
@@ -76,7 +74,7 @@ proc_newline:
                 ; TODO handle port parameter if provided
 
                 ; We only use (newline) for the side effect so there isn't
-                ; really a return value. However, apply expects us to return
+                ; really a return value. However, (apply) expects us to return
                 ; something. This is what MIT Scheme calls an "unspecified
                 ; value". We call it the "NOP object" and save it here. The
                 ; printer has to decide what to do with it later. 
