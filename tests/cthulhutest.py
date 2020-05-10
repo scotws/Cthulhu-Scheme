@@ -26,6 +26,7 @@ from py65.memory import ObservableMemory
 RESULTS = 'results.txt'
 CTHULHU_LOCATION = '../cthulhu-py65mon.bin'
 CTHULHU_PANIC = 'PANIC:'
+CTHULHU_PROMPT = '>'
 CTHULHU_QUIT = '\n'                     # can also be "(exit)"
 PY65MON_ERROR = '*** Unknown syntax:'
 CTHULHU_ERRORS = ['Unbound variable:', 'Ill-formed number:']
@@ -43,7 +44,7 @@ CTHULHU_DEBUG_MSG = ['Input Buffer:', 'Token Buffer:', 'AST: ', 'Heap pointer:']
 
 # Add name of file with test to the set of TEST_FILES without the extension to
 # add further tests
-TEST_FILES = ['booleans', 'fixnums', 'procedures', 'strings']
+TEST_FILES = ['booleans', 'fixnums', 'mixes', 'procedures', 'strings']
 EXTENSION = '.tst'
 TESTLIST = ' '.join(["'"+str(t)+"' " for t in TEST_FILES])
 
@@ -65,6 +66,8 @@ parser.add_argument('-s', '--suppress_tester', action='store_true',
                     help='Suppress the output while the tester is loading', default=False)
 parser.add_argument('-t', '--tests', nargs='+', type=str, default=['all'],
                     help=TESTS_HELP)
+parser.add_argument('-v', '--verbose', action='store_true',
+                    help='Print extra information', default=False)
 args = parser.parse_args()
 
 # Make sure we were given a legal list of tests: Must be either 'all' or one or
@@ -239,6 +242,8 @@ if failed:
 
 # Walk through the lines and see what we got for which input
 
+error_count = 0 
+
 with open(args.output, 'r') as rfile:
 
     got = ''
@@ -250,16 +255,18 @@ with open(args.output, 'r') as rfile:
         if line.startswith(INTRO):
             continue
 
-        if line.startswith('>'):
+        if line.startswith(CTHULHU_PROMPT):     # '>' by default
 
             # Crude way of skipping the first iteration when there is no 'got'
             # yet to be had
             if recording_result:
 
-                print(raw_sent, ':', repr(raw_want), ':', repr(got))
+                if args.verbose:
+                    print(raw_sent, ':', repr(raw_want), ':', repr(got))
 
                 if raw_want != got:
-                    print('ERROR: Sent', raw_sent, 'Want:', repr(raw_want),\
+                    error_count += 1
+                    print('ERROR: Sent:', repr(raw_sent), 'Wanted:', repr(raw_want),\
                             'Got:', repr(got))
 
             line = line[2:]
@@ -277,9 +284,12 @@ with open(args.output, 'r') as rfile:
 
 
 # Sum it all up.
-if (not panics) and (not failed):
-    print()
+print()
+
+if (not panics) and (not failed) and (error_count == 0):
     print('All available tests passed')
+else:
+    print('Found', error_count, 'errors')
 
 # If we got here, the program itself ran fine one way or another
 if args.beep:

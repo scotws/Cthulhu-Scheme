@@ -1,6 +1,6 @@
 # Makefile for Cthulhu Scheme
 # First version: 30. Mar 2020
-# This version: 22. Apr 2020
+# This version: 10. May 2020
 
 # This is based on the Makefile for Tali Forth 2, which was originally written
 # by Sam Colwell
@@ -30,7 +30,7 @@ else
 endif
 
 COMMON_SOURCES=definitions.asm cthulhu.asm procedures.asm headers.asm helpers.asm compounds.asm strings.asm debug.asm lexer.asm parser.asm eval.asm printer.asm reader.asm
-TEST_SOURCES=tests/main.scm
+TEST_SOURCES=tests/*.tst
 
 all:	cthulhu-py65mon.bin
 clean:

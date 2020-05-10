@@ -23,8 +23,58 @@ Cthulhu Scheme default kernel for py65mon (13. Apr 2020)
 #t
 
 #f
+> #b0000
+0000
+> #b0001
+0001
+> #b0010
+0002
+> #b0011
+0003
+> #b0100
+0004
+> #b1000
+0008
+> #b1111
+000F
+> #b00000000
+0000
+> #b00000001
+0001
+> #b10000000
+0080
+> #b11111111
+00FF
+> #x000
+0000
 > #x123
 0123
+> #xAAA
+0AAA
+> #xBBB
+0BBB
+> #xCCC
+0CCC
+> #xDDD
+0DDD
+> #xEEE
+0EEE
+> #xfff
+0FFF
+> #xFFF
+0FFF
+> #f #t #xaaa
+#f
+
+#t
+
+0AAA
+> #f #x123 #t
+#f
+
+0123
+
+#t
 > (newline)
 
 > (newline)(newline)
@@ -43,5 +93,11 @@ aaa
 aaa
 
 bbb
+> "aaa" "bbb" "ccc"
+aaa
+
+bbb
+
+ccc
 > 
 Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.

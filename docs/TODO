@@ -9,7 +9,7 @@ project is uploaded and slightly more mature.
 
 TO DO SHORT TERM
 
-- Rework testing suite so we have SENT-WANT-GOT testing
+
 - Reset Data and 6502 stack when starting REPL
 - Get (not #t) working as process with a single operands
 - Get (+ 1 2 3) working as process with multiple operands
@@ -23,6 +23,7 @@ TO DO SHORT TERM
 
 TO DO LONG TERM
 
+- Add SECTION output to test output (nice to have)
 - Output as decimal numbers by default
 - Accept decimal numbers as input
 - REPL: See about adding history buffers once we know how much space we will be
@@ -35,6 +36,7 @@ TO DO LONG TERM
 
 DONE
 
+2020-05-10 - Rework testing suite so we have SENT-WANT-GOT testing
 2020-05-10 - Make two procedure lines like "(newline) (newline)" work 
 2020-04-30 - Write a debug procedure to dump the Data Stack 
 2020-04-30 - Eval/apply can now handle simple proc like "(newline)"
