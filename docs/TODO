@@ -1,7 +1,7 @@
 TODO file for Cthulhu Scheme
 Scot W. Stevenson <scot.stevenson@gmail.com>
 First version: 30. March 2020
-This version: 10. May 2020
+This version: 13. May 2020
 
 List of things to do. This file will be superceded by GitHub Issues once the
 project is uploaded and slightly more mature.
@@ -12,10 +12,10 @@ TO DO SHORT TERM
 
 - Reset Data and 6502 stack when starting REPL
 - Get (not #t) working as process with a single operands
+- Get (not (not #t)) working for depth tree processing
 - Get (+ 1 2 3) working as process with multiple operands
 - Process special forms, starting with (quote)
 - Move tokenizer from "case" statements to jump table
-- Get (not (not #t)) working for depth tree processing
 - Get (quote (#x1 #x2)) working for quoting
 - Process procedures, starting with (display) and (+)
 - Write a debug procedure to dump the string table

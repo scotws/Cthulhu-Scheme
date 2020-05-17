@@ -1,7 +1,7 @@
 ; Print routine for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 06. Apr 2020
-; This version: 01. May 2020
+; This version: 17. May 2020
 
 ; We use "printer" in this file instead of "print" to avoid any possible
 ; confusion with the helper functions. 
@@ -78,13 +78,13 @@ printer_next:
 
 printer_done:
         ; Return to eval 
-                jsr help_emit_lf
                 rts             
 
 
 ; ==== PRINTER SUBROUTINES ====
 
-; We land here with the MSB of the car in 1,x and the LSB in 0,x
+; We land here with the MSB of the car in 1,x and the LSB in 0,x. Note that
+; none of these print a line feed, we let other parts handle this for us.
 
 printer_0_meta:
         ; ---- Meta ----

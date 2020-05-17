@@ -40,3 +40,6 @@ SECTION Fixnum tests, hex
 "#xfff" -> "0FFF\n"
 "#xFFF" -> "0FFF\n"
 
+
+SECTION Multiple Numbers
+"#x000 #x111" -> "0000\n0111\n"

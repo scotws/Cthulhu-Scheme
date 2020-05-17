@@ -1,7 +1,7 @@
 ; Evaluator for Cthulhu Scheme 
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 05. Apr 2020
-; This version: 10. May 2020
+; This version: 17. May 2020
 
 ; We walk the AST and actually execute what needs to be executed. This uses
 ; the AST walker from helpers.asm. Note we use "eval_" for the evaluator (part
@@ -60,6 +60,7 @@ eval_next:
 
 eval_done:
         ; We're all done, so we go back to the REPL
+                jsr help_emit_lf
                 jmp repl
 
 
@@ -293,12 +294,6 @@ proc_apply:
                 ; We move on to the next entry in the AST, which is the first
                 ; object after the procedure. The top value of the Data Stack
                 ; is still the procedure's object
-
-;               TODO WTF. In theory, this line is needed to move one on.
-;               However, in practice, this results in the 
-;               "(newline)(newline)" problem. Leave uncommented while we built
-;               a correct test suite
-;               jsr help_walk_next
 
                 ; With procedures, the LSB on the top of the Data Stack is the
                 ; offset to the jump table for code in procedures.asm. This

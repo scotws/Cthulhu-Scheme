@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --nostart --list=docs/py65mon-listing.txt --labels=docs/py65mon-labelmap.txt --output cthulhu-py65mon.bin platforms/platform-py65mon.asm
-; Sun May 10 08:24:22 2020
+; Sun May 17 15:01:58 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -776,154 +776,154 @@
 .8497					eval_loop:
 .8497	a2 ff		ldx #$ff	                ldx #ds_start           ; $FF by default
 .8499	86 00		stx $00		                stx dsp
-.849b	20 4b 85	jsr $854b	                jsr eval_push_car_to_stack
-.849e	20 b0 84	jsr $84b0	                jsr proc_eval
+.849b	20 4e 85	jsr $854e	                jsr eval_push_car_to_stack
+.849e	20 b3 84	jsr $84b3	                jsr proc_eval
 .84a1					eval_next:
-.84a1	20 5a 85	jsr $855a	                jsr printer
+.84a1	20 5d 85	jsr $855d	                jsr printer
 .84a4	a5 20		lda $20		                lda walk_done      ; $FF true, term over; $00 false, continue
 .84a6	d0 05		bne $84ad	                bne eval_done
 .84a8	20 e5 86	jsr $86e5	                jsr help_walk_next
 .84ab	80 ea		bra $8497	                bra eval_loop
 .84ad					eval_done:
-.84ad	4c 2d 80	jmp $802d	                jmp repl
-.84b0					proc_eval:
-.84b0	b5 01		lda $01,x	                lda 1,x
-.84b2	e8		inx		                inx             ; Discard top entry of the Data Stack
-.84b3	e8		inx		                inx
-.84b4	29 f0		and #$f0	                and #$f0
-.84b6	4a		lsr a		                lsr
-.84b7	4a		lsr a		                lsr
-.84b8	4a		lsr a		                lsr             ; fourth LSR and ASL cancle each other out
-.84b9	aa		tax		                tax
-.84ba	7c 01 85	jmp ($8501,x)	                jmp (eval_table,x)
-.84bd					proc_eval_next:
-.84bd	60		rts		                rts
-.84be					eval_0_meta:
-.84be	c0 aa		cpy #$aa	                cpy #<OC_PARENS_START           ; defined in parser.asm
-.84c0	d0 29		bne $84eb	                bne eval_not_parens_start
-.84c2	20 e5 86	jsr $86e5	                jsr help_walk_next
-.84c5	a5 1d		lda $1d		                lda walk_car+1          ; MSB of the object car
-.84c7	29 f0		and #$f0	                and #$F0
-.84c9	c9 f0		cmp #$f0	                cmp #OT_PROC
-.84cb	d0 12		bne $84df	                bne eval_not_a_proc
-.84cd	a6 00		ldx $00		                ldx dsp                 ; X last was index to jump table
-.84cf	a5 1d		lda $1d		                lda walk_car+1
-.84d1	95 01		sta $01,x	                sta 1,x                 ; MSB
-.84d3	a5 1c		lda $1c		                lda walk_car            ; LSB
-.84d5	95 00		sta $00,x	                sta 0,x
-.84d7	86 00		stx $00		                stx dsp
-.84d9	4c 21 85	jmp $8521	                jmp proc_apply          ; Not a subroutine jump!
-.84dc					eval_0_meta_return:
-.84dc	4c bd 84	jmp $84bd	                jmp proc_eval_next      ; TODO replace with RTS directly
-.84df					eval_not_a_proc:
-.84df	c9 e0		cmp #$e0	                cmp #OT_SPEC
-.84e1	d0 00		bne $84e3	                bne eval_not_a_spec
-.84e3					eval_not_a_spec:
-.84e3					eval_not_legal_meta:
-.84e3	a9 0f		lda #$0f	                lda #str_cant_apply
-.84e5	20 4a 86	jsr $864a	                jsr help_print_string
-.84e8	4c 2d 80	jmp $802d	                jmp repl
-.84eb					eval_not_parens_start:
-.84eb	c0 ff		cpy #$ff	                cpy #<OC_PARENS_END             ; from parser.asm
-.84ed	d0 08		bne $84f7	                bne _empty_list                 ; move this up
-.84ef	a9 09		lda #$09	                lda #str_extra_parens
-.84f1	20 4a 86	jsr $864a	                jsr help_print_string
-.84f4	4c 2d 80	jmp $802d	                jmp repl                        ; Return to main loop
-.84f7					_empty_list:
-.84f7	c0 00		cpy #$00	                cpy #<OC_EMPTY_LIST
-.84f9	d0 e8		bne $84e3	                bne eval_not_legal_meta     ; temporary, TODO real error message
-.84fb					eval_1_bool:
-.84fb					eval_2_fixnum:
-.84fb					eval_3_char:
-.84fb					eval_4_string:
-.84fb					eval_e_spec:
-.84fb					eval_f_proc:
-.84fb	4c bd 84	jmp $84bd	                jmp proc_eval_next      ; TODO replace with RTS directly
-.84fe					eval_5_bignum:
-.84fe					eval_6_UNDEFINED:
-.84fe					eval_7_UNDEFINED:
-.84fe					eval_8_pair:
-.84fe					eval_9_UNDEFINED:
-.84fe					eval_A_UNDEFINED:
-.84fe					eval_B_UNDEFINED:
-.84fe					eval_C_UNDEFINED:
-.84fe					eval_D_UNDEFINED:
-.84fe	4c a1 84	jmp $84a1	                jmp eval_next   ; TODO catch undefined stuff during development
-.8501					eval_table:
->8501	be 84 fb 84 fb 84 fb 84		        .word eval_0_meta, eval_1_bool, eval_2_fixnum, eval_3_char
->8509	fb 84 a1 84 a1 84 a1 84		        .word eval_4_string, eval_next, eval_next, eval_next
->8511	fe 84 a1 84 a1 84 a1 84		        .word eval_8_pair, eval_next, eval_next, eval_next
->8519	a1 84 a1 84 fb 84 fb 84		        .word eval_next, eval_next, eval_e_spec, eval_f_proc
-.8521					apply:
-.8521					proc_apply:
-.8521	a6 00		ldx $00		                ldx dsp
-.8523	b5 00		lda $00,x	                lda 0,x      ; LSB from off top of Data Stack from off top of Data Stack
-.8525	a8		tay		                tay          ; use Y so X can stay dsp
-.8526	b9 2c 87	lda $872c,y	                lda exec_table_lsb,y
-.8529	85 05		sta $05		                sta jump
-.852b	b9 36 87	lda $8736,y	                lda exec_table_msb,y
-.852e	85 06		sta $06		                sta jump+1
-.8530	6c 05 00	jmp ($0005)	                jmp (jump)
-.8533					proc_apply_return:
-.8533	a5 20		lda $20		                lda walk_done
-.8535	d0 11		bne $8548	                bne _done
-.8537	20 e5 86	jsr $86e5	                jsr help_walk_next
-.853a	a6 00		ldx $00		                ldx dsp                 ; possibly paranoid
-.853c	ca		dex		                dex
-.853d	ca		dex		                dex
-.853e	a5 1c		lda $1c		                lda walk_car            ; LSB
-.8540	95 00		sta $00,x	                sta 0,x
-.8542	a5 1d		lda $1d		                lda walk_car+1          ; MSB
-.8544	95 01		sta $01,x	                sta 1,x
-.8546	85 00		sta $00		                sta dsp                 ; possibly paranoid
-.8548					_done:
-.8548	4c dc 84	jmp $84dc	                jmp eval_0_meta_return
-.854b					eval_push_car_to_stack:
-.854b	a6 00		ldx $00		                ldx dsp                 ; points to MSB of last entry
-.854d	ca		dex		                dex                     ; initially $FE
-.854e	ca		dex		                dex                     ; initially $FD
-.854f	a5 1c		lda $1c		                lda walk_car            ; LSB is pushed first, initially $FD
-.8551	95 00		sta $00,x	                sta 0,x
-.8553	a5 1d		lda $1d		                lda walk_car+1          ; MSB is pushed second, initially $FE
-.8555	95 01		sta $01,x	                sta 1,x
-.8557	86 00		stx $00		                stx dsp                 ; We'll need X for jumps later
-.8559	60		rts		                rts
+.84ad	20 28 86	jsr $8628	                jsr help_emit_lf
+.84b0	4c 2d 80	jmp $802d	                jmp repl
+.84b3					proc_eval:
+.84b3	b5 01		lda $01,x	                lda 1,x
+.84b5	e8		inx		                inx             ; Discard top entry of the Data Stack
+.84b6	e8		inx		                inx
+.84b7	29 f0		and #$f0	                and #$f0
+.84b9	4a		lsr a		                lsr
+.84ba	4a		lsr a		                lsr
+.84bb	4a		lsr a		                lsr             ; fourth LSR and ASL cancle each other out
+.84bc	aa		tax		                tax
+.84bd	7c 04 85	jmp ($8504,x)	                jmp (eval_table,x)
+.84c0					proc_eval_next:
+.84c0	60		rts		                rts
+.84c1					eval_0_meta:
+.84c1	c0 aa		cpy #$aa	                cpy #<OC_PARENS_START           ; defined in parser.asm
+.84c3	d0 29		bne $84ee	                bne eval_not_parens_start
+.84c5	20 e5 86	jsr $86e5	                jsr help_walk_next
+.84c8	a5 1d		lda $1d		                lda walk_car+1          ; MSB of the object car
+.84ca	29 f0		and #$f0	                and #$F0
+.84cc	c9 f0		cmp #$f0	                cmp #OT_PROC
+.84ce	d0 12		bne $84e2	                bne eval_not_a_proc
+.84d0	a6 00		ldx $00		                ldx dsp                 ; X last was index to jump table
+.84d2	a5 1d		lda $1d		                lda walk_car+1
+.84d4	95 01		sta $01,x	                sta 1,x                 ; MSB
+.84d6	a5 1c		lda $1c		                lda walk_car            ; LSB
+.84d8	95 00		sta $00,x	                sta 0,x
+.84da	86 00		stx $00		                stx dsp
+.84dc	4c 24 85	jmp $8524	                jmp proc_apply          ; Not a subroutine jump!
+.84df					eval_0_meta_return:
+.84df	4c c0 84	jmp $84c0	                jmp proc_eval_next      ; TODO replace with RTS directly
+.84e2					eval_not_a_proc:
+.84e2	c9 e0		cmp #$e0	                cmp #OT_SPEC
+.84e4	d0 00		bne $84e6	                bne eval_not_a_spec
+.84e6					eval_not_a_spec:
+.84e6					eval_not_legal_meta:
+.84e6	a9 0f		lda #$0f	                lda #str_cant_apply
+.84e8	20 4a 86	jsr $864a	                jsr help_print_string
+.84eb	4c 2d 80	jmp $802d	                jmp repl
+.84ee					eval_not_parens_start:
+.84ee	c0 ff		cpy #$ff	                cpy #<OC_PARENS_END             ; from parser.asm
+.84f0	d0 08		bne $84fa	                bne _empty_list                 ; move this up
+.84f2	a9 09		lda #$09	                lda #str_extra_parens
+.84f4	20 4a 86	jsr $864a	                jsr help_print_string
+.84f7	4c 2d 80	jmp $802d	                jmp repl                        ; Return to main loop
+.84fa					_empty_list:
+.84fa	c0 00		cpy #$00	                cpy #<OC_EMPTY_LIST
+.84fc	d0 e8		bne $84e6	                bne eval_not_legal_meta     ; temporary, TODO real error message
+.84fe					eval_1_bool:
+.84fe					eval_2_fixnum:
+.84fe					eval_3_char:
+.84fe					eval_4_string:
+.84fe					eval_e_spec:
+.84fe					eval_f_proc:
+.84fe	4c c0 84	jmp $84c0	                jmp proc_eval_next      ; TODO replace with RTS directly
+.8501					eval_5_bignum:
+.8501					eval_6_UNDEFINED:
+.8501					eval_7_UNDEFINED:
+.8501					eval_8_pair:
+.8501					eval_9_UNDEFINED:
+.8501					eval_A_UNDEFINED:
+.8501					eval_B_UNDEFINED:
+.8501					eval_C_UNDEFINED:
+.8501					eval_D_UNDEFINED:
+.8501	4c a1 84	jmp $84a1	                jmp eval_next   ; TODO catch undefined stuff during development
+.8504					eval_table:
+>8504	c1 84 fe 84 fe 84 fe 84		        .word eval_0_meta, eval_1_bool, eval_2_fixnum, eval_3_char
+>850c	fe 84 a1 84 a1 84 a1 84		        .word eval_4_string, eval_next, eval_next, eval_next
+>8514	01 85 a1 84 a1 84 a1 84		        .word eval_8_pair, eval_next, eval_next, eval_next
+>851c	a1 84 a1 84 fe 84 fe 84		        .word eval_next, eval_next, eval_e_spec, eval_f_proc
+.8524					apply:
+.8524					proc_apply:
+.8524	a6 00		ldx $00		                ldx dsp
+.8526	b5 00		lda $00,x	                lda 0,x      ; LSB from off top of Data Stack from off top of Data Stack
+.8528	a8		tay		                tay          ; use Y so X can stay dsp
+.8529	b9 2c 87	lda $872c,y	                lda exec_table_lsb,y
+.852c	85 05		sta $05		                sta jump
+.852e	b9 36 87	lda $8736,y	                lda exec_table_msb,y
+.8531	85 06		sta $06		                sta jump+1
+.8533	6c 05 00	jmp ($0005)	                jmp (jump)
+.8536					proc_apply_return:
+.8536	a5 20		lda $20		                lda walk_done
+.8538	d0 11		bne $854b	                bne _done
+.853a	20 e5 86	jsr $86e5	                jsr help_walk_next
+.853d	a6 00		ldx $00		                ldx dsp                 ; possibly paranoid
+.853f	ca		dex		                dex
+.8540	ca		dex		                dex
+.8541	a5 1c		lda $1c		                lda walk_car            ; LSB
+.8543	95 00		sta $00,x	                sta 0,x
+.8545	a5 1d		lda $1d		                lda walk_car+1          ; MSB
+.8547	95 01		sta $01,x	                sta 1,x
+.8549	85 00		sta $00		                sta dsp                 ; possibly paranoid
+.854b					_done:
+.854b	4c df 84	jmp $84df	                jmp eval_0_meta_return
+.854e					eval_push_car_to_stack:
+.854e	a6 00		ldx $00		                ldx dsp                 ; points to MSB of last entry
+.8550	ca		dex		                dex                     ; initially $FE
+.8551	ca		dex		                dex                     ; initially $FD
+.8552	a5 1c		lda $1c		                lda walk_car            ; LSB is pushed first, initially $FD
+.8554	95 00		sta $00,x	                sta 0,x
+.8556	a5 1d		lda $1d		                lda walk_car+1          ; MSB is pushed second, initially $FE
+.8558	95 01		sta $01,x	                sta 1,x
+.855a	86 00		stx $00		                stx dsp                 ; We'll need X for jumps later
+.855c	60		rts		                rts
 
 ;******  Return to file: platforms/../cthulhu.asm
 
 
 ;******  Processing file: platforms/../printer.asm
 
-.855a					printer:
-.855a	a2 fd		ldx #$fd	                ldx #ds_start-2
-.855c	86 00		stx $00		                stx dsp         ; Sadly, we use X for two different things
-.855e					printer_loop:
-.855e	a6 00		ldx $00		                ldx dsp
-.8560	b5 01		lda $01,x	                lda 1,x         ; by default the MSB at $00FE
-.8562	a8		tay		                tay
-.8563	f0 0d		beq $8572	                beq _check_for_end
-.8565					_not_end:
-.8565	98		tya		                tya
-.8566	29 f0		and #$f0	                and #$f0        ; mask all but tag nibble
-.8568	4a		lsr a		                lsr
-.8569	4a		lsr a		                lsr
-.856a	4a		lsr a		                lsr     ; Fourth LSR and ASL cancle each other
-.856b	aa		tax		                tax     ; This is why we save X as dsp
-.856c	20 28 86	jsr $8628	                jsr help_emit_lf
-.856f	7c e3 85	jmp ($85e3,x)	                jmp (printer_table,x)
-.8572					_check_for_end:
-.8572	b5 00		lda $00,x	                lda 0,x         ; LSB
-.8574	d0 0d		bne $8583	                bne printer_0_meta
-.8576	4c 7f 85	jmp $857f	                jmp printer_done
-.8579					printer_next:
-.8579	c6 00		dec $00		                dec dsp
-.857b	c6 00		dec $00		                dec dsp
-.857d	80 df		bra $855e	                bra printer_loop
-.857f					printer_done:
-.857f	20 28 86	jsr $8628	                jsr help_emit_lf
+.855d					printer:
+.855d	a2 fd		ldx #$fd	                ldx #ds_start-2
+.855f	86 00		stx $00		                stx dsp         ; Sadly, we use X for two different things
+.8561					printer_loop:
+.8561	a6 00		ldx $00		                ldx dsp
+.8563	b5 01		lda $01,x	                lda 1,x         ; by default the MSB at $00FE
+.8565	a8		tay		                tay
+.8566	f0 0d		beq $8575	                beq _check_for_end
+.8568					_not_end:
+.8568	98		tya		                tya
+.8569	29 f0		and #$f0	                and #$f0        ; mask all but tag nibble
+.856b	4a		lsr a		                lsr
+.856c	4a		lsr a		                lsr
+.856d	4a		lsr a		                lsr     ; Fourth LSR and ASL cancle each other
+.856e	aa		tax		                tax     ; This is why we save X as dsp
+.856f	20 28 86	jsr $8628	                jsr help_emit_lf
+.8572	7c e3 85	jmp ($85e3,x)	                jmp (printer_table,x)
+.8575					_check_for_end:
+.8575	b5 00		lda $00,x	                lda 0,x         ; LSB
+.8577	d0 0a		bne $8583	                bne printer_0_meta
+.8579	4c 82 85	jmp $8582	                jmp printer_done
+.857c					printer_next:
+.857c	c6 00		dec $00		                dec dsp
+.857e	c6 00		dec $00		                dec dsp
+.8580	80 df		bra $8561	                bra printer_loop
+.8582					printer_done:
 .8582	60		rts		                rts
 .8583					printer_0_meta:
-.8583	80 f4		bra $8579	                bra printer_next
+.8583	80 f7		bra $857c	                bra printer_next
 .8585					printer_1_bool:
 .8585	a6 00		ldx $00		                ldx dsp
 .8587	b5 01		lda $01,x	                lda 1,x         ; reload MSB to be safe
@@ -936,7 +936,7 @@
 .8593	a9 02		lda #$02	                lda #str_true
 .8595					_bool_printer:
 .8595	20 30 86	jsr $8630	                jsr help_print_string_no_lf
-.8598	80 df		bra $8579	                bra printer_next
+.8598	80 e2		bra $857c	                bra printer_next
 .859a					printer_2_fixnum:
 .859a	a6 00		ldx $00		                ldx dsp
 .859c	b5 01		lda $01,x	                lda 1,x                 ; MSB
@@ -944,7 +944,7 @@
 .85a0	20 11 86	jsr $8611	                jsr help_byte_to_ascii
 .85a3	b5 00		lda $00,x	                lda 0,x                 ; LSB
 .85a5	20 11 86	jsr $8611	                jsr help_byte_to_ascii
-.85a8	80 cf		bra $8579	                bra printer_next
+.85a8	80 d2		bra $857c	                bra printer_next
 .85aa					printer_3_char:
 .85aa					printer_4_string:
 .85aa	a6 00		ldx $00		                ldx dsp
@@ -957,7 +957,7 @@
 .85b8	a0 00		ldy #$00	                ldy #0
 .85ba					_string_loop:
 .85ba	b1 25		lda ($25),y	                lda (tmp2),y
-.85bc	f0 bb		beq $8579	                beq printer_next       ; string is zero terminated
+.85bc	f0 be		beq $857c	                beq printer_next       ; string is zero terminated
 .85be	20 2a 86	jsr $862a	                jsr help_emit_a
 .85c1	c8		iny		                iny
 .85c2	80 f6		bra $85ba	                bra _string_loop
@@ -985,12 +985,12 @@
 .85d9	20 11 86	jsr $8611	                jsr help_byte_to_ascii
 .85dc	a9 3e		lda #$3e	                lda #'>'
 .85de	20 2a 86	jsr $862a	                jsr help_emit_a
-.85e1	80 96		bra $8579	                bra printer_next
+.85e1	80 99		bra $857c	                bra printer_next
 .85e3					printer_table:
 >85e3	83 85 85 85 9a 85 aa 85		        .word printer_0_meta, printer_1_bool, printer_2_fixnum, printer_3_char
->85eb	aa 85 c4 85 c4 85 79 85		        .word printer_4_string, printer_5_bignum, printer_6_var, printer_next
->85f3	c4 85 79 85 79 85 79 85		        .word printer_8_pair, printer_next, printer_next, printer_next
->85fb	79 85 79 85 c4 85 cb 85		        .word printer_next, printer_next, printer_e_special, printer_f_proc
+>85eb	aa 85 c4 85 c4 85 7c 85		        .word printer_4_string, printer_5_bignum, printer_6_var, printer_next
+>85f3	c4 85 7c 85 7c 85 7c 85		        .word printer_8_pair, printer_next, printer_next, printer_next
+>85fb	7c 85 7c 85 c4 85 cb 85		        .word printer_next, printer_next, printer_e_special, printer_f_proc
 
 ;******  Return to file: platforms/../cthulhu.asm
 
@@ -1212,7 +1212,7 @@
 .871b	a9 00		lda #$00	                lda #>OC_NOP
 .871d	95 01		sta $01,x	                sta 1,x         ; MSB
 .871f	20 28 86	jsr $8628	                jsr help_emit_lf
-.8722	4c 33 85	jmp $8533	                jmp proc_apply_return
+.8722	4c 36 85	jmp $8536	                jmp proc_apply_return
 .8725					proc_not:
 .8725	a5 1d		lda $1d		                lda walk_car+1          ; get MSB for object tag
 .8727	29 f0		and #$f0	                and #$F0                ; we only want the tag for now
@@ -1229,7 +1229,7 @@
 .872b					spec_set_e:
 .872b	60		rts		                rts
 .872c					exec_table_lsb:
->872c	21				        .byte <proc_apply       ; 00
+>872c	24				        .byte <proc_apply       ; 00
 >872d	2b				        .byte <spec_quote       ; 01
 >872e	14				        .byte <proc_exit        ; 02
 >872f	17				        .byte <proc_newline     ; 03
